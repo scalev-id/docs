@@ -1,0 +1,19 @@
+[book]
+authors = ["Abdurrahman Arroisi"]
+language = "en"
+multilingual = false
+src = "src"
+title = "Scalev API Documentation"
+description = "Complete API documentation for Scalev app"
+
+[build]
+build-dir = "book"
+
+[output.html]
+default-theme = "navy"
+preferred-dark-theme = "navy"
+git-repository-url = "https://github.com/scalev-id/docs"
+edit-url-template = "https://github.com/scalev-id/docs/edit/main/{path}"
+
+[output.html.search]
+enable = true
