@@ -45,9 +45,9 @@ print(calculated_hmac)
 
 Scalev currently supports the following webhook events:
 
-- `order.created`: Triggered when a new order is created. [Payload example](./webhooks/order-created-example.md)
-- `order.updated`: Triggered when an existing order is updated. [Payload example](./webhooks/order-updated-example.md)
-- `order.deleted`: Triggered when an order is deleted. [Payload example](./webhooks/order-deleted-example.md)
-- `order.status_changed`: Triggered when the status of an order changes. [Payload example](./webhooks/order-status-changed-example.md)
-- `order.payment_status_changed`: Triggered when the payment status of an order changes. [Payload example](./webhooks/order-payment-status-changed-example.md)
-- `order.spam_created`: Triggered when a spam order is created. [Payload example](./webhooks/order-spam-created-example.md)
+- `order.created`: Triggered when a new order is created. [Payload example](./order-created-example.md)
+- `order.updated`: Triggered when an existing order is updated. [Payload example](./order-updated-example.md)
+- `order.deleted`: Triggered when an order is deleted. [Payload example](./order-deleted-example.md)
+- `order.status_changed`: Triggered when the status of an order changes. [Payload example](./order-status-changed-example.md)
+- `order.payment_status_changed`: Triggered when the payment status of an order changes. [Payload example](./order-payment-status-changed-example.md)
+- `order.spam_created`: Triggered when a spam order is created. [Payload example](./order-spam-created-example.md)
