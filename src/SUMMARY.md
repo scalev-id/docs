@@ -10,7 +10,7 @@
 
 # Webhooks
 
-- [Webhooks](./webhooks/overview.md)
+- [Overview](./webhooks/overview.md)
   - [Order Created Event Payload Example](./webhooks/order-created-example.md)
   - [Order Updated Event Payload Example](./webhooks/order-updated-example.md)
   - [Order Deleted Event Payload Example](./webhooks/order-deleted-example.md)
