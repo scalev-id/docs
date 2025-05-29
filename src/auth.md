@@ -1,6 +1,6 @@
-# OAuth 2.0 Integration
+# Authorization
 
-This document outlines the OAuth 2.0 authorization process for integrating with Scalev API. By following this guide, you'll be able to obtain access tokens that allow your application to interact with Scalev API on behalf of your users.
+This document outlines the authorization process for integrating with Scalev API. We use OAuth 2.0 to allow third-party applications to access user data securely and with user consent. By following this guide, you will learn how to authenticate users, obtain access tokens, and make authorized API requests.
 
 ## Overview
 

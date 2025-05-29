@@ -1,7 +1,7 @@
 # Summary
 
 - [Introduction](./introduction.md)
-- [OAuth 2.0 Integration](./auth.md)
+- [Authorization](./auth.md)
 
 # API Reference
 
