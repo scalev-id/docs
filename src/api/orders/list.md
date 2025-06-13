@@ -68,7 +68,7 @@ All query parameters are always string and optional, and can be combined for fil
           "email": "owner.ctr21@gmail.com",
           "phone": "628118906070",
           "fullname": "Test Account",
-          "avatar": "https://cdn.scalev.com/User/bb08dba70ee74da9a45897b922bc52e7.jpg"
+          "avatar": "https://cdn.scalev.id/User/bb08dba70ee74da9a45897b922bc52e7.jpg"
         },
         "awb_ca_status": "unavailable",
         "awb_status": "unavailable",
@@ -226,7 +226,7 @@ All query parameters are always string and optional, and can be combined for fil
             "unique_id": "CJBWGIUNOUYWKFAC",
             "account_holder": "PT Modelez  1",
             "email": "bisnisaneh16@yopmail.com",
-            "logo": "https://cdn.scalev.com/Business/qq1IvU8opASHCSEKqPbV7gDIsUAGGN1YUFer0IV5rQM/1737458806302-6862d817-4c64-4107-8_xiAHyPI.webp",
+            "logo": "https://cdn.scalev.id/Business/qq1IvU8opASHCSEKqPbV7gDIsUAGGN1YUFer0IV5rQM/1737458806302-6862d817-4c64-4107-8_xiAHyPI.webp",
             "username": "modelez"
           }
         },
@@ -251,7 +251,7 @@ All query parameters are always string and optional, and can be combined for fil
             "unique_id": "CJBWGIUNOUYWKFAC",
             "account_holder": "PT Modelez  1",
             "email": "bisnisaneh16@yopmail.com",
-            "logo": "https://cdn.scalev.com/Business/qq1IvU8opASHCSEKqPbV7gDIsUAGGN1YUFer0IV5rQM/1737458806302-6862d817-4c64-4107-8_xiAHyPI.webp",
+            "logo": "https://cdn.scalev.id/Business/qq1IvU8opASHCSEKqPbV7gDIsUAGGN1YUFer0IV5rQM/1737458806302-6862d817-4c64-4107-8_xiAHyPI.webp",
             "username": "modelez"
           }
         }

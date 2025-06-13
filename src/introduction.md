@@ -5,7 +5,7 @@ Welcome to Scalev Docs. In this space, we will introduce how to interact with Sc
 ## Base URL
 
 ```
-https://api.scalev.com
+https://api.scalev.id/v2
 ```
 
 ## Authentication
@@ -118,7 +118,7 @@ For standard paginated responses, the `data` field contains:
 
 ## Support
 
-If you encounter any issues, please visit our developer forum at https://developers.scalev.com or contact our support team at tech@scalev.com.
+If you encounter any issues, please visit our developer forum at https://github.com/scalev-id/docs/discussions or contact our support team at tech@scalev.id.
 
 ---
 

@@ -42,7 +42,7 @@
     },
     "payment_account_holder": "Unreal Person",
     "payment_account_number": "1234567812345678",
-    "transferproof_url": "https://cdn.scalev.com/Image/dGONXQPPK_hDCrEL3lfEnOQoPOBwuRUZUUyjxreQCzQ/1738182480347-milkbox.webp",
+    "transferproof_url": "https://cdn.scalev.id/Image/dGONXQPPK_hDCrEL3lfEnOQoPOBwuRUZUUyjxreQCzQ/1738182480347-milkbox.webp",
     "transfer_time": null,
     "final_variants": {
       "Amazing Product": 1

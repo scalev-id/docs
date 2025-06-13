@@ -18,7 +18,7 @@ Scalev API uses the OAuth 2.0 Authorization Code flow, which provides a secure w
 Before you can begin the OAuth flow, you need to register your application:
 
 1. Log into your Scalev account
-2. Navigate to [**Settings > Developers > Apps**](https://app.scalev.com/setting/developers/apps)
+2. Navigate to [**Settings > Developers > Apps**](https://app.scalev.id/setting/developers/apps)
 3. Click on "Create New App"
 4. Fill out the required information:
    - Application name
@@ -35,7 +35,7 @@ Before you can begin the OAuth flow, you need to register your application:
 When a user wants to connect your application to their Scalev account, redirect them to Scalev's authorization endpoint with the following parameters:
 
 ```
-https://app.scalev.com/oauth/authorize?
+https://app.scalev.id/oauth/authorize?
   client_id=YOUR_CLIENT_ID&
   redirect_uri=YOUR_REDIRECT_URI&
   response_type=code&
@@ -80,7 +80,7 @@ Important security steps:
 Make a POST request to Scalev's token endpoint to exchange your authorization code for tokens:
 
 ```
-POST https://api.scalev.com/v1/oauth/token
+POST https://api.scalev.id/v2/oauth/token
 Content-Type: application/json
 
 {
@@ -114,7 +114,7 @@ If successful, you'll receive a JSON response containing:
 Use the access token to authenticate requests to Scalev API by including it in the Authorization header:
 
 ```
-GET https://api.scalev.com/some-endpoint
+GET https://api.scalev.id/v2/some-endpoint
 Authorization: Bearer ACCESS_TOKEN
 ```
 
@@ -123,7 +123,7 @@ Authorization: Bearer ACCESS_TOKEN
 Access tokens expire after 1 hour. When an access token expires, use the refresh token to obtain a new one without requiring user interaction:
 
 ```
-POST https://api.scalev.com/v1/oauth/token
+POST https://api.scalev.id/v2/oauth/token
 Content-Type: application/json
 
 {
@@ -159,7 +159,7 @@ The response will contain a new access token and refresh token:
 If your app needs to revoke its access to a user's account, you can do so by making a request to the revocation endpoint:
 
 ```
-POST https://api.scalev.com/v1/oauth/revoke
+POST https://api.scalev.id/v2/oauth/revoke
 Content-Type: application/json
 
 {
