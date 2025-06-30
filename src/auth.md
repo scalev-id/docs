@@ -20,11 +20,14 @@ Before you can begin the OAuth flow, you need to register your application:
 1. Log into your Scalev account
 2. Navigate to [**Settings > Developers > Apps**](https://app.scalev.id/setting/developers/apps)
 3. Click on "Create New App"
-4. Fill out the required information:
+4. Fill out the information:
    - Application name
    - Description
    - Redirect URI (where users will be sent after authorization)
    - Requested scopes (permissions your app requires)
+   - Whitelisted IP addresses (requests not from these IPs will be rejected)
+   - Enable "Webhooks" if you want to receive webhook events
+   - Webhook events (select the events you want to receive)
 5. Submit the form to create your application
 6. You will receive a **Client ID** and **Client Secret** - store these securely
 
