@@ -6,12 +6,18 @@ This document outlines the authorization process for integrating with Scalev API
 
 Scalev API uses the OAuth 2.0 Authorization Code flow, which provides a secure way for your application to obtain permission to access resources on behalf of a user. The flow consists of these key steps:
 
+0. Verifying your business
 1. Registering your application with Scalev
 2. Redirecting users to Scalev's authorization page
-3. Receiving an authorization code
-4. Exchanging the code for access and refresh tokens
-5. Using the access token to make API requests
-6. Refreshing the access token when it expires
+3. Users authorizing your application
+4. Receiving an authorization code
+5. Exchanging the code for access and refresh tokens
+6. Using the access token to make API requests
+7. Refreshing the access token when it expires
+
+## Step 0: Verify Your Business
+
+To start using the Scalev API, you must first verify your business as a prerequisite before your application can access the necessary resources and perform actions on behalf of users. This is to ensure that each application is associated with a verified legal business entity, which helps maintain the integrity and security of the platform. To verify your business, go to [**Settings > Business**](https://app.scalev.id/setting/business) in your Scalev account and follow the instructions provided there.
 
 ## Step 1: Register Your Application
 
@@ -172,6 +178,13 @@ Content-Type: application/json
   "client_secret": "YOUR_CLIENT_SECRET"
 }
 ```
+
+## Application Limits
+
+We impose the following limits on OAuth applications to ensure fair usage and security:
+
+1. 3 apps per business, currently this is a hard limit
+2. 50 connected users per app, can be increased upon request after usage review
 
 ## Best Practices
 
