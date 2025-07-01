@@ -4,16 +4,17 @@ This document outlines the authorization process for integrating with Scalev API
 
 ## Overview
 
-Scalev API uses the OAuth 2.0 Authorization Code flow, which provides a secure way for your application to obtain permission to access resources on behalf of a user. The flow consists of these key steps:
+Scalev API uses the OAuth 2.0 Authorization Code flow with PKCE (Proof Key for Code Exchange), which provides a secure way for your application to obtain permission to access resources on behalf of a user. PKCE is mandatory for all applications to enhance security. The flow consists of these key steps:
 
 0. Verifying your business
 1. Registering your application with Scalev
-2. Redirecting users to Scalev's authorization page
-3. Users authorizing your application
-4. Receiving an authorization code
-5. Exchanging the code for access and refresh tokens
-6. Using the access token to make API requests
-7. Refreshing the access token when it expires
+2. Generating PKCE code verifier and challenge
+3. Redirecting users to Scalev's authorization page
+4. Users authorizing your application
+5. Receiving an authorization code
+6. Exchanging the code for access and refresh tokens (with PKCE verification)
+7. Using the access token to make API requests
+8. Refreshing the access token when it expires
 
 ## Step 0: Verify Your Business
 
@@ -39,7 +40,47 @@ Before you can begin the OAuth flow, you need to register your application:
 
 > ⚠️ **Security Note**: Keep your Client Secret confidential. Never expose it in client-side code or public repositories.
 
-## Step 2: Authorization Request
+## Step 2: Generate PKCE Parameters
+
+Before initiating the authorization flow, you must generate PKCE parameters for enhanced security:
+
+1. **Generate a Code Verifier**: Create a cryptographically random string of 43-128 characters using the characters `[A-Z] / [a-z] / [0-9] / "-" / "." / "_" / "~"`
+
+2. **Create a Code Challenge**: Generate a Base64-URL-encoded SHA256 hash of the code verifier
+
+Here's how to generate these values:
+
+**Code Verifier Example (JavaScript):**
+
+```javascript
+function generateCodeVerifier() {
+  const array = new Uint8Array(32);
+  crypto.getRandomValues(array);
+  return base64UrlEncode(array);
+}
+
+function base64UrlEncode(buffer) {
+  return btoa(String.fromCharCode(...new Uint8Array(buffer)))
+    .replace(/=/g, "")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_");
+}
+```
+
+**Code Challenge Example (JavaScript):**
+
+```javascript
+async function generateCodeChallenge(codeVerifier) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(codeVerifier);
+  const digest = await crypto.subtle.digest("SHA-256", data);
+  return base64UrlEncode(digest);
+}
+```
+
+> 💡 **Note**: Store the code verifier securely on your client as you'll need it in Step 6 to exchange the authorization code for tokens.
+
+## Step 3: Authorization Request
 
 When a user wants to connect your application to their Scalev account, redirect them to Scalev's authorization endpoint with the following parameters:
 
@@ -48,17 +89,21 @@ https://app.scalev.id/oauth/authorize?
   client_id=YOUR_CLIENT_ID&
   redirect_uri=YOUR_REDIRECT_URI&
   response_type=code&
-  state=RANDOM_STATE_STRING
+  state=RANDOM_STATE_STRING&
+  code_challenge=CODE_CHALLENGE&
+  code_challenge_method=S256
 ```
 
-| Parameter       | Required | Description                                                                                                        |
-| --------------- | -------- | ------------------------------------------------------------------------------------------------------------------ |
-| `client_id`     | Yes      | The Client ID you received when registering your application                                                       |
-| `redirect_uri`  | Yes      | The URI where users will be sent after authorization (must match one registered with your app)                     |
-| `response_type` | Yes      | Must be set to `code` for the Authorization Code flow                                                              |
-| `state`         | Yes      | A random string you generate to protect against CSRF attacks. You should validate this when receiving the callback |
+| Parameter               | Required | Description                                                                                                        |
+| ----------------------- | -------- | ------------------------------------------------------------------------------------------------------------------ |
+| `client_id`             | Yes      | The Client ID you received when registering your application                                                       |
+| `redirect_uri`          | Yes      | The URI where users will be sent after authorization (must match one registered with your app)                     |
+| `response_type`         | Yes      | Must be set to `code` for the Authorization Code flow                                                              |
+| `state`                 | Yes      | A random string you generate to protect against CSRF attacks. You should validate this when receiving the callback |
+| `code_challenge`        | Yes      | The Base64-URL-encoded SHA256 hash of your code verifier (generated in Step 2)                                     |
+| `code_challenge_method` | Yes      | Must be set to `S256` (SHA256 hashing method)                                                                      |
 
-## Step 3: User Authorization
+## Step 4: User Authorization
 
 At the authorization page, users will:
 
@@ -66,7 +111,7 @@ At the authorization page, users will:
 2. See information about your application and the permissions you're requesting
 3. Choose to approve or deny the authorization request
 
-## Step 4: Receiving the Authorization Code
+## Step 5: Receiving the Authorization Code
 
 If the user approves your request, Scalev will redirect them back to your `redirect_uri` with the following parameters:
 
@@ -84,9 +129,9 @@ Important security steps:
 1. Verify that the `state` parameter matches the one you sent in the original request
 2. Exchange the code for tokens promptly as authorization codes expire quickly
 
-## Step 5: Exchanging the Code for Tokens
+## Step 6: Exchanging the Code for Tokens
 
-Make a POST request to Scalev's token endpoint to exchange your authorization code for tokens:
+Make a POST request to Scalev's token endpoint to exchange your authorization code for tokens. You must include the code verifier for PKCE verification:
 
 ```
 POST https://api.scalev.id/v2/oauth/token
@@ -96,9 +141,18 @@ Content-Type: application/json
   "grant_type": "authorization_code",
   "code": "AUTHORIZATION_CODE",
   "client_id": "YOUR_CLIENT_ID",
-  "client_secret": "client_secret"
+  "client_secret": "YOUR_CLIENT_SECRET",
+  "code_verifier": "CODE_VERIFIER"
 }
 ```
+
+| Field           | Required | Description                                                               |
+| --------------- | -------- | ------------------------------------------------------------------------- |
+| `grant_type`    | Yes      | Must be set to `authorization_code`                                       |
+| `code`          | Yes      | The authorization code received from the authorization server             |
+| `client_id`     | Yes      | Your application's Client ID                                              |
+| `client_secret` | Yes      | Your application's Client Secret                                          |
+| `code_verifier` | Yes      | The original code verifier string generated in Step 2 (not the challenge) |
 
 If successful, you'll receive a JSON response containing:
 
@@ -118,7 +172,7 @@ If successful, you'll receive a JSON response containing:
 | `token_type`    | Always "Bearer"                                                           |
 | `expires_in`    | Time until the access token expires, in seconds (typically 3600 = 1 hour) |
 
-## Step 6: Using the Access Token
+## Step 7: Using the Access Token
 
 Use the access token to authenticate requests to Scalev API by including it in the Authorization header:
 
@@ -127,7 +181,7 @@ GET https://api.scalev.id/v2/some-endpoint
 Authorization: Bearer ACCESS_TOKEN
 ```
 
-## Step 7: Refreshing Access Tokens
+## Step 8: Refreshing Access Tokens
 
 Access tokens expire after 1 hour. When an access token expires, use the refresh token to obtain a new one without requiring user interaction:
 
@@ -188,12 +242,14 @@ We impose the following limits on OAuth applications to ensure fair usage and se
 
 ## Best Practices
 
-1. **Implement PKCE (Proof Key for Code Exchange)** for added security, especially for mobile apps
-2. **Validate all redirect URI parameters** to prevent open redirect vulnerabilities
-3. **Use the state parameter** to protect against CSRF attacks
-4. **Store tokens securely**, never in local storage or cookies accessible by JavaScript
-5. **Implement proper error handling** for all OAuth-related operations
-6. **Be prepared for token refresh failures** and redirect users to re-authenticate when necessary
+1. **Generate cryptographically secure PKCE parameters** using proper random number generators
+2. **Store the code verifier securely** and never expose it in URLs or logs
+3. **Validate all redirect URI parameters** to prevent open redirect vulnerabilities
+4. **Use the state parameter** to protect against CSRF attacks
+5. **Store tokens securely**, never in local storage or cookies accessible by JavaScript
+6. **Implement proper error handling** for all OAuth-related operations, including PKCE validation errors
+7. **Be prepared for token refresh failures** and redirect users to re-authenticate when necessary
+8. **Use different code verifiers for each authorization request** - never reuse them
 
 ## Error Handling
 
@@ -205,4 +261,14 @@ The OAuth endpoints may return various error responses. Common error codes inclu
 | `invalid_client`      | Client authentication failed                                          |
 | `invalid_grant`       | The authorization code or refresh token is invalid or expired         |
 | `unauthorized_client` | The client is not authorized to use the requested grant type          |
+| `invalid_request`     | PKCE verification failed (code_verifier doesn't match code_challenge) |
 | `server_error`        | The server encountered an unexpected error                            |
+
+### PKCE-Specific Errors
+
+When PKCE validation fails, you may receive:
+
+- `invalid_request` with description indicating PKCE parameter issues
+- `invalid_grant` when the code verifier doesn't match the original code challenge
+
+Always generate new PKCE parameters for retry attempts.
