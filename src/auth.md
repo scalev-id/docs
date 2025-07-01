@@ -53,23 +53,29 @@ Here's how to generate these values:
 **Code Verifier Example (JavaScript):**
 
 ```javascript
-function generateCodeVerifier() {
-  const array = new Uint8Array(32);
-  crypto.getRandomValues(array);
-  return base64UrlEncode(array);
-}
-
-function base64UrlEncode(buffer) {
-  return btoa(String.fromCharCode(...new Uint8Array(buffer)))
-    .replace(/=/g, "")
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_");
+function generateCodeVerifier(length = 100) {
+  if (!Number.isInteger(length) || length < 43 || length > 128) {
+    throw new Error("Length must be an integer between 43 and 128.");
+  }
+  const charset =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~";
+  const randomValues = crypto.getRandomValues(new Uint8Array(length));
+  return Array.from(
+    randomValues,
+    (byte) => charset[byte % charset.length],
+  ).join("");
 }
 ```
 
 **Code Challenge Example (JavaScript):**
 
 ```javascript
+function base64UrlEncode(buffer) {
+  return btoa(String.fromCharCode(...new Uint8Array(buffer)))
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_");
+}
+
 async function generateCodeChallenge(codeVerifier) {
   const encoder = new TextEncoder();
   const data = encoder.encode(codeVerifier);
