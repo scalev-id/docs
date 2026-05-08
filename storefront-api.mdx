@@ -44,7 +44,26 @@ Guest cart routes also return and accept:
 X-Guest-Token: 7e7f8c12-2e1d-4b31-97ad-5ca4f8d1c2d0
 ```
 
-The same token is also exposed through `X-Scalev-Guest-Token`. Use either guest-token header on later requests.
+You get this token from the first guest cart response. Call `GET /public/cart` or `POST /public/cart/items` without a guest token, then read `X-Guest-Token` or `X-Scalev-Guest-Token` from the response headers.
+
+```js
+const response = await fetch(
+  `https://api.scalev.com/v3/stores/${storeId}/public/cart`,
+  {
+    headers: {
+      "X-Scalev-Storefront-Api-Key": storefrontApiKey,
+    },
+  }
+);
+
+const guestToken =
+  response.headers.get("X-Scalev-Guest-Token") ||
+  response.headers.get("X-Guest-Token");
+
+localStorage.setItem("scalev_guest_token", guestToken);
+```
+
+The same token is exposed through both guest-token headers. Use either one on later requests.
 
 Store the guest token in browser storage and send it on later cart and checkout requests. This is the browser-safe cart identity strategy; cookies are only a compatibility fallback.
 

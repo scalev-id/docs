@@ -44,7 +44,26 @@ Route guest cart juga mengembalikan dan menerima:
 X-Guest-Token: 7e7f8c12-2e1d-4b31-97ad-5ca4f8d1c2d0
 ```
 
-Token yang sama juga diekspos melalui `X-Scalev-Guest-Token`. Gunakan salah satu header guest-token pada request berikutnya.
+Anda mendapatkan token ini dari response guest cart pertama. Panggil `GET /public/cart` atau `POST /public/cart/items` tanpa guest token, lalu baca `X-Guest-Token` atau `X-Scalev-Guest-Token` dari response header.
+
+```js
+const response = await fetch(
+  `https://api.scalev.com/v3/stores/${storeId}/public/cart`,
+  {
+    headers: {
+      "X-Scalev-Storefront-Api-Key": storefrontApiKey,
+    },
+  }
+);
+
+const guestToken =
+  response.headers.get("X-Scalev-Guest-Token") ||
+  response.headers.get("X-Guest-Token");
+
+localStorage.setItem("scalev_guest_token", guestToken);
+```
+
+Token yang sama diekspos melalui kedua guest-token header. Gunakan salah satunya pada request berikutnya.
 
 Simpan guest token di browser storage dan kirim pada request cart dan checkout berikutnya. Ini adalah strategi identitas cart yang aman untuk browser; cookie hanya fallback kompatibilitas.
 
