@@ -41,10 +41,10 @@ X-Scalev-Storefront-Api-Key: sfpk_...
 Route guest cart juga mengembalikan dan menerima:
 
 ```text
-X-Guest-Token: 7e7f8c12-2e1d-4b31-97ad-5ca4f8d1c2d0
+X-Scalev-Guest-Token: 7e7f8c12-2e1d-4b31-97ad-5ca4f8d1c2d0
 ```
 
-Anda mendapatkan token ini dari response guest cart pertama. Panggil `GET /public/cart` atau `POST /public/cart/items` tanpa guest token, lalu baca `X-Guest-Token` atau `X-Scalev-Guest-Token` dari response header.
+Anda mendapatkan token ini dari response guest cart pertama. Panggil `GET /public/cart` atau `POST /public/cart/items` tanpa guest token, lalu baca `X-Scalev-Guest-Token` dari response header.
 
 ```js
 const response = await fetch(
@@ -56,14 +56,10 @@ const response = await fetch(
   }
 );
 
-const guestToken =
-  response.headers.get("X-Scalev-Guest-Token") ||
-  response.headers.get("X-Guest-Token");
+const guestToken = response.headers.get("X-Scalev-Guest-Token");
 
 localStorage.setItem("scalev_guest_token", guestToken);
 ```
-
-Token yang sama diekspos melalui kedua guest-token header. Gunakan salah satunya pada request berikutnya.
 
 Simpan guest token di browser storage dan kirim pada request cart dan checkout berikutnya. Ini adalah strategi identitas cart yang aman untuk browser; cookie hanya fallback kompatibilitas.
 
@@ -103,4 +99,4 @@ POST   /v3/stores/{store_id}/storefront/allowed-origins
 DELETE /v3/stores/{store_id}/storefront/allowed-origins/{id}
 ```
 
-CORS preflight untuk origin yang diizinkan mencakup `X-Scalev-Storefront-Api-Key`, `X-Guest-Token`, `X-Scalev-Guest-Token`, `Authorization`, dan `Content-Type`.
+CORS preflight untuk origin yang diizinkan mencakup `X-Scalev-Storefront-Api-Key`, `X-Scalev-Guest-Token`, `Authorization`, dan `Content-Type`.

@@ -41,10 +41,10 @@ X-Scalev-Storefront-Api-Key: sfpk_...
 Guest cart routes also return and accept:
 
 ```text
-X-Guest-Token: 7e7f8c12-2e1d-4b31-97ad-5ca4f8d1c2d0
+X-Scalev-Guest-Token: 7e7f8c12-2e1d-4b31-97ad-5ca4f8d1c2d0
 ```
 
-You get this token from the first guest cart response. Call `GET /public/cart` or `POST /public/cart/items` without a guest token, then read `X-Guest-Token` or `X-Scalev-Guest-Token` from the response headers.
+You get this token from the first guest cart response. Call `GET /public/cart` or `POST /public/cart/items` without a guest token, then read `X-Scalev-Guest-Token` from the response headers.
 
 ```js
 const response = await fetch(
@@ -56,14 +56,10 @@ const response = await fetch(
   }
 );
 
-const guestToken =
-  response.headers.get("X-Scalev-Guest-Token") ||
-  response.headers.get("X-Guest-Token");
+const guestToken = response.headers.get("X-Scalev-Guest-Token");
 
 localStorage.setItem("scalev_guest_token", guestToken);
 ```
-
-The same token is exposed through both guest-token headers. Use either one on later requests.
 
 Store the guest token in browser storage and send it on later cart and checkout requests. This is the browser-safe cart identity strategy; cookies are only a compatibility fallback.
 
@@ -103,4 +99,4 @@ POST   /v3/stores/{store_id}/storefront/allowed-origins
 DELETE /v3/stores/{store_id}/storefront/allowed-origins/{id}
 ```
 
-Allowed-origin CORS preflight includes `X-Scalev-Storefront-Api-Key`, `X-Guest-Token`, `X-Scalev-Guest-Token`, `Authorization`, and `Content-Type`.
+Allowed-origin CORS preflight includes `X-Scalev-Storefront-Api-Key`, `X-Scalev-Guest-Token`, `Authorization`, and `Content-Type`.
