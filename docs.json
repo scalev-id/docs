@@ -48,7 +48,7 @@
               },
               {
                 "group": "Contoh Penggunaan",
-                "pages": ["membuat-pesanan"]
+                "pages": ["membuat-pesanan", "storefront-api-id"]
               },
               {
                 "group": "Landing Pages",
@@ -100,7 +100,7 @@
               },
               {
                 "group": "Use Cases",
-                "pages": ["creating-orders"]
+                "pages": ["creating-orders", "storefront-api"]
               },
               {
                 "group": "Landing Pages",

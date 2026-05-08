@@ -1,0 +1,87 @@
+---
+title: "Pengaturan Storefront API"
+description: "Atur akses Storefront API dari browser secara terpisah dari pengaturan Storefront bawaan."
+---
+
+Storefront API adalah API untuk storefront custom yang berjalan di browser. Ini berbeda dari pengaturan Storefront bawaan, yang mengatur halaman buatan Scalev, custom domain, builder homepage dan checkout, footer pages, OTP, custom HTML, dan analytics.
+
+Gunakan pengaturan Storefront API saat Anda membuat frontend sendiri dan ingin memanggil Scalev langsung dari browser.
+
+## Yang perlu diatur
+
+Di dashboard, buka halaman konfigurasi store dan gunakan bagian **Storefront API**.
+
+Salin public Store ID. Integrasi baru sebaiknya memakai `unique_id` store, contoh:
+
+```text
+store_vlzpML8edzxO5roOdV7Oyfn6
+```
+
+Buat Storefront API key yang publishable:
+
+```text
+sfpk_...
+```
+
+Daftarkan setiap origin browser yang akan memanggil API:
+
+```text
+https://demo.scalev.shop
+http://localhost:3000
+```
+
+## Header request browser
+
+Route public storefront memerlukan:
+
+```text
+X-Scalev-Storefront-Api-Key: sfpk_...
+```
+
+Route guest cart juga mengembalikan dan menerima:
+
+```text
+X-Guest-Token: 7e7f8c12-2e1d-4b31-97ad-5ca4f8d1c2d0
+```
+
+Token yang sama juga diekspos melalui `X-Scalev-Guest-Token`. Gunakan salah satu header guest-token pada request berikutnya.
+
+Simpan guest token di browser storage dan kirim pada request cart dan checkout berikutnya. Ini adalah strategi identitas cart yang aman untuk browser; cookie hanya fallback kompatibilitas.
+
+## Endpoint utama
+
+```text
+GET  /v3/stores/{store_id}/public/products
+GET  /v3/stores/{store_id}/public/payment-methods
+GET  /v3/stores/{store_id}/public/locations/provinces
+GET  /v3/stores/{store_id}/public/locations/cities?province_id=31
+GET  /v3/stores/{store_id}/public/locations/subdistricts?city_id=3171
+GET  /v3/stores/{store_id}/public/locations?search=Cempaka%20Putih
+GET  /v3/stores/{store_id}/public/locations/{location_id}/postal-codes
+POST /v3/stores/{store_id}/public/cart/items
+POST /v3/stores/{store_id}/public/guest-checkout
+GET  /v3/stores/{store_id}/public/orders/{secret_slug}
+POST /v3/stores/{store_id}/public/orders/{secret_slug}/payment
+```
+
+Search location memakai cursor pagination. Saat `has_next` bernilai `true`, gunakan `next_cursor` untuk mengambil halaman berikutnya.
+
+Endpoint public order mengembalikan status order, total, pengiriman, item, dan instruksi pembayaran yang aman dilihat buyer. Endpoint ini tidak mengembalikan konfigurasi store atau handler khusus dashboard.
+
+Endpoint payment public bersifat idempotent saat instruksi pembayaran atau `payment_url` sudah tersedia.
+
+## Setup API
+
+Endpoint setup memerlukan akses bisnis terautentikasi. Gunakan public Store ID untuk client baru; numeric store ID lama masih diterima.
+
+```text
+GET    /v3/stores/{store_id}/public-api-keys
+POST   /v3/stores/{store_id}/public-api-keys
+DELETE /v3/stores/{store_id}/public-api-keys/{id}
+
+GET    /v3/stores/{store_id}/storefront/allowed-origins
+POST   /v3/stores/{store_id}/storefront/allowed-origins
+DELETE /v3/stores/{store_id}/storefront/allowed-origins/{id}
+```
+
+CORS preflight untuk origin yang diizinkan mencakup `X-Scalev-Storefront-Api-Key`, `X-Guest-Token`, `X-Scalev-Guest-Token`, `Authorization`, dan `Content-Type`.

@@ -1,0 +1,87 @@
+---
+title: "Storefront API setup"
+description: "Configure browser-only Storefront API access separately from hosted Storefront settings."
+---
+
+Storefront API is the browser-facing API for custom storefronts. It is separate from hosted Storefront settings, which control Scalev-rendered pages, custom domains, homepage and checkout builders, footer pages, OTP, custom HTML, and analytics.
+
+Use Storefront API setup when you are building your own frontend and want it to call Scalev directly from the browser.
+
+## What to configure
+
+In the dashboard, open the store configuration page and use the **Storefront API** section.
+
+Copy the public Store ID. New integrations should use the store `unique_id`, for example:
+
+```text
+store_vlzpML8edzxO5roOdV7Oyfn6
+```
+
+Generate a publishable Storefront API key:
+
+```text
+sfpk_...
+```
+
+Register every browser origin that will call the API:
+
+```text
+https://demo.scalev.shop
+http://localhost:3000
+```
+
+## Browser request headers
+
+Public storefront routes require:
+
+```text
+X-Scalev-Storefront-Api-Key: sfpk_...
+```
+
+Guest cart routes also return and accept:
+
+```text
+X-Guest-Token: 7e7f8c12-2e1d-4b31-97ad-5ca4f8d1c2d0
+```
+
+The same token is also exposed through `X-Scalev-Guest-Token`. Use either guest-token header on later requests.
+
+Store the guest token in browser storage and send it on later cart and checkout requests. This is the browser-safe cart identity strategy; cookies are only a compatibility fallback.
+
+## Core endpoints
+
+```text
+GET  /v3/stores/{store_id}/public/products
+GET  /v3/stores/{store_id}/public/payment-methods
+GET  /v3/stores/{store_id}/public/locations/provinces
+GET  /v3/stores/{store_id}/public/locations/cities?province_id=31
+GET  /v3/stores/{store_id}/public/locations/subdistricts?city_id=3171
+GET  /v3/stores/{store_id}/public/locations?search=Cempaka%20Putih
+GET  /v3/stores/{store_id}/public/locations/{location_id}/postal-codes
+POST /v3/stores/{store_id}/public/cart/items
+POST /v3/stores/{store_id}/public/guest-checkout
+GET  /v3/stores/{store_id}/public/orders/{secret_slug}
+POST /v3/stores/{store_id}/public/orders/{secret_slug}/payment
+```
+
+Location search uses cursor pagination. When `has_next` is `true`, use `next_cursor` to fetch the next page.
+
+The public order endpoint returns buyer-facing order status, totals, shipping, items, and payment instructions. It does not return dashboard-only store or handler configuration.
+
+The public payment endpoint is idempotent when payment instructions or `payment_url` already exist.
+
+## Setup API
+
+The setup endpoints require authenticated business access. Use the public store ID for new clients; legacy numeric store IDs remain accepted.
+
+```text
+GET    /v3/stores/{store_id}/public-api-keys
+POST   /v3/stores/{store_id}/public-api-keys
+DELETE /v3/stores/{store_id}/public-api-keys/{id}
+
+GET    /v3/stores/{store_id}/storefront/allowed-origins
+POST   /v3/stores/{store_id}/storefront/allowed-origins
+DELETE /v3/stores/{store_id}/storefront/allowed-origins/{id}
+```
+
+Allowed-origin CORS preflight includes `X-Scalev-Storefront-Api-Key`, `X-Guest-Token`, `X-Scalev-Guest-Token`, `Authorization`, and `Content-Type`.
