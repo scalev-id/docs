@@ -4,6 +4,19 @@ description: "Product updates and documentation changes"
 rss: true
 ---
 
+<Update label="May 2026" description="Storefront API physical checkout completion" tags={["API", "Docs"]}>
+  Storefront API physical checkout now completes after the documented shipping
+  option and checkout summary steps. Guest checkout, guest cart checkout, and
+  authenticated customer checkout recompute the selected shipping cost on the
+  server from the courier service, warehouse, destination, payment method, and
+  cart items before creating the order. The public discount-code check route is
+  now a `POST` request with a JSON checkout context body and returns a typed
+  ineligible response for unknown codes instead of treating the documented path
+  as missing.
+  OpenAPI now also includes typed customer account, customer cart, customer
+  order, and customer course contracts.
+</Update>
+
 <Update label="May 2026" description="Typed customer endpoint responses" tags={["API"]}>
   Authenticated customer storefront endpoints now return typed response shapes
   instead of generic success envelopes. `GET`, `PATCH`, and `PATCH /password`

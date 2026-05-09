@@ -116,6 +116,36 @@ Field response sama dengan summary checkout yang sudah ada:
 
 Cart digital-only mengembalikan `shipping_cost: "0"`.
 
+## Cek kode diskon
+
+```http
+POST /v3/stores/{store_id}/public/discount-codes/check
+```
+
+Gunakan body JSON untuk memvalidasi kode diskon sebelum checkout:
+
+```json
+{
+  "code": "SAVE10",
+  "items": [
+    {
+      "variant_id": 494535,
+      "quantity": 1
+    }
+  ],
+  "destination": {
+    "location_id": 9089,
+    "postal_code": "10510"
+  },
+  "courier_service_id": 123,
+  "warehouse_unique_id": "warehouse_abc",
+  "courier_aggregator_code": null,
+  "payment_method": "bank_transfer"
+}
+```
+
+Jika `X-Scalev-Guest-Token` mengarah ke cart yang tidak kosong, API memakai cart itu sebagai sumber item. Jika tidak, kirim `items[]`. Kode yang tidak ditemukan atau tidak eligible tetap mengembalikan response validasi normal dengan `is_eligible: false` dan `discount_code: null`.
+
 ## Guest checkout
 
 Buat order dengan:
@@ -147,6 +177,8 @@ Gunakan field checkout terpilih yang sama:
   "payment_method": "bank_transfer"
 }
 ```
+
+Endpoint checkout memakai courier service, warehouse, destinasi, metode pembayaran, dan item cart terpilih untuk menghitung ulang shipping cost di server. Jangan menjadikan `shipping_cost` dari client sebagai sumber kebenaran.
 
 Response berisi `order_secret_slug`, `public_order_url`, dan `payment_url`.
 
@@ -186,13 +218,13 @@ Success page bawaan terlebih dulu membuat display model kecil dari `pg_payment_i
 
 Field sumber aslinya berasal dari order dan response payment. Untuk payload Xendit/default saat ini, petakan dengan aturan berikut:
 
-| Display value | Field sumber |
-| --- | --- |
-| `qrString` | `pg_payment_info.qr_string` atau `pg_payment_info.payment_method.qr_code.channel_properties.qr_string` |
-| `vaNumber` | `pg_payment_info.payment_method.virtual_account.channel_properties.virtual_account_number` atau `pg_payment_info.payment_method.over_the_counter.channel_properties.payment_code` |
-| `vaAccountHolder` | `pg_payment_info.payment_method.virtual_account.channel_properties.customer_name` atau `pg_payment_info.payment_method.over_the_counter.channel_properties.customer_name` |
-| `invoiceUrl` | `pg_payment_info.invoice_url` atau `pg_payment_info.redirect_url` |
-| `qrImageUrl` | Buat QR image dari `qrString` di frontend saat Anda membutuhkan gambar QR yang bisa diunduh. |
+| Display value     | Field sumber                                                                                                                                                                      |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `qrString`        | `pg_payment_info.qr_string` atau `pg_payment_info.payment_method.qr_code.channel_properties.qr_string`                                                                            |
+| `vaNumber`        | `pg_payment_info.payment_method.virtual_account.channel_properties.virtual_account_number` atau `pg_payment_info.payment_method.over_the_counter.channel_properties.payment_code` |
+| `vaAccountHolder` | `pg_payment_info.payment_method.virtual_account.channel_properties.customer_name` atau `pg_payment_info.payment_method.over_the_counter.channel_properties.customer_name`         |
+| `invoiceUrl`      | `pg_payment_info.invoice_url` atau `pg_payment_info.redirect_url`                                                                                                                 |
+| `qrImageUrl`      | Buat QR image dari `qrString` di frontend saat Anda membutuhkan gambar QR yang bisa diunduh.                                                                                      |
 
 Untuk `gopay`, `dana`, `linkaja`, `shopeepay`, dan `ovo`, pilih action URL dari `pg_payment_info.actions`: mobile memprioritaskan `url_type` `WEB` atau `DEEPLINK`; desktop memprioritaskan `MOBILE` atau `DEEPLINK`.
 
@@ -200,7 +232,7 @@ Set `renderUrlAs` menjadi `button` untuk `invoice`, `card`, dan semua tampilan m
 
 `bank_transfer`:
 
-Tampilkan total order, rekening bank transfer manual, countdown expiry saat aktif, dan link konfirmasi pembayaran ke `/o/{secret_slug}?showPaymentConfirmation=true`. Page bawaan mengambil rekening bank dari store `payment_accounts` dengan `method` `bank_transfer` dan metode tersebut masih aktif. `pg_payment_info` bisa berupa `{}`.
+Tampilkan total order, rekening manual bank transfer, expiry countdown jika aktif, dan link konfirmasi pembayaran ke `/o/{secret_slug}?showPaymentConfirmation=true`. Hosted page mengambil rekening dari `payment_accounts` store dengan `method` `bank_transfer` dan metode yang masih aktif. `pg_payment_info` bisa berupa `{}`.
 
 `cod`:
 
@@ -208,27 +240,27 @@ Tampilkan body sukses COD dan jangan tampilkan countdown payment. Payment creati
 
 Virtual account (`va`):
 
-Tampilkan bank/channel virtual account dari `sub_payment_method`, `vaNumber`, dan optional `vaAccountHolder`. Sediakan tombol copy dan link panduan pembayaran. Kode bank yang dikenal mencakup `BRI`, `MANDIRI`, `PERMATA`, `BNI`, `BCA`, `MAYBANK`, `CIMB`, `BNC`, `DANAMON`, `BSI`, `AG`, `BJB`, `SAHABAT_SAMPOERNA`, `ARTAJASA`, `BMI`, dan `BTN`.
+Render bank/channel virtual account dari `sub_payment_method`, `vaNumber`, dan `vaAccountHolder` jika tersedia. Tampilkan tombol copy dan link tutorial pembayaran. Bank code yang dikenal mencakup `BRI`, `MANDIRI`, `PERMATA`, `BNI`, `BCA`, `MAYBANK`, `CIMB`, `BNC`, `DANAMON`, `BSI`, `AG`, `BJB`, `SAHABAT_SAMPOERNA`, `ARTAJASA`, `BMI`, dan `BTN`.
 
 QRIS (`qris`):
 
-Render QR code dari `qrString`. Sediakan aksi download QR dari `qrImageUrl` dan instruksi mobile untuk menyimpan atau screenshot QR sebelum membayar di aplikasi QRIS. Jika QR gagal dibuat atau `qrString` kosong, tampilkan aksi retry yang memanggil endpoint public payment lagi.
+Render QR code dari `qrString`. Sediakan juga aksi download QR dari `qrImageUrl` dan instruksi mobile untuk menyimpan atau screenshot QR image sebelum membayar di aplikasi QRIS. Jika QR gagal dibuat atau `qrString` tidak ada, tampilkan retry action yang memanggil public payment endpoint lagi.
 
 E-wallet kecuali OVO (`gopay`, `dana`, `linkaja`, `shopeepay`):
 
-Gunakan `invoiceUrl` dari provider actions. Di mobile, buka sebagai tombol/deep link. Di desktop, render `invoiceUrl` sebagai QR code jika `renderUrlAs` adalah `qr_code`; jika tidak, buka sebagai tombol. Jika URL tidak bisa dimapping, arahkan buyer kembali ke public order page.
+Gunakan `invoiceUrl` dari provider actions. Di mobile, buka sebagai button/deep link. Di desktop, render `invoiceUrl` sebagai QR code saat `renderUrlAs` bernilai `qr_code`; selain itu buka sebagai button. Jika URL tidak bisa dipetakan, arahkan buyer kembali ke public order page.
 
 OVO (`ovo`):
 
-Tampilkan instruksi agar buyer mengecek aplikasi OVO yang terhubung dengan nomor telepon buyer. Komponen success page bawaan tidak merender OVO melalui komponen QR e-wallet yang sama.
+Tampilkan instruksi untuk mengecek aplikasi OVO yang terhubung dengan nomor telepon buyer. Komponen success bawaan tidak merender OVO melalui komponen QR e-wallet yang sama.
 
 Card (`card`) dan invoice/hosted payment (`invoice`):
 
-Buka `invoiceUrl` hasil mapping sebagai tombol/redirect. Success page bawaan melakukan redirect otomatis saat `invoiceUrl` tersedia dan `renderUrlAs` adalah `button`.
+Buka `invoiceUrl` hasil mapping sebagai button/redirect. Hosted success page otomatis redirect ketika `invoiceUrl` tersedia dan `renderUrlAs` bernilai `button`.
 
 Alfamart dan Indomaret:
 
-Render `vaNumber` sebagai `No Pembayaran`, tampilkan `vaAccountHolder` saat tersedia, dan sediakan aksi copy.
+Render `vaNumber` sebagai `No Pembayaran`, tampilkan `vaAccountHolder` jika tersedia, dan sediakan aksi copy.
 
 ## Polling dan cek status
 

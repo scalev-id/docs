@@ -116,6 +116,36 @@ Response fields match the existing checkout summary:
 
 Digital-only carts return `shipping_cost: "0"`.
 
+## Discount code check
+
+```http
+POST /v3/stores/{store_id}/public/discount-codes/check
+```
+
+Use a JSON body to validate a discount code before checkout:
+
+```json
+{
+  "code": "SAVE10",
+  "items": [
+    {
+      "variant_id": 494535,
+      "quantity": 1
+    }
+  ],
+  "destination": {
+    "location_id": 9089,
+    "postal_code": "10510"
+  },
+  "courier_service_id": 123,
+  "warehouse_unique_id": "warehouse_abc",
+  "courier_aggregator_code": null,
+  "payment_method": "bank_transfer"
+}
+```
+
+If `X-Scalev-Guest-Token` resolves a non-empty cart, the API uses that cart as the item source. Otherwise, provide `items[]`. Unknown or ineligible codes return a normal validation response with `is_eligible: false` and `discount_code: null`.
+
 ## Guest checkout
 
 Create the order with:
@@ -147,6 +177,8 @@ Use the same selected checkout fields:
   "payment_method": "bank_transfer"
 }
 ```
+
+The checkout endpoint uses the selected courier service, warehouse, destination, payment method, and cart items to recompute the shipping cost internally. Do not treat a client-supplied `shipping_cost` as the source of truth.
 
 The response includes `order_secret_slug`, `public_order_url`, and `payment_url`.
 
@@ -186,13 +218,13 @@ The hosted success page first derives a small display model from the current Xen
 
 The actual source fields come from the order and payment response. For the current Xendit/default payload, map them this way:
 
-| Display value | Source field |
-| --- | --- |
-| `qrString` | `pg_payment_info.qr_string` or `pg_payment_info.payment_method.qr_code.channel_properties.qr_string` |
-| `vaNumber` | `pg_payment_info.payment_method.virtual_account.channel_properties.virtual_account_number` or `pg_payment_info.payment_method.over_the_counter.channel_properties.payment_code` |
-| `vaAccountHolder` | `pg_payment_info.payment_method.virtual_account.channel_properties.customer_name` or `pg_payment_info.payment_method.over_the_counter.channel_properties.customer_name` |
-| `invoiceUrl` | `pg_payment_info.invoice_url` or `pg_payment_info.redirect_url` |
-| `qrImageUrl` | Generate a QR image from `qrString` in your frontend when you need a downloadable QR image. |
+| Display value     | Source field                                                                                                                                                                    |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `qrString`        | `pg_payment_info.qr_string` or `pg_payment_info.payment_method.qr_code.channel_properties.qr_string`                                                                            |
+| `vaNumber`        | `pg_payment_info.payment_method.virtual_account.channel_properties.virtual_account_number` or `pg_payment_info.payment_method.over_the_counter.channel_properties.payment_code` |
+| `vaAccountHolder` | `pg_payment_info.payment_method.virtual_account.channel_properties.customer_name` or `pg_payment_info.payment_method.over_the_counter.channel_properties.customer_name`         |
+| `invoiceUrl`      | `pg_payment_info.invoice_url` or `pg_payment_info.redirect_url`                                                                                                                 |
+| `qrImageUrl`      | Generate a QR image from `qrString` in your frontend when you need a downloadable QR image.                                                                                     |
 
 For `gopay`, `dana`, `linkaja`, `shopeepay`, and `ovo`, choose an action URL from `pg_payment_info.actions`: mobile prefers `url_type` `WEB` or `DEEPLINK`; desktop prefers `MOBILE` or `DEEPLINK`.
 
