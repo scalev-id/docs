@@ -7,6 +7,8 @@ Checkout Storefront API memakai konsep checkout yang sama dengan storefront bawa
 
 Storefront API dirancang agar storefront Anda dapat merender payment page sendiri. Gunakan response public order dan payment untuk menampilkan instruksi pembayaran langsung di UI Anda. `payment_url` tetap dikembalikan sebagai fallback hosted untuk storefront yang belum mengimplementasikan renderer per metode atau untuk flow provider yang memang harus membuka hosted payment page.
 
+Gunakan hanya metode payment yang dikembalikan oleh `GET /v3/stores/{store_id}/public/payment-methods`. Storefront API v3 tidak mengembalikan `no_payment`, dan endpoint checkout akan menolaknya jika dikirim langsung.
+
 ## Alur guest checkout
 
 1. Baca atau buat guest cart dan simpan `X-Scalev-Guest-Token`.

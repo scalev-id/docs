@@ -12,7 +12,9 @@ rss: true
   cart items before creating the order. The public discount-code check route is
   now a `POST` request with a JSON checkout context body and returns a typed
   ineligible response for unknown codes instead of treating the documented path
-  as missing.
+  as missing. Storefront API v3 payment-method discovery and checkout creation
+  now reject `no_payment` so direct API submissions cannot create no-payment
+  storefront orders.
   OpenAPI now also includes typed customer account, customer cart, customer
   order, and customer course contracts.
 </Update>
@@ -26,13 +28,7 @@ rss: true
   shape; cart item add now returns `201`. Order routes return a typed customer
   order list with cursor pagination and a typed customer order shape on
   `/customers/me/orders/{id}`. Course routes return typed access, section,
-  content, and progress responses. `POST /customers/me/cart/checkout` is now
-  deprecated; new integrations should use
-  `POST /customers/me/checkout/confirm`. The discount-code validation route
-  is `GET /public/discount-codes/check` and accepts `code`, `payment_method`,
-  `net_product_price`, `gross_revenue`, and `shipping_cost` as query
-  parameters; the legacy `discount_code` query name is still accepted as an
-  alias.
+  and content responses, plus typed progress update responses.
 </Update>
 
 <Update label="May 2026" description="Storefront API checkout and payment contracts" tags={["API", "Docs"]}>

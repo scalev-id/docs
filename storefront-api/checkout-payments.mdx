@@ -7,6 +7,8 @@ Storefront API checkout uses the same buyer-facing checkout concepts as the Scal
 
 The Storefront API is designed so your storefront can render its own payment page. Use the public order and payment responses to show buyer-facing instructions directly in your UI. `payment_url` is still returned as a hosted fallback for storefronts that have not implemented a method-specific renderer or for provider flows that must open a hosted payment page.
 
+Use only payment methods returned by `GET /v3/stores/{store_id}/public/payment-methods`. Storefront API v3 does not return `no_payment`, and checkout endpoints reject it if submitted directly.
+
 ## Guest checkout flow
 
 1. Read or create the guest cart and store `X-Scalev-Guest-Token`.
