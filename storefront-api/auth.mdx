@@ -101,6 +101,8 @@ Use the customer JWT on:
 
 These routes are scoped by the store path and the customer JWT. The Storefront API key is not required there because it is not the account authorization mechanism.
 
+Customer access and refresh tokens are browser-held credentials. Use a strict Content Security Policy, avoid untrusted third-party scripts, keep dependencies current, and sanitize any customer- or merchant-provided HTML before rendering it in the storefront.
+
 ## Sign in
 
 Start sign-in with:
@@ -123,7 +125,10 @@ If the store does not require OTP, the response is `200` with customer tokens:
 ```json
 {
   "access": "eyJ...",
-  "refresh": "eyJ..."
+  "refresh": "eyJ...",
+  "token_type": "Bearer",
+  "expires_in": 900,
+  "refresh_expires_in": 2592000
 }
 ```
 
@@ -154,6 +159,9 @@ Successful OTP verification returns customer tokens:
 {
   "access": "eyJ...",
   "refresh": "eyJ...",
+  "token_type": "Bearer",
+  "expires_in": 900,
+  "refresh_expires_in": 2592000,
   "store_unique_id": "store_vlzpML8edzxO5roOdV7Oyfn6"
 }
 ```
@@ -171,6 +179,8 @@ POST /v3/stores/{store_id}/public/auth/jwt/refresh
   "refresh": "eyJ..."
 }
 ```
+
+Refresh tokens rotate on every refresh and are single-use. Store the new `refresh` value from the response and discard the previous one. Reusing an already-rotated refresh token revokes that token family and requires a new sign-in.
 
 Revoke tokens with:
 

@@ -10,12 +10,20 @@ rss: true
   the store can complete login directly, or `{ "message": "..." }` when an OTP
   has been sent and the frontend should show the OTP entry step.
   `POST /public/auth/otp/verify` and `POST /public/auth/jwt/refresh` also
-  return the typed access and refresh tokens. Send the access token as
+  return `token_type`, `expires_in`, and `refresh_expires_in`. Refresh tokens
+  rotate on every refresh, are single-use, and revoke their token family when
+  an already-rotated refresh token is reused. Send the access token as
   `Authorization: Bearer <token>` to `/customers/me/*` routes. Password reset
   links now use `/reset-password?token=<reset-token>` on the browser `Origin`
   when it matches a registered Storefront API allowed origin, and fall back to
   the hosted storefront custom domain otherwise. The regular hosted member
   area reset URL is unchanged.
+</Update>
+
+<Update label="May 2026" description="Storefront catalog schema fixes" tags={["API"]}>
+  The public OpenAPI schema for `GET /public/products/count` now documents
+  `{ "total": number }`, and `GET /public/products/{slug}` now documents a
+  storefront product detail response instead of the public order schema.
 </Update>
 
 <Update label="May 2026" description="Order payment response clarifications" tags={["API"]}>

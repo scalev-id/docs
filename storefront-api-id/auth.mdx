@@ -101,6 +101,8 @@ Gunakan customer JWT pada:
 
 Route ini dibatasi oleh store pada path dan customer JWT. Storefront API key tidak diperlukan di sini karena header tersebut bukan mekanisme otorisasi akun.
 
+Access token dan refresh token customer adalah credential yang disimpan di browser. Gunakan Content Security Policy yang ketat, hindari script pihak ketiga yang tidak dipercaya, jaga dependency tetap terbaru, dan sanitasi HTML dari customer atau merchant sebelum dirender di storefront.
+
 ## Sign in
 
 Mulai sign-in dengan:
@@ -123,7 +125,10 @@ Jika store tidak mewajibkan OTP, response adalah `200` dengan token customer:
 ```json
 {
   "access": "eyJ...",
-  "refresh": "eyJ..."
+  "refresh": "eyJ...",
+  "token_type": "Bearer",
+  "expires_in": 900,
+  "refresh_expires_in": 2592000
 }
 ```
 
@@ -154,6 +159,9 @@ OTP verification yang berhasil mengembalikan token customer:
 {
   "access": "eyJ...",
   "refresh": "eyJ...",
+  "token_type": "Bearer",
+  "expires_in": 900,
+  "refresh_expires_in": 2592000,
   "store_unique_id": "store_vlzpML8edzxO5roOdV7Oyfn6"
 }
 ```
@@ -171,6 +179,8 @@ POST /v3/stores/{store_id}/public/auth/jwt/refresh
   "refresh": "eyJ..."
 }
 ```
+
+Refresh token akan dirotasi setiap kali refresh dan hanya bisa dipakai sekali. Simpan nilai `refresh` baru dari response dan buang token lama. Jika refresh token yang sudah dirotasi dipakai ulang, seluruh token family dicabut dan customer harus sign in ulang.
 
 Revoke token dengan:
 
