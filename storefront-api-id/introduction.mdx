@@ -84,7 +84,7 @@ Search location memakai cursor pagination. Saat `has_next` bernilai `true`, guna
 5. Buat order dengan `POST /public/guest-checkout`.
 6. Baca order melalui `GET /public/orders/{secret_slug}`.
 7. Panggil `POST /public/orders/{secret_slug}/payment`; gunakan ulang `payment_url` yang dikembalikan atau yang sudah ada.
-8. Untuk akun customer, mulai dari `/public/auth/otp/send`, lalu panggil `/customers/me/*` dengan customer JWT.
+8. Untuk akun customer, mulai dari `/public/auth/login`, lalu panggil `/customers/me/*` dengan customer JWT.
 
 ## Response payment
 

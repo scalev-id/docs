@@ -106,7 +106,7 @@ Route ini dibatasi oleh store pada path dan customer JWT. Storefront API key tid
 Mulai sign-in dengan:
 
 ```text
-POST /v3/stores/{store_id}/public/auth/otp/send
+POST /v3/stores/{store_id}/public/auth/login
 ```
 
 Contoh body:
@@ -118,7 +118,7 @@ Contoh body:
 }
 ```
 
-Jika store tidak mewajibkan OTP, response adalah `200` dengan token customer:
+Jika store dapat menyelesaikan login secara langsung, response adalah `200` dengan token customer:
 
 ```json
 {
@@ -127,7 +127,15 @@ Jika store tidak mewajibkan OTP, response adalah `200` dengan token customer:
 }
 ```
 
-Jika store mewajibkan OTP, response adalah `204` dengan body kosong. Tampilkan input one-time code lalu panggil:
+Jika store mewajibkan OTP, response adalah `200` dengan pesan OTP challenge:
+
+```json
+{
+  "message": "If this email exists in our system, an OTP has been sent to it."
+}
+```
+
+Tampilkan input one-time code lalu panggil:
 
 ```text
 POST /v3/stores/{store_id}/public/auth/otp/verify
