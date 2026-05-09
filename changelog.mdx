@@ -4,6 +4,36 @@ description: "Product updates and documentation changes"
 rss: true
 ---
 
+<Update label="May 2026" description="Customer auth token responses" tags={["API"]}>
+  Storefront customer auth endpoints now return typed JWT token responses.
+  `POST /public/auth/login` returns customer access and refresh tokens when
+  the store does not require OTP, or `204` when an OTP has been sent.
+  `POST /public/auth/login/verify` and `POST /public/auth/jwt/refresh` also
+  return the typed access and refresh tokens. Send the access token as
+  `Authorization: Bearer <token>` to `/customers/me/*` routes. Password reset
+  links now follow the browser `Origin` when it matches a registered
+  Storefront API allowed origin, and fall back to the hosted storefront
+  custom domain otherwise.
+</Update>
+
+<Update label="May 2026" description="Order payment response clarifications" tags={["API"]}>
+  Order payment responses now document `pg_payment_info` per provider type:
+  manual methods such as `bank_transfer` and `cod` return an empty object;
+  virtual account methods expose provider reference and account details;
+  QRIS responses expose QR data or a QR image payload; e-wallet, card, and
+  invoice methods may expose provider actions while the browser should use
+  `payment_url` for hosted redirects. `sub_payment_method` is documented as
+  the provider channel, such as a virtual-account bank code, when applicable.
+</Update>
+
+<Update label="May 2026" description="Storefront rate limiting" tags={["API"]}>
+  Storefront API requests using `X-Scalev-Storefront-Api-Key` or
+  `X-Scalev-Guest-Token` are rate-limited as direct client/browser requests.
+  Machine-authenticated business requests continue to be rate-limited per
+  API key or OAuth installation. Rate-limit metadata is returned in
+  `X-Ratelimit-*` headers.
+</Update>
+
 <Update label="May 2026" description="Browser-only Storefront API" tags={["API", "Dashboard", "Docs"]}>
   Storefront API setup is now documented as separate from hosted Storefront
   configuration. Browser storefronts can use direct CORS-enabled Storefront API
