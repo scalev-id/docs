@@ -43,12 +43,19 @@
               "otorisasi-dengan-o-auth",
               "autentikasi-dengan-api-key",
               {
+                "group": "Storefront API",
+                "pages": [
+                  "storefront-api-id/introduction",
+                  "storefront-api-id/auth"
+                ]
+              },
+              {
                 "group": "Webhooks",
                 "pages": []
               },
               {
                 "group": "Contoh Penggunaan",
-                "pages": ["membuat-pesanan", "storefront-api-id"]
+                "pages": ["membuat-pesanan"]
               },
               {
                 "group": "Landing Pages",
@@ -88,6 +95,10 @@
               "authorization-with-o-auth",
               "authentication-with-api-key",
               {
+                "group": "Storefront API",
+                "pages": ["storefront-api/introduction", "storefront-api/auth"]
+              },
+              {
                 "group": "Webhooks",
                 "pages": [
                   "overview",
@@ -100,7 +111,7 @@
               },
               {
                 "group": "Use Cases",
-                "pages": ["creating-orders", "storefront-api"]
+                "pages": ["creating-orders"]
               },
               {
                 "group": "Landing Pages",

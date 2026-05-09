@@ -1,0 +1,109 @@
+---
+title: "Pendahuluan"
+description: "Buat storefront custom di browser dengan Scalev sebagai backend commerce."
+---
+
+Storefront API adalah API untuk storefront custom yang berjalan di browser. Gunakan Storefront API saat Anda ingin membuat frontend sendiri dan memakai Scalev sebagai backend untuk katalog, cart, checkout, akun customer, lokasi pengiriman, order, dan payment.
+
+Storefront API berbeda dari pengaturan Storefront bawaan. Pengaturan Storefront bawaan mengatur halaman buatan Scalev, custom domain, builder homepage dan checkout, footer pages, OTP, custom HTML, dan analytics. Pengaturan Storefront API dipakai untuk storefront API-only saat Anda mengatur frontend 100%.
+
+## Arsitektur
+
+Storefront API storefront bisa berupa static app di Cloudflare Pages, Vercel, Netlify, atau CDN lain. Browser memanggil `https://api.scalev.com` secara langsung.
+
+Gunakan `fetch` dengan `credentials: "omit"` untuk panggilan Storefront API dari browser:
+
+```js
+await fetch(`https://api.scalev.com/v3/stores/${storeId}/public/products`, {
+  credentials: "omit",
+  headers: {
+    "X-Scalev-Storefront-Api-Key": storefrontApiKey,
+  },
+});
+```
+
+Kontinuitas guest cart memakai token header yang dikelola browser, bukan cookie cross-site. Lihat [Auth](/storefront-api-id/auth) untuk model Storefront API key, guest token, dan customer JWT.
+
+## Yang perlu diatur
+
+Di dashboard, buka halaman konfigurasi store dan gunakan bagian **Storefront API**.
+
+Salin public Store ID. Integrasi baru sebaiknya memakai `unique_id` store, contoh:
+
+```text
+store_vlzpML8edzxO5roOdV7Oyfn6
+```
+
+Buat Storefront API key yang publishable:
+
+```text
+sfpk_...
+```
+
+Daftarkan setiap origin browser yang akan memanggil API:
+
+```text
+https://demo.scalev.shop
+http://localhost:3000
+```
+
+CORS preflight untuk origin yang diizinkan mencakup `X-Scalev-Storefront-Api-Key`, `X-Scalev-Guest-Token`, `Authorization`, dan `Content-Type`.
+
+## Endpoint utama
+
+```text
+GET  /v3/stores/{store_id}/public/products
+GET  /v3/stores/{store_id}/public/products/{slug}
+GET  /v3/stores/{store_id}/public/categories
+GET  /v3/stores/{store_id}/public/payment-methods
+
+GET  /v3/stores/{store_id}/public/locations/provinces
+GET  /v3/stores/{store_id}/public/locations/cities?province_id=31
+GET  /v3/stores/{store_id}/public/locations/subdistricts?city_id=3171
+GET  /v3/stores/{store_id}/public/locations?search=Cempaka%20Putih
+GET  /v3/stores/{store_id}/public/locations/{location_id}/postal-codes
+
+GET  /v3/stores/{store_id}/public/cart
+POST /v3/stores/{store_id}/public/cart/items
+PATCH /v3/stores/{store_id}/public/cart/items/{item_id}
+DELETE /v3/stores/{store_id}/public/cart/items/{item_id}
+
+POST /v3/stores/{store_id}/public/guest-checkout
+GET  /v3/stores/{store_id}/public/orders/{secret_slug}
+POST /v3/stores/{store_id}/public/orders/{secret_slug}/payment
+```
+
+Search location memakai cursor pagination. Saat `has_next` bernilai `true`, gunakan `next_cursor` untuk mengambil halaman berikutnya.
+
+## Alur checkout browser-only
+
+1. Muat katalog dengan `GET /public/products`, `GET /public/categories`, dan route detail produk.
+2. Buat atau baca guest cart dengan `GET /public/cart`; simpan `X-Scalev-Guest-Token` dari response.
+3. Kirim `X-Scalev-Guest-Token` pada request add, update, remove, checkout, dan pembacaan cart berikutnya.
+4. Ambil opsi checkout dengan `GET /public/payment-methods` dan endpoint public location/postal-code.
+5. Buat order dengan `POST /public/guest-checkout`.
+6. Baca order melalui `GET /public/orders/{secret_slug}`.
+7. Panggil `POST /public/orders/{secret_slug}/payment`; gunakan ulang `payment_url` yang dikembalikan atau yang sudah ada.
+8. Untuk akun customer, mulai dari `/public/auth/otp/send`, lalu panggil `/customers/me/*` dengan customer JWT.
+
+## Response payment
+
+Endpoint public order mengembalikan status order, total, pengiriman, item, dan instruksi pembayaran yang aman dilihat buyer. Endpoint ini tidak mengembalikan konfigurasi store atau handler khusus dashboard.
+
+Endpoint payment public bersifat idempotent saat instruksi pembayaran atau `payment_url` sudah tersedia.
+
+Untuk response payment, prioritaskan `payment_url` saat tersedia. Metode manual seperti `bank_transfer` dan `cod` dapat mengembalikan `pg_payment_info` kosong dan memakai instruksi pada public order. Virtual account, QRIS, e-wallet, card, dan invoice dapat mengembalikan data provider-specific di `pg_payment_info`; gunakan hanya untuk UI khusus metode tersebut dan tetap jadikan `payment_url` sebagai URL redirect atau instruksi utama.
+
+## Setup API
+
+Endpoint setup memerlukan akses bisnis terautentikasi. Gunakan public Store ID untuk client baru; numeric store ID lama masih diterima.
+
+```text
+GET    /v3/stores/{store_id}/public-api-keys
+POST   /v3/stores/{store_id}/public-api-keys
+DELETE /v3/stores/{store_id}/public-api-keys/{id}
+
+GET    /v3/stores/{store_id}/storefront/allowed-origins
+POST   /v3/stores/{store_id}/storefront/allowed-origins
+DELETE /v3/stores/{store_id}/storefront/allowed-origins/{id}
+```
