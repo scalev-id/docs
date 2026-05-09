@@ -90,8 +90,10 @@ Location search uses cursor pagination. When `has_next` is `true`, use `next_cur
 7. Optionally validate a discount code with `POST /public/discount-codes/check`.
 8. Create the order with `POST /public/guest-checkout`.
 9. Read the order through `GET /public/orders/{secret_slug}` and update buyer-facing fields such as `transferproof_url`, `transfer_time`, or `notes` with `PATCH /public/orders/{secret_slug}`.
-10. Call `POST /public/orders/{secret_slug}/payment`; reuse the returned or existing `payment_url`.
+10. Call `POST /public/orders/{secret_slug}/payment`; render the returned or existing payment instructions in your own payment page and use `payment_url` only as a hosted fallback.
 11. For customer accounts, start with `/public/auth/login`, then call `/customers/me/*` with the customer JWT.
+
+See [Checkout and Payments](/storefront-api/checkout-payments) for shipping option, summary, and method-specific payment rendering guidance.
 
 ## Payment responses
 

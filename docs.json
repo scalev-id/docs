@@ -46,7 +46,8 @@
                 "group": "Storefront API",
                 "pages": [
                   "storefront-api-id/introduction",
-                  "storefront-api-id/auth"
+                  "storefront-api-id/auth",
+                  "storefront-api-id/checkout-payments"
                 ]
               },
               {
@@ -96,7 +97,11 @@
               "authentication-with-api-key",
               {
                 "group": "Storefront API",
-                "pages": ["storefront-api/introduction", "storefront-api/auth"]
+                "pages": [
+                  "storefront-api/introduction",
+                  "storefront-api/auth",
+                  "storefront-api/checkout-payments"
+                ]
               },
               {
                 "group": "Webhooks",

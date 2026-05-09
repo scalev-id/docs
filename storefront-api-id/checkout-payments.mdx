@@ -1,0 +1,248 @@
+---
+title: "Checkout dan Payment"
+description: "Siapkan shipping, hitung summary checkout, buat guest order, dan tampilkan instruksi payment dari storefront browser."
+---
+
+Checkout Storefront API memakai konsep checkout yang sama dengan storefront bawaan Scalev. Storefront browser dapat mengambil opsi pengiriman, menghitung summary checkout, membuat guest order, membaca public order, dan membuat atau memakai ulang instruksi payment tanpa backend merchant.
+
+Storefront API dirancang agar storefront Anda dapat merender payment page sendiri. Gunakan response public order dan payment untuk menampilkan instruksi pembayaran langsung di UI Anda. `payment_url` tetap dikembalikan sebagai fallback hosted untuk storefront yang belum mengimplementasikan renderer per metode atau untuk flow provider yang memang harus membuka hosted payment page.
+
+## Alur guest checkout
+
+1. Baca atau buat guest cart dan simpan `X-Scalev-Guest-Token`.
+2. Minta lokasi pengiriman dan postal code jika cart berisi produk fisik.
+3. Panggil `POST /public/checkout/shipping-options`.
+4. Biarkan buyer memilih opsi pengiriman.
+5. Panggil `POST /public/checkout/summary`.
+6. Panggil `POST /public/guest-checkout` dengan detail buyer dan field checkout terpilih.
+7. Baca order dengan `GET /public/orders/{secret_slug}`.
+8. Panggil `POST /public/orders/{secret_slug}/payment` dan render data payment yang dikembalikan di payment page Anda sendiri.
+
+## Shipping options
+
+```http
+POST /v3/stores/{store_id}/public/checkout/shipping-options
+```
+
+Headers:
+
+```text
+X-Scalev-Storefront-Api-Key: sfpk_...
+X-Scalev-Guest-Token: <guest-token>
+```
+
+Jika `X-Scalev-Guest-Token` menemukan guest cart yang tidak kosong, Scalev memakai cart tersebut. Jika tidak, kirim direct variant items:
+
+```json
+{
+  "items": [
+    {
+      "variant_id": 494535,
+      "quantity": 1
+    }
+  ],
+  "destination": {
+    "location_id": 9089,
+    "postal_code": "10510"
+  },
+  "payment_method": "bank_transfer"
+}
+```
+
+Direct `items[]` mendukung variant. Checkout bundle didukung melalui guest cart.
+
+Response:
+
+```json
+{
+  "data": [
+    {
+      "courier_service_id": 123,
+      "courier_code": "jne",
+      "service_code": "REG",
+      "name": "Regular",
+      "cost": 12000,
+      "etd": "2-3",
+      "is_cod": false,
+      "warehouse_unique_id": "warehouse_...",
+      "courier_aggregator_code": null
+    }
+  ],
+  "is_paginated": false
+}
+```
+
+Cart digital-only mengembalikan:
+
+```json
+{
+  "data": [],
+  "is_paginated": false
+}
+```
+
+## Checkout summary
+
+```http
+POST /v3/stores/{store_id}/public/checkout/summary
+```
+
+Kirim opsi pengiriman terpilih. Scalev menghitung ulang shipping cost di server dan mengabaikan `shipping_cost` dari client.
+
+```json
+{
+  "destination": {
+    "location_id": 9089,
+    "postal_code": "10510"
+  },
+  "courier_service_id": 123,
+  "warehouse_unique_id": "warehouse_...",
+  "courier_aggregator_code": null,
+  "payment_method": "bank_transfer"
+}
+```
+
+Field response sama dengan summary checkout yang sudah ada:
+
+```json
+{
+  "product_price": "125000.00",
+  "shipping_cost": "12000",
+  "other_income": "0",
+  "other_income_name": "Biaya Lainnya",
+  "gross_revenue": "137000.00"
+}
+```
+
+Cart digital-only mengembalikan `shipping_cost: "0"`.
+
+## Guest checkout
+
+Buat order dengan:
+
+```http
+POST /v3/stores/{store_id}/public/guest-checkout
+```
+
+Gunakan field checkout terpilih yang sama:
+
+```json
+{
+  "items": [
+    {
+      "variant_id": 494535,
+      "quantity": 1
+    }
+  ],
+  "customer_name": "Customer Name",
+  "customer_email": "customer@example.com",
+  "customer_phone": "08123456789",
+  "shipping_address": "Jl. Example 1",
+  "shipping_location_id": 9089,
+  "shipping_subdistrict": "Cempaka Putih",
+  "shipping_postal_code": "10510",
+  "courier_service_id": 123,
+  "warehouse_unique_id": "warehouse_...",
+  "courier_aggregator_code": null,
+  "payment_method": "bank_transfer"
+}
+```
+
+Response berisi `order_secret_slug`, `public_order_url`, dan `payment_url`.
+
+## Instruksi payment
+
+Setelah checkout, panggil:
+
+```http
+POST /v3/stores/{store_id}/public/orders/{secret_slug}/payment
+```
+
+Endpoint ini idempotent. Jika instruksi payment sudah ada, response mengembalikan data payment buyer-facing dan URL yang sudah tersedia.
+
+Gunakan urutan preferensi berikut di browser storefront:
+
+1. Render instruksi per metode dari `payment_method`, `sub_payment_method`, `epayment_provider`, dan `pg_payment_info`.
+2. Untuk metode hosted oleh provider, buka URL provider dari `pg_payment_info` saat provider memang membutuhkan redirect.
+3. Gunakan `payment_url` hanya sebagai fallback ke payment page hosted Scalev jika storefront Anda belum mendukung metode atau bentuk response provider tersebut.
+4. Poll public order saat metode payment memerlukan data gateway yang mungkin belum langsung tersedia.
+
+## Rendering per metode
+
+Success page bawaan Scalev adalah reference implementation untuk rendering per metode. Storefront API storefront dapat menggantikan page tersebut dengan menerapkan mapping `pg_payment_info` yang sama di UI sendiri.
+
+Success page bawaan terlebih dulu membuat display model kecil dari `pg_payment_info` yang berbeda-beda per provider. Ini bukan bentuk response API terpisah. Ini hanya referensi jika storefront Anda ingin punya satu renderer payment, bukan branching langsung ke setiap payload provider:
+
+```json
+{
+  "qrString": "000201010212...",
+  "qrImageUrl": "https://api.qrserver.com/v1/create-qr-code/?...",
+  "vaNumber": "88081234567890",
+  "vaAccountHolder": "Customer Name",
+  "invoiceUrl": "https://provider.example/pay/...",
+  "renderUrlAs": "button"
+}
+```
+
+Field sumber aslinya berasal dari order dan response payment. Success page bawaan memetakannya dengan aturan berikut:
+
+| Provider | Sumber QR | Sumber nomor payment | Sumber account holder | Sumber URL |
+| --- | --- | --- | --- | --- |
+| `duitku` | `pg_payment_info.qrString` | `pg_payment_info.vaNumber` | kosong | `pg_payment_info.paymentUrl` |
+| `ipaymu` | `pg_payment_info.QrString` | `pg_payment_info.PaymentNo` | `pg_payment_info.PaymentName` | `pg_payment_info.Url` |
+| GoPay `midtrans` | tidak ada | tidak ada | tidak ada | mobile `actions[].name == "deeplink-redirect"` |
+| default/Xendit-style | `pg_payment_info.qr_string` atau `payment_method.qr_code.channel_properties.qr_string` | legacy `pg_payment_info.account_numbner`, `payment_method.virtual_account.channel_properties.virtual_account_number`, atau `payment_method.over_the_counter.channel_properties.payment_code` | `payment_method.virtual_account.channel_properties.customer_name` atau `payment_method.over_the_counter.channel_properties.customer_name` | `pg_payment_info.invoice_url` atau `pg_payment_info.redirect_url` |
+
+Untuk `gopay`, `dana`, `linkaja`, `shopeepay`, dan `ovo`, pilih action URL dari `pg_payment_info.actions`: mobile memprioritaskan `url_type` `WEB` atau `DEEPLINK`; desktop memprioritaskan `MOBILE` atau `DEEPLINK`.
+
+Set `renderUrlAs` menjadi `button` untuk `invoice`, `card`, dan semua tampilan mobile. Untuk tampilan desktop lainnya, render URL sebagai QR code.
+
+`bank_transfer`:
+
+Tampilkan total order, rekening bank transfer manual, countdown expiry saat aktif, dan link konfirmasi pembayaran ke `/o/{secret_slug}?showPaymentConfirmation=true`. Page bawaan mengambil rekening bank dari store `payment_accounts` dengan `method` `bank_transfer` dan metode tersebut masih aktif. `pg_payment_info` bisa berupa `{}`.
+
+`cod`:
+
+Tampilkan body sukses COD dan jangan tampilkan countdown payment. Payment creation dapat mengembalikan `pg_payment_info` kosong.
+
+Virtual account (`va`):
+
+Tampilkan bank/channel virtual account dari `sub_payment_method`, `vaNumber`, dan optional `vaAccountHolder`. Sediakan tombol copy dan link panduan pembayaran. Kode bank yang dikenal mencakup `BRI`, `MANDIRI`, `PERMATA`, `BNI`, `BCA`, `MAYBANK`, `CIMB`, `BNC`, `DANAMON`, `BSI`, `AG`, `BJB`, `SAHABAT_SAMPOERNA`, `ARTAJASA`, `BMI`, dan `BTN`.
+
+QRIS (`qris`):
+
+Render QR code dari `qrString`. Sediakan aksi download QR dari `qrImageUrl` dan instruksi mobile untuk menyimpan atau screenshot QR sebelum membayar di aplikasi QRIS. Jika QR gagal dibuat atau `qrString` kosong, tampilkan aksi retry yang memanggil endpoint public payment lagi.
+
+E-wallet kecuali OVO (`gopay`, `dana`, `linkaja`, `shopeepay`):
+
+Gunakan `invoiceUrl` dari provider actions. Di mobile, buka sebagai tombol/deep link. Di desktop, render `invoiceUrl` sebagai QR code jika `renderUrlAs` adalah `qr_code`; jika tidak, buka sebagai tombol. Jika URL tidak bisa dimapping, arahkan buyer kembali ke public order page.
+
+OVO (`ovo`):
+
+Tampilkan instruksi agar buyer mengecek aplikasi OVO yang terhubung dengan nomor telepon buyer. Komponen success page bawaan tidak merender OVO melalui komponen QR e-wallet yang sama.
+
+Card (`card`) dan invoice/hosted payment (`invoice`):
+
+Buka `invoiceUrl` hasil mapping sebagai tombol/redirect. Success page bawaan melakukan redirect otomatis saat `invoiceUrl` tersedia dan `renderUrlAs` adalah `button`.
+
+Alfamart dan Indomaret:
+
+Render `vaNumber` sebagai `No Pembayaran`, tampilkan `vaAccountHolder` saat tersedia, dan sediakan aksi copy. Jika provider adalah `ipaymu`, tampilkan juga link panduan pembayaran.
+
+## Polling dan cek status
+
+Untuk metode e-payment (`gopay`, `card`, `invoice`, `va`, `qris`, `ovo`, `dana`, `shopeepay`, `linkaja`, `alfamart`, dan `indomaret`), success page bawaan menunggu `pg_payment_info` muncul dengan refetch public order sampai 15 kali dengan jeda 1,5 detik.
+
+Untuk order pending unpaid dengan `card`, `invoice`, `shopeepay`, `dana`, `qris`, `linkaja`, `gopay`, `bank_transfer`, `indomaret`, dan `alfamart`, success page bawaan kemudian me-refresh public order setiap 5 detik sambil menunggu konfirmasi payment.
+
+Untuk `va`, `bank_transfer`, `qris`, `alfamart`, dan `indomaret`, success page bawaan juga menampilkan aksi manual "cek status pembayaran".
+
+## Authenticated customer checkout
+
+Endpoint customer checkout berada di:
+
+```text
+/v3/stores/{store_id}/customers/me/checkout/*
+```
+
+Endpoint ini memakai `Authorization: Bearer <customer_access_token>`, bukan Storefront API key. Bentuk response runtime-nya mengikuti bentuk persiapan checkout yang sama untuk addresses, payment methods, shipping options, summary, dan confirm responses.

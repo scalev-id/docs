@@ -90,8 +90,10 @@ Search location memakai cursor pagination. Saat `has_next` bernilai `true`, guna
 7. Opsional, validasi kode diskon dengan `POST /public/discount-codes/check`.
 8. Buat order dengan `POST /public/guest-checkout`.
 9. Baca order melalui `GET /public/orders/{secret_slug}` dan update field buyer seperti `transferproof_url`, `transfer_time`, atau `notes` dengan `PATCH /public/orders/{secret_slug}`.
-10. Panggil `POST /public/orders/{secret_slug}/payment`; gunakan ulang `payment_url` yang dikembalikan atau yang sudah ada.
+10. Panggil `POST /public/orders/{secret_slug}/payment`; render instruksi payment yang dikembalikan atau yang sudah ada di payment page Anda sendiri, dan gunakan `payment_url` hanya sebagai hosted fallback.
 11. Untuk akun customer, mulai dari `/public/auth/login`, lalu panggil `/customers/me/*` dengan customer JWT.
+
+Lihat [Checkout dan Payment](/storefront-api-id/checkout-payments) untuk panduan shipping option, summary, dan rendering payment per metode.
 
 ## Response payment
 

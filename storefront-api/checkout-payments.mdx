@@ -1,0 +1,248 @@
+---
+title: "Checkout and Payments"
+description: "Prepare shipping, compute checkout totals, create guest orders, and render payment instructions from a browser storefront."
+---
+
+Storefront API checkout uses the same buyer-facing checkout concepts as the Scalev-hosted storefront. A browser storefront can prepare delivery options, compute the checkout summary, create a guest order, read the public order, and create or reuse payment instructions without a merchant backend.
+
+The Storefront API is designed so your storefront can render its own payment page. Use the public order and payment responses to show buyer-facing instructions directly in your UI. `payment_url` is still returned as a hosted fallback for storefronts that have not implemented a method-specific renderer or for provider flows that must open a hosted payment page.
+
+## Guest checkout flow
+
+1. Read or create the guest cart and store `X-Scalev-Guest-Token`.
+2. Ask the buyer for delivery location and postal code when the cart contains physical items.
+3. Call `POST /public/checkout/shipping-options`.
+4. Let the buyer select a shipping option.
+5. Call `POST /public/checkout/summary`.
+6. Call `POST /public/guest-checkout` with buyer details and the selected checkout fields.
+7. Read the order with `GET /public/orders/{secret_slug}`.
+8. Call `POST /public/orders/{secret_slug}/payment` and render the returned payment data on your own payment page.
+
+## Shipping options
+
+```http
+POST /v3/stores/{store_id}/public/checkout/shipping-options
+```
+
+Headers:
+
+```text
+X-Scalev-Storefront-Api-Key: sfpk_...
+X-Scalev-Guest-Token: <guest-token>
+```
+
+If `X-Scalev-Guest-Token` resolves a non-empty guest cart, Scalev uses that cart. Otherwise, send direct variant items:
+
+```json
+{
+  "items": [
+    {
+      "variant_id": 494535,
+      "quantity": 1
+    }
+  ],
+  "destination": {
+    "location_id": 9089,
+    "postal_code": "10510"
+  },
+  "payment_method": "bank_transfer"
+}
+```
+
+Direct `items[]` supports variants. Bundle checkout is supported through the guest cart.
+
+Response:
+
+```json
+{
+  "data": [
+    {
+      "courier_service_id": 123,
+      "courier_code": "jne",
+      "service_code": "REG",
+      "name": "Regular",
+      "cost": 12000,
+      "etd": "2-3",
+      "is_cod": false,
+      "warehouse_unique_id": "warehouse_...",
+      "courier_aggregator_code": null
+    }
+  ],
+  "is_paginated": false
+}
+```
+
+Digital-only carts return:
+
+```json
+{
+  "data": [],
+  "is_paginated": false
+}
+```
+
+## Checkout summary
+
+```http
+POST /v3/stores/{store_id}/public/checkout/summary
+```
+
+Send the selected shipping option. Scalev recomputes the shipping cost server-side and ignores any client-supplied `shipping_cost`.
+
+```json
+{
+  "destination": {
+    "location_id": 9089,
+    "postal_code": "10510"
+  },
+  "courier_service_id": 123,
+  "warehouse_unique_id": "warehouse_...",
+  "courier_aggregator_code": null,
+  "payment_method": "bank_transfer"
+}
+```
+
+Response fields match the existing checkout summary:
+
+```json
+{
+  "product_price": "125000.00",
+  "shipping_cost": "12000",
+  "other_income": "0",
+  "other_income_name": "Biaya Lainnya",
+  "gross_revenue": "137000.00"
+}
+```
+
+Digital-only carts return `shipping_cost: "0"`.
+
+## Guest checkout
+
+Create the order with:
+
+```http
+POST /v3/stores/{store_id}/public/guest-checkout
+```
+
+Use the same selected checkout fields:
+
+```json
+{
+  "items": [
+    {
+      "variant_id": 494535,
+      "quantity": 1
+    }
+  ],
+  "customer_name": "Customer Name",
+  "customer_email": "customer@example.com",
+  "customer_phone": "08123456789",
+  "shipping_address": "Jl. Example 1",
+  "shipping_location_id": 9089,
+  "shipping_subdistrict": "Cempaka Putih",
+  "shipping_postal_code": "10510",
+  "courier_service_id": 123,
+  "warehouse_unique_id": "warehouse_...",
+  "courier_aggregator_code": null,
+  "payment_method": "bank_transfer"
+}
+```
+
+The response includes `order_secret_slug`, `public_order_url`, and `payment_url`.
+
+## Payment instructions
+
+After checkout, call:
+
+```http
+POST /v3/stores/{store_id}/public/orders/{secret_slug}/payment
+```
+
+The endpoint is idempotent. If payment instructions already exist, the response returns the existing buyer-facing payment data and URLs.
+
+Use this order of preference in a browser storefront:
+
+1. Render the order's method-specific instructions from `payment_method`, `sub_payment_method`, `epayment_provider`, and `pg_payment_info`.
+2. For provider-hosted methods, open the provider URL from `pg_payment_info` when the provider requires a redirect.
+3. Use `payment_url` only as a fallback to the Scalev-hosted payment page when your storefront does not yet support that method or provider response shape.
+4. Poll the public order when the method needs gateway data that may not exist immediately.
+
+## Method rendering
+
+The Scalev-hosted success page is the reference implementation for method-specific rendering. A Storefront API storefront can replace that page by applying the same `pg_payment_info` mappings in its own UI.
+
+The hosted success page first derives a small display model from provider-specific `pg_payment_info`. This is not a separate API response shape. It is a useful reference if your storefront wants one payment renderer instead of branching directly on every provider payload:
+
+```json
+{
+  "qrString": "000201010212...",
+  "qrImageUrl": "https://api.qrserver.com/v1/create-qr-code/?...",
+  "vaNumber": "88081234567890",
+  "vaAccountHolder": "Customer Name",
+  "invoiceUrl": "https://provider.example/pay/...",
+  "renderUrlAs": "button"
+}
+```
+
+The actual source fields come from the order and payment response. The hosted success page maps them this way:
+
+| Provider | QR source | Payment number source | Account holder source | URL source |
+| --- | --- | --- | --- | --- |
+| `duitku` | `pg_payment_info.qrString` | `pg_payment_info.vaNumber` | empty | `pg_payment_info.paymentUrl` |
+| `ipaymu` | `pg_payment_info.QrString` | `pg_payment_info.PaymentNo` | `pg_payment_info.PaymentName` | `pg_payment_info.Url` |
+| `midtrans` GoPay | none | none | none | mobile `actions[].name == "deeplink-redirect"` |
+| default/Xendit-style | `pg_payment_info.qr_string` or `payment_method.qr_code.channel_properties.qr_string` | legacy `pg_payment_info.account_numbner`, `payment_method.virtual_account.channel_properties.virtual_account_number`, or `payment_method.over_the_counter.channel_properties.payment_code` | `payment_method.virtual_account.channel_properties.customer_name` or `payment_method.over_the_counter.channel_properties.customer_name` | `pg_payment_info.invoice_url` or `pg_payment_info.redirect_url` |
+
+For `gopay`, `dana`, `linkaja`, `shopeepay`, and `ovo`, choose an action URL from `pg_payment_info.actions`: mobile prefers `url_type` `WEB` or `DEEPLINK`; desktop prefers `MOBILE` or `DEEPLINK`.
+
+Set `renderUrlAs` to `button` for `invoice`, `card`, and all mobile views. For other desktop views, render the URL as a QR code.
+
+`bank_transfer`:
+
+Display the order total, manual bank transfer accounts, expiry countdown when enabled, and a payment-confirmation link to `/o/{secret_slug}?showPaymentConfirmation=true`. The hosted page gets bank accounts from the store `payment_accounts` where `method` is `bank_transfer` and the method is still active. `pg_payment_info` can be `{}`.
+
+`cod`:
+
+Display the COD success body and do not show a payment countdown. Payment creation may return an empty `pg_payment_info`.
+
+Virtual account (`va`):
+
+Render the virtual account bank/channel from `sub_payment_method`, the `vaNumber`, and the optional `vaAccountHolder`. Show a copy button and a payment tutorial link. Known bank codes include `BRI`, `MANDIRI`, `PERMATA`, `BNI`, `BCA`, `MAYBANK`, `CIMB`, `BNC`, `DANAMON`, `BSI`, `AG`, `BJB`, `SAHABAT_SAMPOERNA`, `ARTAJASA`, `BMI`, and `BTN`.
+
+QRIS (`qris`):
+
+Render a QR code from `qrString`. Also offer a QR download action from `qrImageUrl` and show mobile instructions for saving or screenshotting the QR image before paying in a QRIS app. If QR generation fails or `qrString` is missing, show a retry action that calls the public payment endpoint again.
+
+E-wallets except OVO (`gopay`, `dana`, `linkaja`, `shopeepay`):
+
+Use `invoiceUrl` from provider actions. On mobile, open it as a button/deep link. On desktop, render the `invoiceUrl` as a QR code when `renderUrlAs` is `qr_code`; otherwise open it as a button. If no URL can be mapped, send the buyer back to the public order page.
+
+OVO (`ovo`):
+
+Show an instruction to check the OVO app tied to the buyer phone number. The hosted success component does not render OVO through the same e-wallet QR component.
+
+Card (`card`) and invoice/hosted payment (`invoice`):
+
+Open the mapped `invoiceUrl` as a button/redirect. The hosted success page redirects automatically when `invoiceUrl` exists and `renderUrlAs` is `button`.
+
+Alfamart and Indomaret:
+
+Render `vaNumber` as `No Pembayaran`, show `vaAccountHolder` when present, and provide a copy action. When the provider is `ipaymu`, also show the payment tutorial link.
+
+## Polling and status checks
+
+For e-payment methods (`gopay`, `card`, `invoice`, `va`, `qris`, `ovo`, `dana`, `shopeepay`, `linkaja`, `alfamart`, and `indomaret`), the hosted success page waits for `pg_payment_info` to appear by refetching the public order up to 15 times with a 1.5 second delay.
+
+For pending unpaid orders with `card`, `invoice`, `shopeepay`, `dana`, `qris`, `linkaja`, `gopay`, `bank_transfer`, `indomaret`, and `alfamart`, the hosted success page then refreshes the public order every 5 seconds while waiting for payment confirmation.
+
+For `va`, `bank_transfer`, `qris`, `alfamart`, and `indomaret`, it also shows a manual "check payment status" action.
+
+## Authenticated customer checkout
+
+Customer checkout endpoints stay under:
+
+```text
+/v3/stores/{store_id}/customers/me/checkout/*
+```
+
+They use `Authorization: Bearer <customer_access_token>`, not the Storefront API key. Their runtime response shapes match the guest checkout preparation shapes for addresses, payment methods, shipping options, summary, and confirm responses.

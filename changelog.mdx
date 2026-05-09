@@ -4,6 +4,19 @@ description: "Product updates and documentation changes"
 rss: true
 ---
 
+<Update label="May 2026" description="Storefront API checkout and payment contracts" tags={["API", "Docs"]}>
+  Storefront API now documents browser-safe guest checkout preparation for
+  shipping options and checkout summary. Public guest checkout can use a guest
+  cart token or direct variant items, returns the same checkout shipping option
+  shape as the hosted storefront, and exposes summary fields as
+  `product_price`, `shipping_cost`, `other_income`, `other_income_name`, and
+  `gross_revenue`. OpenAPI now also includes named schemas for customer
+  checkout endpoints and remaining normal-shopping storefront routes such as
+  categories, variant pricing, cart merge, public order read/update, and
+  discount-code checks. Storefront API docs now include checkout and payment
+  rendering guidance based on the hosted success page behavior.
+</Update>
+
 <Update label="May 2026" description="Customer auth token responses" tags={["API"]}>
   Storefront customer auth endpoints now return typed JWT token responses.
   `POST /public/auth/login` returns customer access and refresh tokens when
