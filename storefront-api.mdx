@@ -85,6 +85,39 @@ The public order endpoint returns buyer-facing order status, totals, shipping, i
 
 The public payment endpoint is idempotent when payment instructions or `payment_url` already exist.
 
+## Customer auth endpoints
+
+Customer auth runs on storefront public routes:
+
+```text
+POST /v3/stores/{store_id}/public/auth/login
+POST /v3/stores/{store_id}/public/auth/otp/verify
+POST /v3/stores/{store_id}/public/auth/jwt/refresh
+POST /v3/stores/{store_id}/public/auth/password/forget
+```
+
+If the store does not require customer OTP, login returns customer JWT tokens directly. If the store requires OTP, login returns `204` with no body and sends a one-time code; the caller must then verify the OTP to receive tokens.
+
+A successful login (without OTP), OTP verification, or refresh returns a `CustomerAuthTokenResponse`:
+
+```json
+{
+  "access": "CUSTOMER_ACCESS_TOKEN",
+  "refresh": "CUSTOMER_REFRESH_TOKEN",
+  "store_unique_id": "store_..."
+}
+```
+
+- `access` — Customer access JWT. Send it as `Authorization: Bearer <token>` to `/v3/stores/{store_id}/customers/me/*`.
+- `refresh` — Refresh token for `POST /v3/stores/{store_id}/public/auth/jwt/refresh`.
+- `store_unique_id` — Optional. Public store unique ID returned by some OTP verification responses.
+
+### Password reset origin handling
+
+`POST /v3/stores/{store_id}/public/auth/password/forget` selects the password-reset link hostname from the request `Origin` header. When the call comes from a browser origin that is registered in the store's Storefront API allowed origins, the reset email link uses that origin. Calls without an `Origin` header fall back to the hosted storefront custom domain.
+
+Register your custom storefront origin in the **Storefront API** dashboard section so reset emails point back to your frontend.
+
 ## Setup API
 
 The setup endpoints require authenticated business access. Use the public store ID for new clients; legacy numeric store IDs remain accepted.

@@ -85,6 +85,39 @@ Endpoint public order mengembalikan status order, total, pengiriman, item, dan i
 
 Endpoint payment public bersifat idempotent saat instruksi pembayaran atau `payment_url` sudah tersedia.
 
+## Endpoint autentikasi pelanggan
+
+Autentikasi pelanggan berjalan di route storefront publik:
+
+```text
+POST /v3/stores/{store_id}/public/auth/login
+POST /v3/stores/{store_id}/public/auth/otp/verify
+POST /v3/stores/{store_id}/public/auth/jwt/refresh
+POST /v3/stores/{store_id}/public/auth/password/forget
+```
+
+Jika store tidak mewajibkan OTP pelanggan, login langsung mengembalikan token JWT pelanggan. Jika store mewajibkan OTP, login mengembalikan `204` tanpa body dan mengirimkan kode sekali pakai; pemanggil harus melakukan verifikasi OTP untuk mendapatkan token.
+
+Login yang sukses (tanpa OTP), verifikasi OTP, atau refresh mengembalikan `CustomerAuthTokenResponse`:
+
+```json
+{
+  "access": "CUSTOMER_ACCESS_TOKEN",
+  "refresh": "CUSTOMER_REFRESH_TOKEN",
+  "store_unique_id": "store_..."
+}
+```
+
+- `access` — JWT akses pelanggan. Kirim sebagai `Authorization: Bearer <token>` ke `/v3/stores/{store_id}/customers/me/*`.
+- `refresh` — Token refresh untuk `POST /v3/stores/{store_id}/public/auth/jwt/refresh`.
+- `store_unique_id` — Opsional. Public store unique ID yang dikembalikan oleh sebagian respons verifikasi OTP.
+
+### Penanganan origin saat reset password
+
+`POST /v3/stores/{store_id}/public/auth/password/forget` memilih hostname tautan reset password berdasarkan header `Origin` request. Jika panggilan berasal dari origin browser yang terdaftar di allowed origins Storefront API store, tautan email reset memakai origin tersebut. Panggilan tanpa header `Origin` jatuh kembali ke custom domain hosted storefront.
+
+Daftarkan origin storefront custom Anda di bagian dashboard **Storefront API** agar email reset mengarah ke frontend Anda.
+
 ## Setup API
 
 Endpoint setup memerlukan akses bisnis terautentikasi. Gunakan public Store ID untuk client baru; numeric store ID lama masih diterima.
