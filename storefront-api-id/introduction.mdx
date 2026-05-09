@@ -68,9 +68,13 @@ POST /v3/stores/{store_id}/public/cart/items
 PATCH /v3/stores/{store_id}/public/cart/items/{item_id}
 DELETE /v3/stores/{store_id}/public/cart/items/{item_id}
 
+POST /v3/stores/{store_id}/public/checkout/shipping-options
+POST /v3/stores/{store_id}/public/checkout/summary
 POST /v3/stores/{store_id}/public/guest-checkout
 GET  /v3/stores/{store_id}/public/orders/{secret_slug}
+PATCH /v3/stores/{store_id}/public/orders/{secret_slug}
 POST /v3/stores/{store_id}/public/orders/{secret_slug}/payment
+POST /v3/stores/{store_id}/public/discount-codes/check
 ```
 
 Search location memakai cursor pagination. Saat `has_next` bernilai `true`, gunakan `next_cursor` untuk mengambil halaman berikutnya.
@@ -81,10 +85,13 @@ Search location memakai cursor pagination. Saat `has_next` bernilai `true`, guna
 2. Buat atau baca guest cart dengan `GET /public/cart`; simpan `X-Scalev-Guest-Token` dari response.
 3. Kirim `X-Scalev-Guest-Token` pada request add, update, remove, checkout, dan pembacaan cart berikutnya.
 4. Ambil opsi checkout dengan `GET /public/payment-methods` dan endpoint public location/postal-code.
-5. Buat order dengan `POST /public/guest-checkout`.
-6. Baca order melalui `GET /public/orders/{secret_slug}`.
-7. Panggil `POST /public/orders/{secret_slug}/payment`; gunakan ulang `payment_url` yang dikembalikan atau yang sudah ada.
-8. Untuk akun customer, mulai dari `/public/auth/login`, lalu panggil `/customers/me/*` dengan customer JWT.
+5. Daftar opsi pengiriman dengan `POST /public/checkout/shipping-options`. Cart dari `X-Scalev-Guest-Token` jadi sumber item; jika kosong, kirim `items[]` berisi variant ID langsung di body.
+6. Hitung ulang total dengan `POST /public/checkout/summary` setelah pembeli memilih courier service dan metode pembayaran. API mengabaikan `shipping_cost` dari client dan menghitung ulang dari courier service, warehouse, metode pembayaran, destinasi, dan item cart yang dipilih.
+7. Opsional, validasi kode diskon dengan `POST /public/discount-codes/check`.
+8. Buat order dengan `POST /public/guest-checkout`.
+9. Baca order melalui `GET /public/orders/{secret_slug}` dan update field buyer seperti `transferproof_url`, `transfer_time`, atau `notes` dengan `PATCH /public/orders/{secret_slug}`.
+10. Panggil `POST /public/orders/{secret_slug}/payment`; gunakan ulang `payment_url` yang dikembalikan atau yang sudah ada.
+11. Untuk akun customer, mulai dari `/public/auth/login`, lalu panggil `/customers/me/*` dengan customer JWT.
 
 ## Response payment
 
@@ -92,7 +99,7 @@ Endpoint public order mengembalikan status order, total, pengiriman, item, dan i
 
 Endpoint payment public bersifat idempotent saat instruksi pembayaran atau `payment_url` sudah tersedia.
 
-Untuk response payment, prioritaskan `payment_url` saat tersedia. Metode manual seperti `bank_transfer` dan `cod` dapat mengembalikan `pg_payment_info` kosong dan memakai instruksi pada public order. Virtual account, QRIS, e-wallet, card, dan invoice dapat mengembalikan data provider-specific di `pg_payment_info`; gunakan hanya untuk UI khusus metode tersebut dan tetap jadikan `payment_url` sebagai URL redirect atau instruksi utama.
+Response payment menjelaskan cara storefront merender langkah pembayaran berikutnya. Metode manual seperti `bank_transfer` dan `cod` dapat mengembalikan `pg_payment_info` kosong sementara public order yang membawa instruksi buyer untuk dirender. Virtual account mengembalikan referensi provider dan detail akun di bawah objek `payment_method` provider. QRIS mengembalikan data QR atau payload QR image. E-wallet, card, dan invoice dapat mengembalikan provider actions atau URL hosted provider. Storefront sebaiknya merender halaman pembayarannya sendiri dari field tersebut dan memakai `payment_url` hanya sebagai hosted fallback.
 
 ## Setup API
 
