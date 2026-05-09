@@ -215,6 +215,8 @@ Current default:
 - **10,000 requests per hour per key**
 - **100 requests per 10 seconds per key** for short bursts
 
+Storefront public requests using `X-Scalev-Storefront-Api-Key` or `X-Scalev-Guest-Token` are not API-key requests and are rate-limited as direct browser/client traffic on a separate client/IP bucket.
+
 Rate-limit metadata is returned in response headers. The header values describe the bucket that applied to that response:
 
 - `X-Ratelimit-Limit`

@@ -215,6 +215,8 @@ Default saat ini:
 - **10.000 permintaan per jam per key**
 - **100 permintaan per 10 detik per key** untuk burst pendek
 
+Permintaan storefront publik yang menggunakan `X-Scalev-Storefront-Api-Key` atau `X-Scalev-Guest-Token` bukan permintaan API Key dan dirate-limit sebagai trafik browser/klien langsung pada bucket klien/IP terpisah.
+
 Metadata rate-limit dikembalikan dalam header respons. Nilai header menjelaskan bucket yang berlaku untuk respons tersebut:
 
 - `X-Ratelimit-Limit`
