@@ -194,7 +194,13 @@ POST /v3/stores/{store_id}/public/auth/forget-password
 }
 ```
 
-Link email reset password memakai browser `Origin` yang sudah tervalidasi jika request berasal dari allowed origin Storefront API. Request tanpa header `Origin` fallback ke custom domain Storefront bawaan.
+Untuk request Storefront API, link email reset password memakai kontrak URL ini:
+
+```text
+http(s)://<allowed-storefront-host>/reset-password?token=<reset-token>
+```
+
+Host dan scheme berasal dari browser `Origin` yang sudah tervalidasi jika request berasal dari allowed origin Storefront API. Request tanpa header `Origin` fallback ke custom domain Storefront bawaan dan tetap memakai path `/reset-password?token=...`.
 
 Simpan password baru dengan:
 

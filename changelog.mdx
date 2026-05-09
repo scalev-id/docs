@@ -11,9 +11,10 @@ rss: true
   `POST /public/auth/login/verify` and `POST /public/auth/jwt/refresh` also
   return the typed access and refresh tokens. Send the access token as
   `Authorization: Bearer <token>` to `/customers/me/*` routes. Password reset
-  links now follow the browser `Origin` when it matches a registered
-  Storefront API allowed origin, and fall back to the hosted storefront
-  custom domain otherwise.
+  links now use `/reset-password?token=<reset-token>` on the browser `Origin`
+  when it matches a registered Storefront API allowed origin, and fall back to
+  the hosted storefront custom domain otherwise. The regular hosted member
+  area reset URL is unchanged.
 </Update>
 
 <Update label="May 2026" description="Order payment response clarifications" tags={["API"]}>
@@ -42,7 +43,8 @@ rss: true
   minimized public order reads, idempotent public payment creation, and the
   public store `unique_id` across setup and runtime routes. Customer login
   responses now document the direct-token and OTP-challenge outcomes, password
-  reset links use the validated storefront browser origin, Storefront API
+  reset links use `/reset-password?token=<reset-token>` on the validated
+  storefront browser origin, Storefront API
   requests are documented as direct-client rate limited, and payment responses
   document when to use `payment_url` versus provider-specific `pg_payment_info`.
 </Update>

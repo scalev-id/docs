@@ -194,7 +194,13 @@ POST /v3/stores/{store_id}/public/auth/forget-password
 }
 ```
 
-Password reset email links use the validated browser `Origin` when the request comes from an allowed Storefront API origin. Requests without an `Origin` header fall back to the hosted storefront custom domain.
+For Storefront API requests, password reset email links use this URL contract:
+
+```text
+http(s)://<allowed-storefront-host>/reset-password?token=<reset-token>
+```
+
+The host and scheme come from the validated browser `Origin` when the request comes from an allowed Storefront API origin. Requests without an `Origin` header fall back to the hosted storefront custom domain and use the same `/reset-password?token=...` path.
 
 Save a new password with:
 
