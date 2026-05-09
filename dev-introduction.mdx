@@ -46,7 +46,7 @@ Customer access tokens are issued by the storefront customer auth flow. A succes
 
 Send `access` as `Authorization: Bearer <token>` to `/v3/stores/{store_id}/customers/me/*`. Use `refresh` with `POST /v3/stores/{store_id}/public/auth/jwt/refresh` to obtain a new access token. `store_unique_id` is returned by some OTP verification responses.
 
-When OTP is required, a successful credential check sends the one-time code and returns `204` with no body; the caller must then verify the OTP to receive tokens.
+When OTP is required, `POST /v3/stores/{store_id}/public/auth/login` sends the one-time code and returns `{ "message": "..." }`; the caller should show the OTP entry step and then verify the OTP to receive tokens.
 
 ### Authenticated business routes
 

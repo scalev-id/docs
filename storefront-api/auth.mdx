@@ -106,7 +106,7 @@ These routes are scoped by the store path and the customer JWT. The Storefront A
 Start sign-in with:
 
 ```text
-POST /v3/stores/{store_id}/public/auth/otp/send
+POST /v3/stores/{store_id}/public/auth/login
 ```
 
 Example body:
@@ -127,7 +127,13 @@ If the store does not require OTP, the response is `200` with customer tokens:
 }
 ```
 
-If the store requires OTP, the response is `204` with an empty body. Show the one-time-code field and call:
+If the store requires OTP, the response is `200` with a message. Show the one-time-code field and call:
+
+```json
+{
+  "message": "If this email exists in our system, an OTP has been sent to it."
+}
+```
 
 ```text
 POST /v3/stores/{store_id}/public/auth/otp/verify

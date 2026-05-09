@@ -46,7 +46,7 @@ Token akses pelanggan diterbitkan oleh alur autentikasi pelanggan storefront. Lo
 
 Kirim `access` sebagai `Authorization: Bearer <token>` ke `/v3/stores/{store_id}/customers/me/*`. Gunakan `refresh` dengan `POST /v3/stores/{store_id}/public/auth/jwt/refresh` untuk mendapatkan token akses baru. `store_unique_id` dikembalikan oleh beberapa respons verifikasi OTP.
 
-Jika OTP diperlukan, pemeriksaan kredensial yang sukses akan mengirim kode sekali pakai dan mengembalikan `204` tanpa body; pemanggil harus melakukan verifikasi OTP untuk menerima token.
+Jika OTP diperlukan, `POST /v3/stores/{store_id}/public/auth/login` mengirim kode sekali pakai dan mengembalikan `{ "message": "..." }`; pemanggil harus menampilkan input OTP lalu melakukan verifikasi OTP untuk menerima token.
 
 ### Rute bisnis terautentikasi
 

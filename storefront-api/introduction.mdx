@@ -84,7 +84,7 @@ Location search uses cursor pagination. When `has_next` is `true`, use `next_cur
 5. Create the order with `POST /public/guest-checkout`.
 6. Read the order through `GET /public/orders/{secret_slug}`.
 7. Call `POST /public/orders/{secret_slug}/payment`; reuse the returned or existing `payment_url`.
-8. For customer accounts, start with `/public/auth/otp/send`, then call `/customers/me/*` with the customer JWT.
+8. For customer accounts, start with `/public/auth/login`, then call `/customers/me/*` with the customer JWT.
 
 ## Payment responses
 
