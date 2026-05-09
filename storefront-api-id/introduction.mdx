@@ -74,7 +74,7 @@ POST /v3/stores/{store_id}/public/guest-checkout
 GET  /v3/stores/{store_id}/public/orders/{secret_slug}
 PATCH /v3/stores/{store_id}/public/orders/{secret_slug}
 POST /v3/stores/{store_id}/public/orders/{secret_slug}/payment
-POST /v3/stores/{store_id}/public/discount-codes/check
+GET  /v3/stores/{store_id}/public/discount-codes/check
 ```
 
 Search location memakai cursor pagination. Saat `has_next` bernilai `true`, gunakan `next_cursor` untuk mengambil halaman berikutnya.
@@ -87,7 +87,7 @@ Search location memakai cursor pagination. Saat `has_next` bernilai `true`, guna
 4. Ambil opsi checkout dengan `GET /public/payment-methods` dan endpoint public location/postal-code.
 5. Daftar opsi pengiriman dengan `POST /public/checkout/shipping-options`. Cart dari `X-Scalev-Guest-Token` jadi sumber item; jika kosong, kirim `items[]` berisi variant ID langsung di body.
 6. Hitung ulang total dengan `POST /public/checkout/summary` setelah pembeli memilih courier service dan metode pembayaran. API mengabaikan `shipping_cost` dari client dan menghitung ulang dari courier service, warehouse, metode pembayaran, destinasi, dan item cart yang dipilih.
-7. Opsional, validasi kode diskon dengan `POST /public/discount-codes/check`.
+7. Opsional, validasi kode diskon dengan `GET /public/discount-codes/check?code=...`. Kode yang tidak dikenal atau tidak memenuhi syarat mengembalikan `is_eligible: false`; route hanya mengembalikan `404` jika store tidak ditemukan.
 8. Buat order dengan `POST /public/guest-checkout`.
 9. Baca order melalui `GET /public/orders/{secret_slug}` dan update field buyer seperti `transferproof_url`, `transfer_time`, atau `notes` dengan `PATCH /public/orders/{secret_slug}`.
 10. Panggil `POST /public/orders/{secret_slug}/payment`; render instruksi payment yang dikembalikan atau yang sudah ada di payment page Anda sendiri, dan gunakan `payment_url` hanya sebagai hosted fallback.

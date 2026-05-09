@@ -74,7 +74,7 @@ POST /v3/stores/{store_id}/public/guest-checkout
 GET  /v3/stores/{store_id}/public/orders/{secret_slug}
 PATCH /v3/stores/{store_id}/public/orders/{secret_slug}
 POST /v3/stores/{store_id}/public/orders/{secret_slug}/payment
-POST /v3/stores/{store_id}/public/discount-codes/check
+GET  /v3/stores/{store_id}/public/discount-codes/check
 ```
 
 Location search uses cursor pagination. When `has_next` is `true`, use `next_cursor` to fetch the next page.
@@ -87,7 +87,7 @@ Location search uses cursor pagination. When `has_next` is `true`, use `next_cur
 4. Discover checkout options with `GET /public/payment-methods` and the public location/postal-code endpoints.
 5. List shipping options with `POST /public/checkout/shipping-options`. The cart from `X-Scalev-Guest-Token` is the item source; otherwise pass `items[]` with variant IDs in the request body.
 6. Recompute totals with `POST /public/checkout/summary` after the shopper picks a courier service and payment method. The API ignores client-supplied `shipping_cost` and recomputes it from the selected courier service, warehouse, payment method, destination, and cart items.
-7. Optionally validate a discount code with `POST /public/discount-codes/check`.
+7. Optionally validate a discount code with `GET /public/discount-codes/check?code=...`. Unknown or ineligible codes return `is_eligible: false`; the route only returns `404` when the store cannot be resolved.
 8. Create the order with `POST /public/guest-checkout`.
 9. Read the order through `GET /public/orders/{secret_slug}` and update buyer-facing fields such as `transferproof_url`, `transfer_time`, or `notes` with `PATCH /public/orders/{secret_slug}`.
 10. Call `POST /public/orders/{secret_slug}/payment`; render the returned or existing payment instructions in your own payment page and use `payment_url` only as a hosted fallback.

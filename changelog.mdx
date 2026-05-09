@@ -4,6 +4,24 @@ description: "Product updates and documentation changes"
 rss: true
 ---
 
+<Update label="May 2026" description="Typed customer endpoint responses" tags={["API"]}>
+  Authenticated customer storefront endpoints now return typed response shapes
+  instead of generic success envelopes. `GET`, `PATCH`, and `PATCH /password`
+  on `/customers/me/profile` return `customer`, `store`, and
+  `is_generated_password_reset`. Cart routes
+  (`GET /customers/me/cart`, item add/update/delete) return the customer cart
+  shape; cart item add now returns `201`. Order routes return a typed customer
+  order list with cursor pagination and a typed customer order shape on
+  `/customers/me/orders/{id}`. Course routes return typed access, section,
+  content, and progress responses. `POST /customers/me/cart/checkout` is now
+  deprecated; new integrations should use
+  `POST /customers/me/checkout/confirm`. The discount-code validation route
+  is `GET /public/discount-codes/check` and accepts `code`, `payment_method`,
+  `net_product_price`, `gross_revenue`, and `shipping_cost` as query
+  parameters; the legacy `discount_code` query name is still accepted as an
+  alias.
+</Update>
+
 <Update label="May 2026" description="Storefront API checkout and payment contracts" tags={["API", "Docs"]}>
   Storefront API now documents browser-safe guest checkout preparation for
   shipping options and checkout summary. Public guest checkout can use a guest
