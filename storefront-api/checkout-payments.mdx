@@ -171,7 +171,7 @@ Use this order of preference in a browser storefront:
 
 The Scalev-hosted success page is the reference implementation for method-specific rendering. A Storefront API storefront can replace that page by applying the same `pg_payment_info` mappings in its own UI.
 
-The hosted success page first derives a small display model from provider-specific `pg_payment_info`. This is not a separate API response shape. It is a useful reference if your storefront wants one payment renderer instead of branching directly on every provider payload:
+The hosted success page first derives a small display model from the current Xendit/default `pg_payment_info`. This is not a separate API response shape. It is a useful reference if your storefront wants one payment renderer instead of branching directly on raw provider payload fields:
 
 ```json
 {
@@ -184,14 +184,15 @@ The hosted success page first derives a small display model from provider-specif
 }
 ```
 
-The actual source fields come from the order and payment response. The hosted success page maps them this way:
+The actual source fields come from the order and payment response. For the current Xendit/default payload, map them this way:
 
-| Provider | QR source | Payment number source | Account holder source | URL source |
-| --- | --- | --- | --- | --- |
-| `duitku` | `pg_payment_info.qrString` | `pg_payment_info.vaNumber` | empty | `pg_payment_info.paymentUrl` |
-| `ipaymu` | `pg_payment_info.QrString` | `pg_payment_info.PaymentNo` | `pg_payment_info.PaymentName` | `pg_payment_info.Url` |
-| `midtrans` GoPay | none | none | none | mobile `actions[].name == "deeplink-redirect"` |
-| default/Xendit-style | `pg_payment_info.qr_string` or `payment_method.qr_code.channel_properties.qr_string` | legacy `pg_payment_info.account_numbner`, `payment_method.virtual_account.channel_properties.virtual_account_number`, or `payment_method.over_the_counter.channel_properties.payment_code` | `payment_method.virtual_account.channel_properties.customer_name` or `payment_method.over_the_counter.channel_properties.customer_name` | `pg_payment_info.invoice_url` or `pg_payment_info.redirect_url` |
+| Display value | Source field |
+| --- | --- |
+| `qrString` | `pg_payment_info.qr_string` or `pg_payment_info.payment_method.qr_code.channel_properties.qr_string` |
+| `vaNumber` | `pg_payment_info.payment_method.virtual_account.channel_properties.virtual_account_number` or `pg_payment_info.payment_method.over_the_counter.channel_properties.payment_code` |
+| `vaAccountHolder` | `pg_payment_info.payment_method.virtual_account.channel_properties.customer_name` or `pg_payment_info.payment_method.over_the_counter.channel_properties.customer_name` |
+| `invoiceUrl` | `pg_payment_info.invoice_url` or `pg_payment_info.redirect_url` |
+| `qrImageUrl` | Generate a QR image from `qrString` in your frontend when you need a downloadable QR image. |
 
 For `gopay`, `dana`, `linkaja`, `shopeepay`, and `ovo`, choose an action URL from `pg_payment_info.actions`: mobile prefers `url_type` `WEB` or `DEEPLINK`; desktop prefers `MOBILE` or `DEEPLINK`.
 
@@ -227,7 +228,7 @@ Open the mapped `invoiceUrl` as a button/redirect. The hosted success page redir
 
 Alfamart and Indomaret:
 
-Render `vaNumber` as `No Pembayaran`, show `vaAccountHolder` when present, and provide a copy action. When the provider is `ipaymu`, also show the payment tutorial link.
+Render `vaNumber` as `No Pembayaran`, show `vaAccountHolder` when present, and provide a copy action.
 
 ## Polling and status checks
 

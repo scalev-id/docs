@@ -171,7 +171,7 @@ Gunakan urutan preferensi berikut di browser storefront:
 
 Success page bawaan Scalev adalah reference implementation untuk rendering per metode. Storefront API storefront dapat menggantikan page tersebut dengan menerapkan mapping `pg_payment_info` yang sama di UI sendiri.
 
-Success page bawaan terlebih dulu membuat display model kecil dari `pg_payment_info` yang berbeda-beda per provider. Ini bukan bentuk response API terpisah. Ini hanya referensi jika storefront Anda ingin punya satu renderer payment, bukan branching langsung ke setiap payload provider:
+Success page bawaan terlebih dulu membuat display model kecil dari `pg_payment_info` Xendit/default yang dipakai saat ini. Ini bukan bentuk response API terpisah. Ini hanya referensi jika storefront Anda ingin punya satu renderer payment, bukan branching langsung ke field payload provider:
 
 ```json
 {
@@ -184,14 +184,15 @@ Success page bawaan terlebih dulu membuat display model kecil dari `pg_payment_i
 }
 ```
 
-Field sumber aslinya berasal dari order dan response payment. Success page bawaan memetakannya dengan aturan berikut:
+Field sumber aslinya berasal dari order dan response payment. Untuk payload Xendit/default saat ini, petakan dengan aturan berikut:
 
-| Provider | Sumber QR | Sumber nomor payment | Sumber account holder | Sumber URL |
-| --- | --- | --- | --- | --- |
-| `duitku` | `pg_payment_info.qrString` | `pg_payment_info.vaNumber` | kosong | `pg_payment_info.paymentUrl` |
-| `ipaymu` | `pg_payment_info.QrString` | `pg_payment_info.PaymentNo` | `pg_payment_info.PaymentName` | `pg_payment_info.Url` |
-| GoPay `midtrans` | tidak ada | tidak ada | tidak ada | mobile `actions[].name == "deeplink-redirect"` |
-| default/Xendit-style | `pg_payment_info.qr_string` atau `payment_method.qr_code.channel_properties.qr_string` | legacy `pg_payment_info.account_numbner`, `payment_method.virtual_account.channel_properties.virtual_account_number`, atau `payment_method.over_the_counter.channel_properties.payment_code` | `payment_method.virtual_account.channel_properties.customer_name` atau `payment_method.over_the_counter.channel_properties.customer_name` | `pg_payment_info.invoice_url` atau `pg_payment_info.redirect_url` |
+| Display value | Field sumber |
+| --- | --- |
+| `qrString` | `pg_payment_info.qr_string` atau `pg_payment_info.payment_method.qr_code.channel_properties.qr_string` |
+| `vaNumber` | `pg_payment_info.payment_method.virtual_account.channel_properties.virtual_account_number` atau `pg_payment_info.payment_method.over_the_counter.channel_properties.payment_code` |
+| `vaAccountHolder` | `pg_payment_info.payment_method.virtual_account.channel_properties.customer_name` atau `pg_payment_info.payment_method.over_the_counter.channel_properties.customer_name` |
+| `invoiceUrl` | `pg_payment_info.invoice_url` atau `pg_payment_info.redirect_url` |
+| `qrImageUrl` | Buat QR image dari `qrString` di frontend saat Anda membutuhkan gambar QR yang bisa diunduh. |
 
 Untuk `gopay`, `dana`, `linkaja`, `shopeepay`, dan `ovo`, pilih action URL dari `pg_payment_info.actions`: mobile memprioritaskan `url_type` `WEB` atau `DEEPLINK`; desktop memprioritaskan `MOBILE` atau `DEEPLINK`.
 
@@ -227,7 +228,7 @@ Buka `invoiceUrl` hasil mapping sebagai tombol/redirect. Success page bawaan mel
 
 Alfamart dan Indomaret:
 
-Render `vaNumber` sebagai `No Pembayaran`, tampilkan `vaAccountHolder` saat tersedia, dan sediakan aksi copy. Jika provider adalah `ipaymu`, tampilkan juga link panduan pembayaran.
+Render `vaNumber` sebagai `No Pembayaran`, tampilkan `vaAccountHolder` saat tersedia, dan sediakan aksi copy.
 
 ## Polling dan cek status
 
