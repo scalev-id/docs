@@ -4,6 +4,14 @@ description: "Product updates and documentation changes"
 rss: true
 ---
 
+<Update label="May 2026" description="Storefront API bundle price option catalog endpoints" tags={["API", "Docs"]}>
+  Storefront API v3 now exposes canonical public catalog endpoints for bundle
+  price options: `GET /v3/stores/{store_id}/public/bundle-price-options`,
+  `GET /v3/stores/{store_id}/public/bundle-price-options/count`, and
+  `GET /v3/stores/{store_id}/public/bundle-price-options/{slug}`. The old v3
+  public bundle detail name is no longer part of the Storefront API contract.
+</Update>
+
 <Update label="May 2026" description="Storefront API v3 checkout endpoint cleanup" tags={["API", "Docs"]}>
   Storefront API v3 checkout order creation now uses one canonical endpoint per
   auth mode: `POST /v3/stores/{store_id}/public/checkout` for public checkout
