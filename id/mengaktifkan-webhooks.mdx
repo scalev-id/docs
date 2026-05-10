@@ -1,0 +1,27 @@
+---
+title: 'Mengaktifkan webhooks'
+---
+
+Untuk menggunakan fitur webhook di Scalev, aktifkan fitur ini di akun Anda dan daftarkan URL webhook Anda.
+
+1. Buat akun Scalev jika Anda belum memilikinya. Daftar [di sini](https://app.scalev.id/register).
+2. Gunakan paket berlangganan yang mendukung webhook. Fitur ini tersedia untuk paket Basic ke atas. Untuk informasi paket, baca [halaman ini](https://scalev.id/plan).
+3. Buat endpoint publik yang valid di aplikasi atau sistem Anda untuk menerima request webhook dari Scalev.
+4. Buka [Settings > Developers > Webhooks](https://app.scalev.id/setting/developers). Di halaman ini Anda dapat melihat informasi dan pengaturan webhook.
+5. Isi field webhook yang diperlukan:
+   1. Pilih semua event yang ingin Anda terima. Informasi event tersedia di [panduan event webhook](/id/event-webhook). Jika event tidak dipilih, Scalev tidak akan mengirim event tersebut.
+   2. Masukkan endpoint dari langkah 3 ke field **Webhook URL**.
+   3. Pilih status **ACTIVE** atau **INACTIVE** sesuai tahap pengembangan Anda.
+      1. Jika status dimatikan, pengaturan dapat disimpan tetapi Scalev tidak akan mengirim request webhook aktual.
+      2. Jika status dinyalakan, Scalev akan mulai mengirim event ke endpoint Anda dan webhook dianggap **ACTIVE**. Saat pertama kali menyimpan pengaturan webhook dengan status aktif, kami mengirim request awal dengan payload berikut:
+
+         ```json
+         {
+           "event": "business.test_event",
+           "timestamp": "<ISO_8601_TIMESTAMP>",
+           "data": {}
+         }
+         ```
+
+         Anda harus mengembalikan response dengan status code 200. Jika tidak, request akan gagal dan pengaturan tidak disimpan. Anda juga perlu memverifikasi request memakai mekanisme di [panduan verifikasi webhook](/id/verifikasi-request-webhook).
+6. Klik **Save**.

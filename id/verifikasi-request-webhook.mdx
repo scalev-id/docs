@@ -1,0 +1,38 @@
+---
+title: 'Memverifikasi request webhook'
+---
+
+Untuk mengautentikasi request webhook dari Scalev, verifikasi signature di header `X-Scalev-Hmac-Sha256`. Signature ini dibuat dengan Signing Secret Anda sebagai key dalam algoritma HMAC-SHA256. Untuk memvalidasi setiap request:
+
+1. Ambil signature dari header `X-Scalev-Hmac-Sha256`
+2. Hitung digest HMAC-SHA256 Anda sendiri menggunakan Signing Secret
+3. Bandingkan digest yang Anda hitung dengan signature yang diterima
+
+Jika signature cocok, Anda dapat mempercayai bahwa webhook berasal dari Scalev dan tidak diubah.
+
+Berikut contoh kode untuk membantu Anda memvalidasi webhook:
+
+### Node.js
+
+```javascript
+// Using crypto-js dependency
+const HMACSHA256 = require("crypto-js/hmac-sha256");
+const BASE64 = require("crypto-js/enc-base64");
+const calculatedHmac = BASE64.stringify(
+  HMACSHA256("JSON-BODY-HERE", "YOUR-SIGNING-SECRET-HERE"),
+);
+console.log(calculatedHmac);
+```
+
+### Python
+
+```python
+import hmac
+import base64
+json_body = 'JSON-BODY-HERE'.encode('utf-8')
+signing_secret = 'YOUR-SIGNING-SECRET-HERE'.encode('utf-8')
+calculated_hmac = base64.b64encode(
+   hmac.new(signing_secret, json_body, 'sha256').digest()
+).decode('utf-8')
+print(calculated_hmac)
+```

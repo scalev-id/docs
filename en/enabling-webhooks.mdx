@@ -9,7 +9,7 @@ To use webhooks feature in Scalev, you must enable it in your account and regist
 3. Create a valid public endpoint in your app / system that will receive webhook requests from Scalev.
 4. Go to [Settings > Developers > Webhooks](https://app.scalev.id/setting/developers). You can see all related information and settings regarding webhooks.
 5. Fill in the required fields for webhooks:
-   1. Select all events that you want to listen. Information regarding these events will be provided in [the webhook events guide](/webhook-events). If you don't select the events here, Scalev won't send you the events.
+   1. Select all events that you want to listen. Information regarding these events will be provided in [the webhook events guide](/en/webhook-events). If you don't select the events here, Scalev won't send you the events.
    2. Enter your endpoint from step 3 in the **Webhook URL** field.
    3. Toggle for **ACTIVE** or **INACTIVE**. Turn the toggle on or off depending on your development step at the moment.
       1. If you turn the toggle off, you can save your settings but no actual webhook requests will be sent by Scalev to you.
@@ -23,5 +23,5 @@ To use webhooks feature in Scalev, you must enable it in your account and regist
          }
          ```
 
-         You must return a response with status code 200, otherwise it will fail and the settings won't be saved. Also, you need to verify the request using the mechanism explained in [the webhook verification guide](/verifying-a-webhook-request).
+         You must return a response with status code 200, otherwise it will fail and the settings won't be saved. Also, you need to verify the request using the mechanism explained in [the webhook verification guide](/en/verifying-a-webhook-request).
 6. Click save.

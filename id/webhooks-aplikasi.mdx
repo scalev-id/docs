@@ -1,0 +1,16 @@
+---
+title: 'Webhook aplikasi'
+---
+
+Aplikasi juga dapat menerima webhook atas nama penggunanya. Saat pengguna mengotorisasi aplikasi Anda, Scalev akan mengirim event webhook ke URL yang Anda tentukan di pengaturan Webhooks bisnis Anda. Dengan ini, aplikasi Anda dapat merespons event yang terkait dengan aktivitas bisnis pengguna, seperti pembuatan atau pembaruan order. Untuk menggunakan fitur ini, Anda harus:
+
+* Mengaktifkan fitur Webhooks di bisnis Anda serta menentukan URL webhook dan event yang ingin diterima
+* Mengaktifkan fitur Webhooks di pengaturan aplikasi dan menentukan event yang ingin diterima
+* Memastikan event yang diminta aplikasi termasuk dalam event yang diaktifkan di pengaturan bisnis Anda
+* Meminta pengguna mengotorisasi aplikasi Anda untuk menerima webhook atas nama mereka
+
+Event yang dikirim atas nama pengguna Anda akan memiliki signature yang dihitung menggunakan **Signing Secret bisnis Anda**, bukan Signing Secret pengguna atau Client Secret aplikasi. Artinya:
+
+* Anda tidak perlu meminta Signing Secret pengguna untuk memverifikasi request webhook. Gunakan Signing Secret Anda sendiri untuk memvalidasi signature.
+* Jika Anda memiliki beberapa aplikasi, Anda dapat memakai Signing Secret yang sama untuk memverifikasi webhook semua aplikasi tersebut. Kami menambahkan header `X-Scalev-App-Id` untuk mengidentifikasi aplikasi tujuan webhook, sehingga Anda dapat menanganinya sesuai kebutuhan.
+* Jika Anda juga menerima webhook untuk bisnis Anda sendiri, Anda dapat memakai Signing Secret yang sama untuk memverifikasi webhook tersebut. Anda tidak perlu mengelola secret terpisah untuk sumber webhook yang berbeda.

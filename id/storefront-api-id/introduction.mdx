@@ -22,7 +22,7 @@ await fetch(`https://api.scalev.com/v3/stores/${storeId}/public/products`, {
 });
 ```
 
-Kontinuitas guest cart memakai token header yang dikelola browser, bukan cookie cross-site. Lihat [Auth](/storefront-api-id/auth) untuk model Storefront API key, guest token, dan customer JWT.
+Kontinuitas guest cart memakai token header yang dikelola browser, bukan cookie cross-site. Lihat [Auth](/id/storefront-api-id/auth) untuk model Storefront API key, guest token, dan customer JWT.
 
 ## Yang perlu diatur
 
@@ -93,7 +93,7 @@ Search location memakai cursor pagination. Saat `has_next` bernilai `true`, guna
 10. Panggil `POST /public/orders/{secret_slug}/payment`; render instruksi payment yang dikembalikan atau yang sudah ada di payment page Anda sendiri, dan gunakan `payment_url` hanya sebagai hosted fallback.
 11. Untuk akun customer, mulai dari `/public/auth/login`, lalu panggil `/customers/me/*` dengan customer JWT.
 
-Lihat [Checkout dan Payment](/storefront-api-id/checkout-payments) untuk panduan shipping option, summary, dan rendering payment per metode.
+Lihat [Checkout dan Payment](/id/storefront-api-id/checkout-payments) untuk panduan shipping option, summary, dan rendering payment per metode.
 
 ## Response payment
 

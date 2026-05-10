@@ -22,7 +22,7 @@ await fetch(`https://api.scalev.com/v3/stores/${storeId}/public/products`, {
 });
 ```
 
-Guest cart continuity uses a browser-managed header token, not cross-site cookies. See [Auth](/storefront-api/auth) for the Storefront API key, guest token, and customer JWT model.
+Guest cart continuity uses a browser-managed header token, not cross-site cookies. See [Auth](/en/storefront-api/auth) for the Storefront API key, guest token, and customer JWT model.
 
 ## What to configure
 
@@ -93,7 +93,7 @@ Location search uses cursor pagination. When `has_next` is `true`, use `next_cur
 10. Call `POST /public/orders/{secret_slug}/payment`; render the returned or existing payment instructions in your own payment page and use `payment_url` only as a hosted fallback.
 11. For customer accounts, start with `/public/auth/login`, then call `/customers/me/*` with the customer JWT.
 
-See [Checkout and Payments](/storefront-api/checkout-payments) for shipping option, summary, and method-specific payment rendering guidance.
+See [Checkout and Payments](/en/storefront-api/checkout-payments) for shipping option, summary, and method-specific payment rendering guidance.
 
 ## Payment responses
 
