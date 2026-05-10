@@ -292,8 +292,7 @@
           {
             "tab": "Referensi API",
             "icon": "code",
-            "openapi": "https://api-openapi.scalev.com/specs/v3/openapi.json",
-            "pages": []
+            "openapi": "https://api-openapi.scalev.com/specs/v3/openapi.json"
           },
           {
             "tab": "Changelog",
@@ -583,8 +582,7 @@
           {
             "tab": "API Reference",
             "icon": "code",
-            "openapi": "https://api-openapi.scalev.com/specs/v3/openapi.json",
-            "pages": []
+            "openapi": "https://api-openapi.scalev.com/specs/v3/openapi.json"
           },
           {
             "tab": "Changelog",
