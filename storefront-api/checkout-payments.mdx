@@ -7,7 +7,7 @@ Storefront API checkout uses the same buyer-facing checkout concepts as the Scal
 
 The Storefront API is designed so your storefront can render its own payment page. Use the public order and payment responses to show buyer-facing instructions directly in your UI. `payment_url` is still returned as a hosted fallback for storefronts that have not implemented a method-specific renderer or for provider flows that must open a hosted payment page.
 
-Use only payment methods returned by `GET /v3/stores/{store_id}/public/payment-methods`. Storefront API v3 does not return `no_payment`, and checkout endpoints reject it if submitted directly.
+Use only payment methods returned by `GET /v3/stores/{store_id}/public/payment-methods`. Storefront checkout does not return `no_payment`, and checkout endpoints reject it if submitted directly.
 
 ## Guest checkout flow
 
@@ -182,7 +182,7 @@ Use the same selected checkout fields:
 
 The checkout endpoint uses the selected courier service, warehouse, destination, payment method, and cart items to recompute the shipping cost internally. Do not treat a client-supplied `shipping_cost` as the source of truth.
 
-The response includes `order_secret_slug`, `public_order_url`, and `payment_url`.
+On success, the response includes the created order data, including `secret_slug`, `public_order_url`, `payment_url`, status, totals, line items, shipping details, and payment fields. Use `secret_slug` to read or update the order. Use `payment_url` only as a hosted fallback if your storefront does not render the payment instructions itself.
 
 ## Payment instructions
 
@@ -192,20 +192,20 @@ After checkout, call:
 POST /v3/stores/{store_id}/public/orders/{secret_slug}/payment
 ```
 
-The endpoint is idempotent. If payment instructions already exist, the response returns the existing buyer-facing payment data and URLs.
+The endpoint is idempotent. If payment instructions already exist, the response returns the order again with the existing buyer-facing payment data and URLs.
 
 Use this order of preference in a browser storefront:
 
 1. Render the order's method-specific instructions from `payment_method`, `sub_payment_method`, `epayment_provider`, and `pg_payment_info`.
 2. For provider-hosted methods, open the provider URL from `pg_payment_info` when the provider requires a redirect.
-3. Use `payment_url` only as a fallback to the Scalev-hosted payment page when your storefront does not yet support that method or provider response shape.
+3. Use `payment_url` only as a fallback to the Scalev-hosted payment page when your storefront does not yet support that method or provider response.
 4. Poll the public order when the method needs gateway data that may not exist immediately.
 
 ## Method rendering
 
 The Scalev-hosted success page is the reference implementation for method-specific rendering. A Storefront API storefront can replace that page by applying the same `pg_payment_info` mappings in its own UI.
 
-The hosted success page first derives a small display model from the current Xendit/default `pg_payment_info`. This is not a separate API response shape. It is a useful reference if your storefront wants one payment renderer instead of branching directly on raw provider payload fields:
+The hosted success page first derives a small set of display fields from the current Xendit/default `pg_payment_info`. This is not a separate API response. It is a useful reference if your storefront wants one payment renderer instead of branching directly on raw provider payload fields:
 
 ```json
 {
@@ -280,4 +280,6 @@ Customer checkout endpoints stay under:
 /v3/stores/{store_id}/customers/me/checkout/*
 ```
 
-They use `Authorization: Bearer <customer_access_token>`, not the Storefront API key. Their runtime response shapes match the guest checkout preparation shapes for addresses, payment methods, shipping options, summary, and confirm responses.
+They use `Authorization: Bearer <customer_access_token>`, not the Storefront API key. Addresses, payment methods, shipping options, and summary use the same checkout preparation fields as guest checkout. Confirm returns the same public order response used by guest checkout and public order reads, so every checkout completion response has the same order fields.
+
+Customer checkout summary uses the selected courier service, warehouse, destination, payment method, and customer cart items to recompute shipping cost server-side. A client-supplied `shipping_cost` is only a compatibility value and is not the authoritative amount.

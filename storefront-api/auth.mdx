@@ -101,6 +101,8 @@ Use the customer JWT on:
 
 These routes are scoped by the store path and the customer JWT. The Storefront API key is not required there because it is not the account authorization mechanism.
 
+Customer order routes return only the order data a signed-in buyer should see: order identity, public links, status timestamps, payment fields, totals including `gross_revenue`, destination address, shipment fields, customer data, and order lines. They do not return business analytics, net revenue, platform fees, provider internals, CRM history, affiliate data, or raw metadata. The response also keeps the fields used by the Scalev customer portal, including `store.name`, `store.logo`, `store.unique_id`, store display flags, store `payment_accounts` for manual bank transfer instructions, `final_variants`, `status_history`, and dropshipper display totals.
+
 Customer access and refresh tokens are browser-held credentials. Use a strict Content Security Policy, avoid untrusted third-party scripts, keep dependencies current, and sanitize any customer- or merchant-provided HTML before rendering it in the storefront.
 
 ## Sign in

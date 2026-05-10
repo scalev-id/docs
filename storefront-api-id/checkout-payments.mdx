@@ -7,7 +7,7 @@ Checkout Storefront API memakai konsep checkout yang sama dengan storefront bawa
 
 Storefront API dirancang agar storefront Anda dapat merender payment page sendiri. Gunakan response public order dan payment untuk menampilkan instruksi pembayaran langsung di UI Anda. `payment_url` tetap dikembalikan sebagai fallback hosted untuk storefront yang belum mengimplementasikan renderer per metode atau untuk flow provider yang memang harus membuka hosted payment page.
 
-Gunakan hanya metode payment yang dikembalikan oleh `GET /v3/stores/{store_id}/public/payment-methods`. Storefront API v3 tidak mengembalikan `no_payment`, dan endpoint checkout akan menolaknya jika dikirim langsung.
+Gunakan hanya metode payment yang dikembalikan oleh `GET /v3/stores/{store_id}/public/payment-methods`. Checkout storefront tidak mengembalikan `no_payment`, dan endpoint checkout akan menolaknya jika dikirim langsung.
 
 ## Alur guest checkout
 
@@ -182,7 +182,7 @@ Gunakan field checkout terpilih yang sama:
 
 Endpoint checkout memakai courier service, warehouse, destinasi, metode pembayaran, dan item cart terpilih untuk menghitung ulang shipping cost di server. Jangan menjadikan `shipping_cost` dari client sebagai sumber kebenaran.
 
-Response berisi `order_secret_slug`, `public_order_url`, dan `payment_url`.
+Jika berhasil, response berisi data order yang dibuat, termasuk `secret_slug`, `public_order_url`, `payment_url`, status, total, item, detail pengiriman, dan field payment. Gunakan `secret_slug` untuk membaca atau mengubah order. Gunakan `payment_url` hanya sebagai hosted fallback jika storefront Anda tidak merender instruksi payment sendiri.
 
 ## Instruksi payment
 
@@ -192,20 +192,20 @@ Setelah checkout, panggil:
 POST /v3/stores/{store_id}/public/orders/{secret_slug}/payment
 ```
 
-Endpoint ini idempotent. Jika instruksi payment sudah ada, response mengembalikan data payment buyer-facing dan URL yang sudah tersedia.
+Endpoint ini idempotent. Jika instruksi payment sudah ada, response mengembalikan order lagi dengan data payment buyer-facing dan URL yang sudah tersedia.
 
 Gunakan urutan preferensi berikut di browser storefront:
 
 1. Render instruksi per metode dari `payment_method`, `sub_payment_method`, `epayment_provider`, dan `pg_payment_info`.
 2. Untuk metode hosted oleh provider, buka URL provider dari `pg_payment_info` saat provider memang membutuhkan redirect.
-3. Gunakan `payment_url` hanya sebagai fallback ke payment page hosted Scalev jika storefront Anda belum mendukung metode atau bentuk response provider tersebut.
+3. Gunakan `payment_url` hanya sebagai fallback ke payment page hosted Scalev jika storefront Anda belum mendukung metode atau response provider tersebut.
 4. Poll public order saat metode payment memerlukan data gateway yang mungkin belum langsung tersedia.
 
 ## Rendering per metode
 
 Success page bawaan Scalev adalah reference implementation untuk rendering per metode. Storefront API storefront dapat menggantikan page tersebut dengan menerapkan mapping `pg_payment_info` yang sama di UI sendiri.
 
-Success page bawaan terlebih dulu membuat display model kecil dari `pg_payment_info` Xendit/default yang dipakai saat ini. Ini bukan bentuk response API terpisah. Ini hanya referensi jika storefront Anda ingin punya satu renderer payment, bukan branching langsung ke field payload provider:
+Success page bawaan terlebih dulu membuat data tampilan sederhana dari `pg_payment_info` Xendit/default yang dipakai saat ini. Data tampilan ini bukan response API baru. Bagian ini hanya referensi jika storefront Anda ingin punya satu renderer payment, bukan branching langsung ke field payload provider:
 
 ```json
 {
@@ -280,4 +280,6 @@ Endpoint customer checkout berada di:
 /v3/stores/{store_id}/customers/me/checkout/*
 ```
 
-Endpoint ini memakai `Authorization: Bearer <customer_access_token>`, bukan Storefront API key. Bentuk response runtime-nya mengikuti bentuk persiapan checkout yang sama untuk addresses, payment methods, shipping options, summary, dan confirm responses.
+Endpoint ini memakai `Authorization: Bearer <customer_access_token>`, bukan Storefront API key. Address, metode payment, shipping option, dan summary memakai field persiapan checkout yang sama dengan guest checkout. Confirm mengembalikan response public order yang sama dengan guest checkout dan public order read, sehingga semua response checkout completion memakai field order yang sama.
+
+Summary customer checkout memakai courier service, warehouse, destinasi, metode payment, dan item customer cart terpilih untuk menghitung ulang shipping cost di server. `shipping_cost` dari client hanya nilai compatibility dan bukan jumlah authoritative.

@@ -101,6 +101,8 @@ Gunakan customer JWT pada:
 
 Route ini dibatasi oleh store pada path dan customer JWT. Storefront API key tidak diperlukan di sini karena header tersebut bukan mekanisme otorisasi akun.
 
+Route customer order hanya mengembalikan data order yang layak dilihat customer yang sedang login: identity order, public link, timestamp status, field payment, total termasuk `gross_revenue`, destination address, shipment, data customer, dan order line. Route ini tidak mengembalikan analytics bisnis, net revenue, platform fee, provider internals, riwayat CRM, data affiliate, atau raw metadata. Response juga mempertahankan field yang dipakai Portal customer Scalev, termasuk `store.name`, `store.logo`, `store.unique_id`, flag tampilan store, `payment_accounts` store untuk instruksi manual bank transfer, `final_variants`, `status_history`, dan total tampilan dropshipper.
+
 Access token dan refresh token customer adalah credential yang disimpan di browser. Gunakan Content Security Policy yang ketat, hindari script pihak ketiga yang tidak dipercaya, jaga dependency tetap terbaru, dan sanitasi HTML dari customer atau merchant sebelum dirender di storefront.
 
 ## Sign in

@@ -97,7 +97,9 @@ Lihat [Checkout dan Payment](/storefront-api-id/checkout-payments) untuk panduan
 
 ## Response payment
 
-Endpoint public order mengembalikan status order, total, pengiriman, item, dan instruksi pembayaran yang aman dilihat buyer. Endpoint ini tidak mengembalikan konfigurasi store atau handler khusus dashboard.
+Setelah guest checkout, membaca public order, atau membuat instruksi payment, response berisi data order yang dibutuhkan storefront untuk menampilkan langkah berikutnya ke pembeli: identity order, `public_order_url`, `payment_url`, status, total, item, detail pengiriman, dan field payment seperti `payment_method`, `sub_payment_method`, `payment_account_holder`, `payment_account_number`, `transferproof_url`, dan `pg_payment_info`. Di v3, field tersebut ada langsung di object JSON, bukan di dalam envelope `data` lama.
+
+Route order akun customer mengembalikan data order yang lebih kecil dan aman untuk customer yang sedang login. Response ini mempertahankan data order yang terlihat oleh pembeli dan menghapus detail khusus dashboard seperti analytics bisnis, fee internal, provider internals, riwayat CRM, data affiliate, dan raw metadata.
 
 Endpoint payment public bersifat idempotent saat instruksi pembayaran atau `payment_url` sudah tersedia.
 

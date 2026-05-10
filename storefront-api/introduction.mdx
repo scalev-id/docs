@@ -97,7 +97,9 @@ See [Checkout and Payments](/storefront-api/checkout-payments) for shipping opti
 
 ## Payment responses
 
-The public order endpoint returns buyer-facing order status, totals, shipping, items, and payment instructions. It does not return dashboard-only store or handler configuration.
+After guest checkout, public order reads, and public payment creation, the response includes the order data a storefront needs to show the buyer the next step: order identity, `public_order_url`, `payment_url`, status, totals, line items, shipping details, and payment fields such as `payment_method`, `sub_payment_method`, `payment_account_holder`, `payment_account_number`, `transferproof_url`, and `pg_payment_info`. In v3, those fields are returned directly in the JSON object, not inside the legacy `data` envelope.
+
+Customer account order routes return a smaller buyer-safe order object for the signed-in customer. It keeps buyer-visible order data and removes dashboard-only details such as business analytics, internal fees, provider internals, CRM history, affiliate data, and raw metadata.
 
 The public payment endpoint is idempotent when payment instructions or `payment_url` already exist.
 

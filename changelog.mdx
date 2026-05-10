@@ -7,35 +7,49 @@ rss: true
 <Update label="May 2026" description="Storefront API physical checkout completion" tags={["API", "Docs"]}>
   Storefront API physical checkout now completes after the documented shipping
   option and checkout summary steps. Guest checkout, guest cart checkout, and
-  authenticated customer checkout recompute the selected shipping cost on the
-  server from the courier service, warehouse, destination, payment method, and
-  cart items before creating the order. The public discount-code check route is
-  now a `POST` request with a JSON checkout context body and returns a typed
+  authenticated customer checkout summary and confirm recompute the selected
+  shipping cost on the server from the courier service, warehouse,
+  destination, payment method, and cart items before creating the order. The
+  checkout completion responses now all return the same public order response
+  used by public order reads, so guest checkout, guest cart checkout,
+  authenticated customer checkout confirm, and hosted public order pages expose
+  the same order fields. The public discount-code check route is now a `POST`
+  request with a JSON checkout context body and returns a typed
   ineligible response for unknown codes instead of treating the documented path
   as missing. Storefront API v3 payment-method discovery and checkout creation
   now reject `no_payment` so direct API submissions cannot create no-payment
   storefront orders.
   OpenAPI now also includes typed customer account, customer cart, customer
-  order, and customer course contracts.
+  order, and customer course contracts. Public order responses continue to
+  include buyer-facing order links, totals, line items, shipping details, and
+  payment fields such as `public_order_url`, `payment_url`, and
+  `pg_payment_info`. Customer-account order responses now use a smaller
+  buyer-safe order object. It preserves buyer-visible totals such as `gross_revenue`,
+  plus the minimal Scalev customer portal compatibility fields needed for
+  existing member order pages, including store name, logo, unique ID, and
+  display flags. The customer-account order object omits
+  `financial_entity`, `warehouse`, `origin_address`, business/operator
+  analytics, net revenue, platform fee, provider, CRM, affiliate, and raw
+  internals.
 </Update>
 
 <Update label="May 2026" description="Typed customer endpoint responses" tags={["API"]}>
-  Authenticated customer storefront endpoints now return typed response shapes
+  Authenticated customer storefront endpoints now return typed responses
   instead of generic success envelopes. `GET`, `PATCH`, and `PATCH /password`
   on `/customers/me/profile` return `customer`, `store`, and
   `is_generated_password_reset`. Cart routes
-  (`GET /customers/me/cart`, item add/update/delete) return the customer cart
-  shape; cart item add now returns `201`. Order routes return a typed customer
-  order list with cursor pagination and a typed customer order shape on
-  `/customers/me/orders/{id}`. Course routes return typed access, section,
+  (`GET /customers/me/cart`, item add/update/delete) return the customer cart;
+  cart item add now returns `201`. Order routes use the buyer-safe order
+  response for list and detail responses, with cursor
+  pagination on the list endpoint. Course routes return typed access, section,
   and content responses, plus typed progress update responses.
 </Update>
 
 <Update label="May 2026" description="Storefront API checkout and payment contracts" tags={["API", "Docs"]}>
   Storefront API now documents browser-safe guest checkout preparation for
   shipping options and checkout summary. Public guest checkout can use a guest
-  cart token or direct variant items, returns the same checkout shipping option
-  shape as the hosted storefront, and exposes summary fields as
+  cart token or direct variant items, returns the same shipping option fields as
+  the hosted storefront, and exposes summary fields as
   `product_price`, `shipping_cost`, `other_income`, `other_income_name`, and
   `gross_revenue`. OpenAPI now also includes named schemas for customer
   checkout endpoints and remaining normal-shopping storefront routes such as
