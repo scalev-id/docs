@@ -70,7 +70,7 @@ DELETE /v3/stores/{store_id}/public/cart/items/{item_id}
 
 POST /v3/stores/{store_id}/public/checkout/shipping-options
 POST /v3/stores/{store_id}/public/checkout/summary
-POST /v3/stores/{store_id}/public/guest-checkout
+POST /v3/stores/{store_id}/public/checkout
 GET  /v3/stores/{store_id}/public/orders/{secret_slug}
 PATCH /v3/stores/{store_id}/public/orders/{secret_slug}
 POST /v3/stores/{store_id}/public/orders/{secret_slug}/payment
@@ -85,10 +85,10 @@ Search location memakai cursor pagination. Saat `has_next` bernilai `true`, guna
 2. Buat atau baca guest cart dengan `GET /public/cart`; simpan `X-Scalev-Guest-Token` dari response.
 3. Kirim `X-Scalev-Guest-Token` pada request add, update, remove, checkout, dan pembacaan cart berikutnya.
 4. Ambil opsi checkout dengan `GET /public/payment-methods` dan endpoint public location/postal-code.
-5. Daftar opsi pengiriman dengan `POST /public/checkout/shipping-options`. Cart dari `X-Scalev-Guest-Token` jadi sumber item; jika kosong, kirim `items[]` berisi variant ID langsung di body.
-6. Hitung ulang total dengan `POST /public/checkout/summary` setelah pembeli memilih courier service dan metode pembayaran. API mengabaikan `shipping_cost` dari client dan menghitung ulang dari courier service, warehouse, metode pembayaran, destinasi, dan item cart yang dipilih.
-7. Opsional, validasi kode diskon dengan `POST /public/discount-codes/check`. Kirim `{ "code": "..." }` di body request, bersama konteks checkout opsional (`payment_method`, `destination`, `courier_service_id`, `warehouse_unique_id`, `courier_aggregator_code`, `net_product_price`, `gross_revenue`, `shipping_cost`). Jika `X-Scalev-Guest-Token` menghasilkan guest cart yang tidak kosong, cart digunakan sebagai sumber item; jika tidak, kirim `items[]` langsung dengan variant ID. Kode yang tidak dikenal atau tidak memenuhi syarat mengembalikan `is_eligible: false`; route hanya mengembalikan `404` jika store tidak ditemukan.
-8. Buat order dengan `POST /public/guest-checkout`.
+5. Daftar opsi pengiriman dengan `POST /public/checkout/shipping-options`. Direct `items` bertipe menjadi sumber item jika dikirim; jika tidak, gunakan `X-Scalev-Guest-Token` untuk guest cart.
+6. Hitung ulang total dengan `POST /public/checkout/summary` setelah pembeli memilih courier service dan metode pembayaran. API mengabaikan `shipping_cost` dari client dan menghitung ulang dari courier service, warehouse, metode pembayaran, destinasi, dan item checkout.
+7. Opsional, validasi kode diskon dengan `POST /public/discount-codes/check`. Kirim `{ "code": "..." }` di body request, bersama konteks checkout opsional (`items`, `payment_method`, `destination`, `courier_service_id`, `warehouse_unique_id`, `courier_aggregator_code`, `net_product_price`, `gross_revenue`, `shipping_cost`). Kode yang tidak dikenal atau tidak memenuhi syarat mengembalikan `is_eligible: false`; route hanya mengembalikan `404` jika store tidak ditemukan.
+8. Buat order dengan `POST /public/checkout` memakai direct `items` bertipe, guest cart token, atau keduanya.
 9. Baca order melalui `GET /public/orders/{secret_slug}` dan update field buyer seperti `transferproof_url`, `transfer_time`, atau `notes` dengan `PATCH /public/orders/{secret_slug}`.
 10. Panggil `POST /public/orders/{secret_slug}/payment`; render instruksi payment yang dikembalikan atau yang sudah ada di payment page Anda sendiri, dan gunakan `payment_url` hanya sebagai hosted fallback.
 11. Untuk akun customer, mulai dari `/public/auth/login`, lalu panggil `/customers/me/*` dengan customer JWT.

@@ -16,7 +16,7 @@ Gunakan hanya metode payment yang dikembalikan oleh `GET /v3/stores/{store_id}/p
 3. Panggil `POST /public/checkout/shipping-options`.
 4. Biarkan buyer memilih opsi pengiriman.
 5. Panggil `POST /public/checkout/summary`.
-6. Panggil `POST /public/guest-checkout` dengan detail buyer dan field checkout terpilih.
+6. Panggil `POST /public/checkout` dengan detail buyer dan field checkout terpilih.
 7. Baca order dengan `GET /public/orders/{secret_slug}`.
 8. Panggil `POST /public/orders/{secret_slug}/payment` dan render data payment yang dikembalikan di payment page Anda sendiri.
 
@@ -33,12 +33,13 @@ X-Scalev-Storefront-Api-Key: sfpk_...
 X-Scalev-Guest-Token: <guest-token>
 ```
 
-Jika `X-Scalev-Guest-Token` menemukan guest cart yang tidak kosong, Scalev memakai cart tersebut. Jika tidak, kirim direct variant items:
+Kirim direct `items` bertipe, atau hilangkan `items` dan biarkan `X-Scalev-Guest-Token` memilih guest cart:
 
 ```json
 {
   "items": [
     {
+      "type": "variant",
       "variant_id": 494535,
       "quantity": 1
     }
@@ -51,7 +52,7 @@ Jika `X-Scalev-Guest-Token` menemukan guest cart yang tidak kosong, Scalev memak
 }
 ```
 
-Direct `items[]` mendukung variant. Checkout bundle didukung melalui guest cart.
+Direct `items[]` mendukung variant dan bundle price option. Item bundle price option memakai `{ "type": "bundle_price_option", "bundle_price_option_id": 123, "quantity": 1 }`.
 
 Response:
 
@@ -131,6 +132,7 @@ Gunakan body JSON untuk memvalidasi kode diskon sebelum checkout:
   "code": "SAVE10",
   "items": [
     {
+      "type": "variant",
       "variant_id": 494535,
       "quantity": 1
     }
@@ -146,15 +148,17 @@ Gunakan body JSON untuk memvalidasi kode diskon sebelum checkout:
 }
 ```
 
-Jika `X-Scalev-Guest-Token` mengarah ke cart yang tidak kosong, API memakai cart itu sebagai sumber item. Jika tidak, kirim `items[]`. Kode yang tidak ditemukan atau tidak eligible tetap mengembalikan response validasi normal dengan `is_eligible: false` dan `discount_code: null`.
+Jika direct `items` dikirim, API memakai item tersebut sebagai sumber item. Jika tidak, kirim `X-Scalev-Guest-Token` untuk guest cart. Kode yang tidak ditemukan atau tidak eligible tetap mengembalikan response validasi normal dengan `is_eligible: false` dan `discount_code: null`.
 
-## Guest checkout
+## Public checkout
 
 Buat order dengan:
 
 ```http
-POST /v3/stores/{store_id}/public/guest-checkout
+POST /v3/stores/{store_id}/public/checkout
 ```
+
+Endpoint ini menerima direct `items` bertipe, guest cart dari `X-Scalev-Guest-Token`, atau keduanya. Jika keduanya dikirim, direct `items` membuat order dan guest cart yang direferensikan dibersihkan setelah sukses.
 
 Gunakan field checkout terpilih yang sama:
 
@@ -162,6 +166,7 @@ Gunakan field checkout terpilih yang sama:
 {
   "items": [
     {
+      "type": "variant",
       "variant_id": 494535,
       "quantity": 1
     }
@@ -180,7 +185,7 @@ Gunakan field checkout terpilih yang sama:
 }
 ```
 
-Endpoint checkout memakai courier service, warehouse, destinasi, metode pembayaran, dan item cart terpilih untuk menghitung ulang shipping cost di server. Jangan menjadikan `shipping_cost` dari client sebagai sumber kebenaran.
+Endpoint checkout memakai courier service, warehouse, destinasi, metode pembayaran, dan item checkout untuk menghitung ulang shipping cost di server. Jangan menjadikan `shipping_cost` dari client sebagai sumber kebenaran.
 
 Jika berhasil, response berisi data order yang dibuat, termasuk `secret_slug`, `public_order_url`, `payment_url`, status, total, item, detail pengiriman, dan field payment. Gunakan `secret_slug` untuk membaca atau mengubah order. Gunakan `payment_url` hanya sebagai hosted fallback jika storefront Anda tidak merender instruksi payment sendiri.
 
@@ -280,6 +285,6 @@ Endpoint customer checkout berada di:
 /v3/stores/{store_id}/customers/me/checkout/*
 ```
 
-Endpoint ini memakai `Authorization: Bearer <customer_access_token>`, bukan Storefront API key. Address, metode payment, shipping option, dan summary memakai field persiapan checkout yang sama dengan guest checkout. Confirm mengembalikan response public order yang sama dengan guest checkout dan public order read, sehingga semua response checkout completion memakai field order yang sama.
+Endpoint ini memakai `Authorization: Bearer <customer_access_token>`, bukan Storefront API key. Address, metode payment, shipping option, dan summary memakai field persiapan checkout yang sama dengan public checkout. Buat order dengan `POST /v3/stores/{store_id}/customers/me/checkout`; request menerima direct `items` bertipe, `cart_id`, atau keduanya. Response memakai public order shape yang sama dengan public checkout dan public order read, sehingga semua response checkout completion memakai field order yang sama.
 
-Summary customer checkout memakai courier service, warehouse, destinasi, metode payment, dan item customer cart terpilih untuk menghitung ulang shipping cost di server. `shipping_cost` dari client hanya nilai compatibility dan bukan jumlah authoritative.
+Summary customer checkout memakai courier service, warehouse, destinasi, metode payment, dan direct `items` atau customer cart yang direferensikan untuk menghitung ulang shipping cost di server. `shipping_cost` dari client hanya nilai compatibility dan bukan jumlah authoritative.

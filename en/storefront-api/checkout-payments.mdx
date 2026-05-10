@@ -16,7 +16,7 @@ Use only payment methods returned by `GET /v3/stores/{store_id}/public/payment-m
 3. Call `POST /public/checkout/shipping-options`.
 4. Let the buyer select a shipping option.
 5. Call `POST /public/checkout/summary`.
-6. Call `POST /public/guest-checkout` with buyer details and the selected checkout fields.
+6. Call `POST /public/checkout` with buyer details and the selected checkout fields.
 7. Read the order with `GET /public/orders/{secret_slug}`.
 8. Call `POST /public/orders/{secret_slug}/payment` and render the returned payment data on your own payment page.
 
@@ -33,12 +33,13 @@ X-Scalev-Storefront-Api-Key: sfpk_...
 X-Scalev-Guest-Token: <guest-token>
 ```
 
-If `X-Scalev-Guest-Token` resolves a non-empty guest cart, Scalev uses that cart. Otherwise, send direct variant items:
+Send direct typed items, or omit `items` and let `X-Scalev-Guest-Token` select the guest cart:
 
 ```json
 {
   "items": [
     {
+      "type": "variant",
       "variant_id": 494535,
       "quantity": 1
     }
@@ -51,7 +52,7 @@ If `X-Scalev-Guest-Token` resolves a non-empty guest cart, Scalev uses that cart
 }
 ```
 
-Direct `items[]` supports variants. Bundle checkout is supported through the guest cart.
+Direct `items[]` supports variants and bundle price options. Bundle price option items use `{ "type": "bundle_price_option", "bundle_price_option_id": 123, "quantity": 1 }`.
 
 Response:
 
@@ -131,6 +132,7 @@ Use a JSON body to validate a discount code before checkout:
   "code": "SAVE10",
   "items": [
     {
+      "type": "variant",
       "variant_id": 494535,
       "quantity": 1
     }
@@ -146,15 +148,17 @@ Use a JSON body to validate a discount code before checkout:
 }
 ```
 
-If `X-Scalev-Guest-Token` resolves a non-empty cart, the API uses that cart as the item source. Otherwise, provide `items[]`. Unknown or ineligible codes return a normal validation response with `is_eligible: false` and `discount_code: null`.
+If direct `items` are supplied, the API uses them as the item source. Otherwise, provide `X-Scalev-Guest-Token` for the guest cart. Unknown or ineligible codes return a normal validation response with `is_eligible: false` and `discount_code: null`.
 
-## Guest checkout
+## Public checkout
 
 Create the order with:
 
 ```http
-POST /v3/stores/{store_id}/public/guest-checkout
+POST /v3/stores/{store_id}/public/checkout
 ```
+
+The endpoint accepts direct typed `items`, the guest cart referenced by `X-Scalev-Guest-Token`, or both. If both are supplied, direct `items` create the order and the referenced guest cart is cleared after success.
 
 Use the same selected checkout fields:
 
@@ -162,6 +166,7 @@ Use the same selected checkout fields:
 {
   "items": [
     {
+      "type": "variant",
       "variant_id": 494535,
       "quantity": 1
     }
@@ -180,7 +185,7 @@ Use the same selected checkout fields:
 }
 ```
 
-The checkout endpoint uses the selected courier service, warehouse, destination, payment method, and cart items to recompute the shipping cost internally. Do not treat a client-supplied `shipping_cost` as the source of truth.
+The checkout endpoint uses the selected courier service, warehouse, destination, payment method, and checkout items to recompute the shipping cost internally. Do not treat a client-supplied `shipping_cost` as the source of truth.
 
 On success, the response includes the created order data, including `secret_slug`, `public_order_url`, `payment_url`, status, totals, line items, shipping details, and payment fields. Use `secret_slug` to read or update the order. Use `payment_url` only as a hosted fallback if your storefront does not render the payment instructions itself.
 
@@ -280,6 +285,6 @@ Customer checkout endpoints stay under:
 /v3/stores/{store_id}/customers/me/checkout/*
 ```
 
-They use `Authorization: Bearer <customer_access_token>`, not the Storefront API key. Addresses, payment methods, shipping options, and summary use the same checkout preparation fields as guest checkout. Confirm returns the same public order response used by guest checkout and public order reads, so every checkout completion response has the same order fields.
+They use `Authorization: Bearer <customer_access_token>`, not the Storefront API key. Addresses, payment methods, shipping options, and summary use the same checkout preparation fields as public checkout. Create the order with `POST /v3/stores/{store_id}/customers/me/checkout`; the request accepts direct typed `items`, `cart_id`, or both. The response uses the same public order shape returned by public checkout and public order reads, so every checkout completion response has the same order fields.
 
-Customer checkout summary uses the selected courier service, warehouse, destination, payment method, and customer cart items to recompute shipping cost server-side. A client-supplied `shipping_cost` is only a compatibility value and is not the authoritative amount.
+Customer checkout summary uses the selected courier service, warehouse, destination, payment method, and either direct `items` or the referenced customer cart to recompute shipping cost server-side. A client-supplied `shipping_cost` is only a compatibility value and is not the authoritative amount.

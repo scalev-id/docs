@@ -4,6 +4,16 @@ description: "Pembaruan produk dan dokumentasi"
 rss: true
 ---
 
+<Update label="Mei 2026" description="Cleanup endpoint checkout Storefront API v3" tags={["API", "Docs"]}>
+  Storefront API v3 kini memakai satu endpoint canonical untuk order creation
+  per mode auth: `POST /v3/stores/{store_id}/public/checkout` untuk public
+  checkout dan `POST /v3/stores/{store_id}/customers/me/checkout` untuk customer
+  terautentikasi. Path kompatibilitas checkout v3 yang deprecated sudah
+  dihapus dari kontrak. Direct checkout items sekarang memakai union bertipe
+  eksplisit untuk variant dan bundle price option, dan model sumber item yang
+  sama dipakai oleh shipping options, checkout summary, dan final order creation.
+</Update>
+
 <Update label="Mei 2026" description="Penyelesaian checkout fisik Storefront API" tags={["API", "Docs"]}>
   Storefront API untuk checkout produk fisik kini selesai setelah langkah shipping
   option dan checkout summary yang terdokumentasi. Guest checkout, guest cart

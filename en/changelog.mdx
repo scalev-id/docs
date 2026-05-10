@@ -4,6 +4,16 @@ description: "Product updates and documentation changes"
 rss: true
 ---
 
+<Update label="May 2026" description="Storefront API v3 checkout endpoint cleanup" tags={["API", "Docs"]}>
+  Storefront API v3 checkout order creation now uses one canonical endpoint per
+  auth mode: `POST /v3/stores/{store_id}/public/checkout` for public checkout
+  and `POST /v3/stores/{store_id}/customers/me/checkout` for authenticated
+  customers. The deprecated v3 compatibility checkout paths were removed from
+  the contract. Direct checkout items now use an explicit typed union for
+  variants and bundle price options, and the same item source model is used by
+  shipping options, checkout summary, and final order creation.
+</Update>
+
 <Update label="May 2026" description="Storefront API physical checkout completion" tags={["API", "Docs"]}>
   Storefront API physical checkout now completes after the documented shipping
   option and checkout summary steps. Guest checkout, guest cart checkout, and
