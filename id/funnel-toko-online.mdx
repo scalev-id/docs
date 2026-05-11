@@ -2,40 +2,33 @@
 title: "Funnel Toko Online & Detail Settingan Event di Meta Adsnya"
 description: "Dalam membuat toko online, urutan halaman yang diakses oleh calon buyer adalah elemen yang sangat penting."
 ---
+
 Dalam membuat toko online, urutan halaman yang diakses oleh calon buyer adalah elemen yang sangat penting. 
 
 Funnel yang umum kita lakukan:
 
-<figure>
+<Frame>
+  ![Image](/images/image.png)
+</Frame>
 
-![Funnel Toko Online](https://tutorial.scalev.id/wp-content/uploads/2024/07/funnel-toko-online-1024x576.jpeg)
-
-<figcaption>
-
-Jenis-jenis funnel toko online
-
-</figcaption>
-
-</figure>
-
-﻿  
+﻿\
 Keterangan:
 
-1\. _Landing page views_ adalah _event_ yang pertama kali difiring saat seseorang mengunjungi website yang asalnya **exclusive hanya dari iklan**.
+1. _Landing page views_ adalah _event_ yang pertama kali difiring saat seseorang mengunjungi website yang asalnya **exclusive hanya dari iklan**.
 
 Tidak semua orang yang visit ke website Anda akan ditandai LP views oleh Meta. Hanya orang-orang yang dari iklan saja yang "berhak" ditandai oleh event ini.
 
-2\. _Add to cart_ _event_ lazimnya Anda terapkan pada halaman yang tidak memiliki form di landing page.
+2. _Add to cart_ _event_ lazimnya Anda terapkan pada halaman yang tidak memiliki form di landing page.
 
-3\. _Initiated checkout_ adalah event yang diatribusikan pada momen pengambilan keputusan calon pembeli.
+3. _Initiated checkout_ adalah event yang diatribusikan pada momen pengambilan keputusan calon pembeli.
 
 Biasanya terjadi ketika pembeli sudah memutuskan apa saja yang akan ia beli, sebelum kemudian mengisi data pembayaran.
 
-4\. _Add payment info_ diterapkan biasanya ketika seorang calon pembeli telah mengisi data pembayaran di dalam website.
+4. _Add payment info_ diterapkan biasanya ketika seorang calon pembeli telah mengisi data pembayaran di dalam website.
 
 Umumnya terjadi ketika seseorang sudah memasukkan data credit card.
 
-5\. _Purchase_ diterapkan ketika pembelian telah diselenggarakan. Umumnya terjadi saat pembeli sudah membayar.
+5. _Purchase_ diterapkan ketika pembelian telah diselenggarakan. Umumnya terjadi saat pembeli sudah membayar.
 
 Dalam kasus transaksi online di Indonesia, terdapat metode pembelian yang agak unik, yakni COD.
 
@@ -48,110 +41,87 @@ Khusus untuk COD, event purchase ini bisa diterapkan ketika pembeli telah mengon
 **Meletakkan LP Views**
 
 <figure>
+  ![Funnel Toko Online 2](https://tutorial.scalev.id/wp-content/uploads/2024/07/funnel-toko-online-2-515x1024.png)
 
-![Funnel Toko Online 2](https://tutorial.scalev.id/wp-content/uploads/2024/07/funnel-toko-online-2-515x1024.png)
-
-<figcaption>
-
-Memasang event ViewContent
-
-</figcaption>
-
+  <figcaption>
+    Memasang event ViewContent
+  </figcaption>
 </figure>
 
-1\. Masuk menu Landing Page  
-2\. Tekan button Landing Page Baru  
-3\. Cari menu Pengaturan  
-4\. Lalu pilih event "ViewContent" (dengan catatan Anda sudah mengatur FB Pixel pada Scalev Anda)
+1. Masuk menu Landing Page\
+2. Tekan button Landing Page Baru\
+3. Cari menu Pengaturan\
+4. Lalu pilih event "ViewContent" (dengan catatan Anda sudah mengatur FB Pixel pada Scalev Anda)
 
 _Saya cari event Landing Page View dengan menggunakan Chrome Extension FB Pixel Helper kok tidak ada mas?_
 
 Ingat bahwa LP Views adalah View Content yang diakses perdana dari sebuah iklan. Anda hanya akan menemukan istilah Landing Page View pada dashboard iklan.
 
-**Meletakkan Add To Cart  
-**  
+\*\*Meletakkan Add To Cart\
+\*\*\
 Terdapat 2 cara untuk memasang add to cart event:
 
-1\. Pada button  
-2\. Pada halaman yang dituju oleh button add to cart
+1. Pada button\
+2. Pada halaman yang dituju oleh button add to cart
 
 Kedua cara ini bisa Anda pilih dengan pertimbangan berikut:
 
-1\. Jika Anda pasang pada button, event akan difiring sesaat ketika button diklik; tidak peduli halaman setelahnya berfungsi ataupun tidak.
+1. Jika Anda pasang pada button, event akan difiring sesaat ketika button diklik; tidak peduli halaman setelahnya berfungsi ataupun tidak.
 
 Biasanya penggemar peletakan event pada button adalah para pemilik toko online dengan funnel no 4 dan 5. Dari saya, not recommended.
 
-2\. Jika Anda letakkan di halaman tertentu setelah button diklik, data akan lebih berintegritas. Artinya angka yang muncul pada dashboard ads kita benar-benar bisa dipercaya.
+2. Jika Anda letakkan di halaman tertentu setelah button diklik, data akan lebih berintegritas. Artinya angka yang muncul pada dashboard ads kita benar-benar bisa dipercaya.
 
 Jika ada 100 ATC maka itu benar-benar real halaman ATC terbuka 100x dari iklan. Saya suka cara yang kedua.
 
 Untuk memasang event di button, buka Landing Page Studio (LPS) Scalev Anda, kemudian cari elemen button. Saat menyettingnya, Anda akan menemukan menu ini:
 
 <figure>
+  ![Funnel Toko Online 3](https://tutorial.scalev.id/wp-content/uploads/2024/07/funnel-toko-online-3-704x1024.png)
 
-![Funnel Toko Online 3](https://tutorial.scalev.id/wp-content/uploads/2024/07/funnel-toko-online-3-704x1024.png)
-
-<figcaption>
-
-Menambahkan event di button
-
-</figcaption>
-
+  <figcaption>
+    Menambahkan event di button
+  </figcaption>
 </figure>
 
-  
 Untuk memasang pada halaman tertentu yang dituju setelah tombol add to cart diklik (funnel 1, 2, dan 3), maka Anda bisa pasang seperti biasa saja.
 
 Contohnya ini:
 
 <figure>
+  ![Funnel Toko Online 4](https://tutorial.scalev.id/wp-content/uploads/2024/07/funnel-toko-online-4.png)
 
-![Funnel Toko Online 4](https://tutorial.scalev.id/wp-content/uploads/2024/07/funnel-toko-online-4.png)
-
-<figcaption>
-
-Memasang event saat halaman terbuka
-
-</figcaption>
-
+  <figcaption>
+    Memasang event saat halaman terbuka
+  </figcaption>
 </figure>
 
-  
-**Meletakkan Initiated Checkout  
-**  
+\*\*Meletakkan Initiated Checkout\
+\*\*\
 Event ini akan kita letakkan sesaat setelah calon pembeli (pengunjung toko kita) mengisi formulir.
 
 Untuk mengisinya di Scalev, Anda perlu mengatur terlebih dulu produk apa yang Anda tawarkan kepada pengunjung dan dihubungkan di form melalui komponen form pemesanan online.
 
 <figure>
+  ![Funnel Toko Online 5](https://tutorial.scalev.id/wp-content/uploads/2024/07/funnel-toko-online-5.png)
 
-![Funnel Toko Online 5](https://tutorial.scalev.id/wp-content/uploads/2024/07/funnel-toko-online-5.png)
-
-<figcaption>
-
-Meletakkan event di komponen form
-
-</figcaption>
-
+  <figcaption>
+    Meletakkan event di komponen form
+  </figcaption>
 </figure>
 
-﻿  
-Saat komponen form pemesanan online > form pemesanan dipilih, maka di dalam editor landing page Anda akan otomatis muncul 2 konten sebagai berikut:
+﻿\
+Saat komponen form pemesanan online \> form pemesanan dipilih, maka di dalam editor landing page Anda akan otomatis muncul 2 konten sebagai berikut:
 
 <figure>
+  ![Funnel Toko Online 6](https://tutorial.scalev.id/wp-content/uploads/2024/07/funnel-toko-online-6.png)
 
-![Funnel Toko Online 6](https://tutorial.scalev.id/wp-content/uploads/2024/07/funnel-toko-online-6.png)
-
-<figcaption>
-
-Komponen Produk / Bundel dan Form Pemesanan
-
-</figcaption>
-
+  <figcaption>
+    Komponen Produk / Bundel dan Form Pemesanan
+  </figcaption>
 </figure>
 
 - Konten Produk/Bundel terkait dengan produk apa yang akan Anda hubungkan terhadap form pemesanan. Anda mengatur variasi produk yang akan dipasang dan sebagainya.
-
 - Sedangkan konten Form pemesanan, terkait dengan pengaturan field formnya; apakah menggunakan kecamatan, alamat, coupon code, dst. 
 
 Saya tidak akan menjelaskan terlalu jauh mengenai elemen produk dan form pemesanan.
@@ -165,39 +135,29 @@ Untuk mengatur event initiated checkout, Anda masuk ke button roda gigi yang say
 Jika sudah, scroll ke bawah, Anda akan menemukan pengaturan seperti ini:
 
 <figure>
+  ![Funnel Toko Online 7](https://tutorial.scalev.id/wp-content/uploads/2024/07/funnel-toko-online-7.png)
 
-![Funnel Toko Online 7](https://tutorial.scalev.id/wp-content/uploads/2024/07/funnel-toko-online-7.png)
-
-<figcaption>
-
-Pengaturan event pada form
-
-</figcaption>
-
+  <figcaption>
+    Pengaturan event pada form
+  </figcaption>
 </figure>
 
-  
 Silakan isi dengan event yang sesuai. Default Scalev sudah terisi event Initiated Checkout.
 
 Tapi jika Anda ingin menggunakan API, tinggal ganti saja defaultnya dengan Add Payment Info. 
 
-**Meletakkan Event Purchase  
-**  
+\*\*Meletakkan Event Purchase\
+\*\*\
 Pengaturan purchase agak berbeda di Scalev. Kita tidak mengatur di level landing page, melainkan di area store/toko.
 
 <figure>
+  ![Funnel Toko Online 8](https://tutorial.scalev.id/wp-content/uploads/2024/07/funnel-toko-online-8.png)
 
-![Funnel Toko Online 8](https://tutorial.scalev.id/wp-content/uploads/2024/07/funnel-toko-online-8.png)
-
-<figcaption>
-
-Pengaturan event Purchase terletak di Store
-
-</figcaption>
-
+  <figcaption>
+    Pengaturan event Purchase terletak di Store
+  </figcaption>
 </figure>
 
-  
 Setelah Anda masuk ke menu Store, silakan masuk ke dalam toko yang sudah Anda miliki.
 
 Anda akan menemukan menu seperti di bawah ini di sisi kanan layar jika telah masuk ke dalam toko.
@@ -205,42 +165,30 @@ Anda akan menemukan menu seperti di bawah ini di sisi kanan layar jika telah mas
 Klik pada bagian yang saya beri tanda panah.
 
 <figure>
+  ![Funnel Toko Online 9](https://tutorial.scalev.id/wp-content/uploads/2024/07/funnel-toko-online-9-606x1024.png)
 
-![Funnel Toko Online 9](https://tutorial.scalev.id/wp-content/uploads/2024/07/funnel-toko-online-9-606x1024.png)
-
-<figcaption>
-
-Letak pengaturan Trigger Event Purchase
-
-</figcaption>
-
+  <figcaption>
+    Letak pengaturan Trigger Event Purchase
+  </figcaption>
 </figure>
 
-﻿  
+﻿\
 Setelahnya, Anda akan melihat pilihan menu sebagai berikut:
 
 <figure>
+  ![Funnel Toko Online 10](https://tutorial.scalev.id/wp-content/uploads/2024/07/funnel-toko-online-10-830x1024.png)
 
-![Funnel Toko Online 10](https://tutorial.scalev.id/wp-content/uploads/2024/07/funnel-toko-online-10-830x1024.png)
-
-<figcaption>
-
-Trigger Purchase untuk Bank Transfer
-
-</figcaption>
-
+  <figcaption>
+    Trigger Purchase untuk Bank Transfer
+  </figcaption>
 </figure>
 
 <figure>
+  ![Funnel Toko Online 11](https://tutorial.scalev.id/wp-content/uploads/2024/07/funnel-toko-online-11.png)
 
-![Funnel Toko Online 11](https://tutorial.scalev.id/wp-content/uploads/2024/07/funnel-toko-online-11.png)
-
-<figcaption>
-
-Trigger Purchase untuk COD
-
-</figcaption>
-
+  <figcaption>
+    Trigger Purchase untuk COD
+  </figcaption>
 </figure>
 
 Perhatikan baik-baik settingan default yang ada di Scalev.
@@ -253,9 +201,9 @@ Salah satu kondisi yang dicentang akan sudah cukup untuk mentrigger purchase di 
 
 Jika Anda belum yakin mengenai setting Conversion API toko Anda, silakan kontak CS Scalev. 
 
-Kalau SUDAH SEMUA Anda setting (full settingan event dari sejak tiba di Landing Page Anda - Coba Order - Purchase), Anda bisa menge-test sekaligus memastikan semuanya sudah benar, dengan mengikuti tutorial yang ada di artikel ini: [Cara Testing Pixel di Events Manager.](https://tutorial.scalev.id/events-manager-testing/)  
+Kalau SUDAH SEMUA Anda setting (full settingan event dari sejak tiba di Landing Page Anda - Coba Order - Purchase), Anda bisa menge-test sekaligus memastikan semuanya sudah benar, dengan mengikuti tutorial yang ada di artikel ini: [Cara Testing Pixel di Events Manager.](https://tutorial.scalev.id/events-manager-testing/)
 
-* * *
+---
 
-﻿  
+﻿\
 Selesai sudah pengaturan funnel website toko online Anda. Jika ada yang belum dipahami, silakan ditanyakan. Terima kasih.

@@ -23,80 +23,125 @@
             "pages": [
               "id/index",
               {
-                "group": "E-Payment & withdrawal",
+                "group": "Metode Pembayaran",
                 "pages": [
-                  "id/2-jenis-fee-epayment",
-                  "id/pembayaran-cod",
-                  "id/a-z-e-payment",
-                  "id/skemaepaymentscalev",
-                  "id/skemaepaymentscalev-old",
-                  "id/a-z-withdrawal",
-                  "id/a-z-withdrawal-scalev",
-                  "id/alur-epayment",
-                  "id/payment-waba",
-                  "id/wa-invoice",
-                  "id/epayment-net-revenue",
-                  "id/contoh-biaya-e-payment",
-                  "id/detailepayment",
-                  "id/tidak-masuk-balance",
-                  "id/instruksi-pembayaran-tidak-muncul",
-                  "id/ovo-shopeepay-cepet-expired",
-                  "id/payment-required",
-                  "id/cek-manual-epayment",
-                  "id/perhitungan-pajak-scalev",
-                  "id/scalevfeedi4tempat",
-                  "id/pajak-scalev",
-                  "id/ewallet-to-qris",
                   "id/dropdown-payment-method",
-                  "id/diskon-metode-pembayaran-tertentu",
-                  "id/menambahkan-e-payment",
-                  "id/tambah-epayment",
-                  "id/tokoepay",
-                  "id/rekening",
-                  "id/conflict"
+                  {
+                    "group": "E-Payment & withdrawal",
+                    "pages": [
+                      "id/a-z-e-payment",
+                      "id/skemaepaymentscalev-old",
+                      "id/2-jenis-fee-epayment",
+                      "id/menambahkan-e-payment",
+                      "id/alur-epayment",
+                      "id/scalevfeedi4tempat",
+                      "id/detailepayment",
+                      "id/a-z-withdrawal-scalev",
+                      "id/epayment-net-revenue",
+                      "id/perhitungan-pajak-scalev",
+                      "id/pajak-scalev",
+                      "id/payment-waba",
+                      "id/tambah-epayment"
+                    ]
+                  },
+                  {
+                    "group": "Bank Transfer",
+                    "pages": [
+                      "id/rekening",
+                      "id/conflict"
+                    ]
+                  },
+                  {
+                    "group": "Troubleshot E-Payment",
+                    "pages": [
+                      "id/tidak-masuk-balance",
+                      "id/instruksi-pembayaran-tidak-muncul",
+                      "id/ovo-shopeepay-cepet-expired",
+                      "id/cek-manual-epayment",
+                      "id/ewallet-to-qris"
+                    ]
+                  }
                 ]
               },
               {
                 "group": "Toko, checkout & pesanan",
                 "pages": [
+                  {
+                    "group": "Produk Digital",
+                    "pages": []
+                  },
                   "id/storefront-homepage",
-                  "id/produkfisik",
-                  "id/az-ngurus-order",
-                  "id/manual-order",
-                  "id/cara-menambahkan-whatsapp-business-ke-dalam-toko-mengatur-greeting-message-auto-reply-dan-mengatur-sales-person-cs",
                   "id/wa-order-notification",
+                  "id/diskon-metode-pembayaran-tertentu",
+                  "id/toko",
+                  "id/cara-menambahkan-whatsapp-business-ke-dalam-toko-mengatur-greeting-message-auto-reply-dan-mengatur-sales-person-cs",
                   "id/custom-warehouse-produk",
-                  "id/checkoutsekaliguslistbuilding",
                   "id/import-berdu",
                   "id/importoo",
-                  "id/field-telepon-tetap-muncul",
-                  "id/funnel-toko-online",
-                  "id/selisih-ongkir",
-                  "id/duplicate-order",
                   "id/nilai-purchase-event",
                   "id/daftar-pembeli-generator",
-                  "id/unavailable-courier",
-                  "id/require-courier-selection",
+                  "id/autodiskon",
+                  "id/order-shield",
+                  "id/diskon"
+                ]
+              },
+              {
+                "group": "A-Z Produk Di Scalev",
+                "pages": [
+                  {
+                    "group": "Produk Fisik",
+                    "pages": [
+                      "id/produkfisik",
+                      "id/pembayaran-cod",
+                      "id/gudang",
+                      "id/unavailable-courier",
+                      "id/selisih-ongkir"
+                    ]
+                  },
+                  {
+                    "group": "LMS & produk digital",
+                    "pages": [
+                      "id/lms",
+                      "id/jualandigital",
+                      "id/mailev-identity",
+                      "id/send-lms-access-manual",
+                      "id/link-akses-404",
+                      "id/login-lms-as-owner",
+                      "id/member-area-pwa",
+                      "id/powered-by-scalev",
+                      "id/whitelist",
+                      "id/mailketing",
+                      "id/broadcast-di-mailev",
+                      "id/not-bounced"
+                    ]
+                  },
+                  "id/variant"
+                ]
+              },
+              {
+                "group": "A-Z Orderan di Scalev",
+                "pages": [
+                  "id/az-ngurus-order",
+                  "id/salah-input-email",
+                  "id/wa-invoice",
+                  "id/manual-order",
+                  "id/duplicate-order",
                   "id/hard-filter",
+                  "id/require-courier-selection",
                   "id/ban-this-customer",
                   "id/ordermasuk",
                   "id/utm-form-embed",
                   "id/search-customer-order",
-                  "id/gudang",
-                  "id/autodiskon",
-                  "id/anti-spam-order",
-                  "id/order-shield",
-                  "id/submit-to-wa",
-                  "id/hapus-form",
-                  "id/diskon",
-                  "id/submite",
-                  "id/toko",
-                  "id/variant"
+                  "id/anti-spam-order"
                 ]
               },
               {
                 "group": "Landing pages",
                 "pages": [
+                  "id/checkoutsekaliguslistbuilding",
+                  "id/payment-required",
+                  "id/submite",
+                  "id/submit-to-wa",
                   "id/landing-page",
                   "id/countdown",
                   "id/popup-sales",
@@ -123,7 +168,9 @@
                   "id/slug",
                   "id/scroll",
                   "id/share-lp",
-                  "id/zoom"
+                  "id/zoom",
+                  "id/hapus-form",
+                  "id/field-telepon-tetap-muncul"
                 ]
               },
               {
@@ -156,7 +203,8 @@
                   "id/test-event-snackvideo",
                   "id/test-event-tiktok",
                   "id/events-manager-testing",
-                  "id/verifikasimeta"
+                  "id/verifikasimeta",
+                  "id/funnel-toko-online"
                 ]
               },
               {
@@ -171,24 +219,6 @@
                   "id/domain-manual-mailev",
                   "id/redirect-www",
                   "id/switchdns"
-                ]
-              },
-              {
-                "group": "LMS & produk digital",
-                "pages": [
-                  "id/whitelist",
-                  "id/broadcast-di-mailev",
-                  "id/mailev-identity",
-                  "id/link-akses-404",
-                  "id/mailketing",
-                  "id/jualandigital",
-                  "id/send-lms-access-manual",
-                  "id/login-lms-as-owner",
-                  "id/not-bounced",
-                  "id/member-area-pwa",
-                  "id/powered-by-scalev",
-                  "id/salah-input-email",
-                  "id/lms"
                 ]
               },
               {

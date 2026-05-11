@@ -17,17 +17,16 @@ Sistem pencarian order di Scalev kini menerapkan aturan khusus yang disesuaikan 
 
 Berikut panduannya:
 
-### 1\. Pencarian Berdasarkan Email
+### 1. Pencarian Berdasarkan Email
 
 Caranya:
 
 - Masukkan alamat email lengkap yang mengandung karakter "**@**"
-
 - Sistem akan melakukan pencarian dengan metode pencocokan yang tepat (exact match).
 
 Contoh:
 
-```
+```text
 customer@contoh.com
 fulan@gmail.com
 admin@tokoonline.co.id
@@ -36,22 +35,19 @@ admin@tokoonline.co.id
 **NOTE:**
 
 - Email harus diketik lengkap dan benar.
-
 - Tidak mendukung pencarian parsial untuk email.
-
 - Pastikan tidak ada spasi di awal atau akhir.
 
-### 2\. Pencarian Berdasarkan Nomor Telepon
+### 2. Pencarian Berdasarkan Nomor Telepon
 
 Caranya:
 
 - Masukkan format nomor telepon yang umum digunakan.
-
 - Dapat melakukan pencarian secara parsial.
 
 Contoh:
 
-```
+```text
 08123456789 (nomor lengkap)
 081234 (pencarian parsial)
 628123456789 (format internasional tanpa +)
@@ -59,79 +55,51 @@ Contoh:
 +62-812-345-6789 (format internasional dengan - dan +)
 ```
 
-<figure>
-
-![By phone number](https://tutorial.scalev.id/wp-content/uploads/2025/06/by-phone-number.png)
-
-<figcaption>
-
-Pencarian dengan nomor telepon
-
-</figcaption>
-
-</figure>
+<Frame>
+  ![Image](/images/image.png)
+</Frame>
 
 **Tips pencarian nomor telepon:**
 
 - Anda tidak perlu mengetik nomor lengkap.
-
 - Cukup masukkan beberapa digit awal untuk mendapatkan hasil yang lebih lengkap.
+- Boleh mengandung karakter khusus seperti \+ (plus), - (hyphen), dan spasi.
 
-- Boleh mengandung karakter khusus seperti + (plus), - (hyphen), dan spasi.
-
-### 3\. Pencarian Exact Match
+### 3. Pencarian Exact Match
 
 Untuk pencarian yang memerlukan pencocokan tepat, Anda dapat menggunakan:
 
 #### a) Order ID
 
-```
+```text
 250623ABCDEFG
 ```
 
-<figure>
-
-![By order id](https://tutorial.scalev.id/wp-content/uploads/2025/06/by-order-id.png)
-
-<figcaption>
-
-Pencarian dengan Order ID
-
-</figcaption>
-
-</figure>
+<Frame>
+  ![Image](/images/image.png)
+</Frame>
 
 #### b) Nomor Resi
 
-```
+```text
 LNCH1234567890
 JX54321234567
 ```
 
-<figure>
-
-![By shipment receipt](https://tutorial.scalev.id/wp-content/uploads/2025/06/by-shipment-receipt.png)
-
-<figcaption>
-
-Pencarian dengan nomor resi
-
-</figcaption>
-
-</figure>
+<Frame>
+  ![Image](/images/image.png)
+</Frame>
 
 #### c) External ID
 
-```
+```text
 f2b72a07-07cc-4f17-8deb-ba5u0c7ab503
 ```
 
 **NOTE:**
 
 - Harus diketik persis sesuai data aslinya.
-
 - Case-sensitive (membedakan huruf besar/kecil).
-
 - Tidak mendukung pencarian parsial.
 
 ## Pencarian Customer
@@ -139,7 +107,6 @@ f2b72a07-07cc-4f17-8deb-ba5u0c7ab503
 Untuk pencarian data customer di halaman Customer Anda dapat melakukan:
 
 - Pencarian berdasarkan email (exact match).
-
 - Pencarian berdasarkan nomor telepon (bisa parsial).
 
 Cara kerja pencarian menggunakan email dan nomor telepon ini mirip dengan penjelasan sebelumnya tentang pencarian Order.
@@ -153,51 +120,39 @@ Pencarian Customer untuk sementara ini tidak dapat dilakukan dengan menginput na
 ### ✅ **DO**
 
 - **Verifikasi** format input sebelum melakukan pencarian.
-
 - **Manfaatkan** pencarian parsial untuk nomor telepon jika Anda tidak yakin dengan angka lengkapnya.
-
 - **Copy-paste** data exact match untuk order ID, nomor resi, dan external ID jika memungkinkan.
-
 - **Hapus** spasi yang tidak diperlukan di awal dan akhir input.
 
 ### ❌ **DON'Ts**
 
-- **Jangan** mencampur format dalam satu pencarian (misal: email + nomor telepon).
-
-- **Jangan** menambahkan karakter khusus pada pencarian nomor telepon, _kecuali_ + dan -.
-
+- **Jangan** mencampur format dalam satu pencarian (misal: email \+ nomor telepon).
+- **Jangan** menambahkan karakter khusus pada pencarian nomor telepon, _kecuali_ \+ dan -.
 - **Jangan** menggunakan pencarian parsial untuk email, resi, order ID, atau external ID.
-
 - **Jangan** mengabaikan case sensitivity pada pencarian exact match.
 
 ## Troubleshooting
 
 ### Masalah Umum dan Solusi
 
-1\. Pencarian email tidak memberikan hasil
+1. Pencarian email tidak memberikan hasil
 
 - Pastikan email ditulis lengkap dengan "@"
-
 - Periksa ejaan alamat email.
-
 - Coba gunakan email alternatif customer.
 
 Apabila terus berlanjut, coba cara lainnya. Kemungkinan besar layanan Scalev sedang mengalami isu.
 
-2\. Pencarian nomor telepon tidak akurat
+2. Pencarian nomor telepon tidak akurat
 
 - Pastikan hanya menggunakan angka.
-
 - Coba variasi format (dengan/tanpa kode negara).
-
 - Gunakan pencarian parsial dengan digit awal.
 
-3\. Pencarian resi/order ID tidak ditemukan
+3. Pencarian resi/order ID tidak ditemukan
 
 - Periksa kembali penulisan yang tepat.
-
 - Pastikan tidak ada spasi tambahan.
-
 - Verifikasi case sensitivity (huruf besar/kecil).
 
 ## Kesimpulan
