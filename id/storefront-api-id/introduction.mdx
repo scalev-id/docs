@@ -14,7 +14,7 @@ Storefront API storefront bisa berupa static app di Cloudflare Pages, Vercel, Ne
 Gunakan `fetch` dengan `credentials: "omit"` untuk panggilan Storefront API dari browser:
 
 ```js
-await fetch(`https://api.scalev.com/v3/stores/${storeId}/public/products`, {
+await fetch(`https://api.scalev.com/v3/stores/${storeId}/public/items`, {
   credentials: "omit",
   headers: {
     "X-Scalev-Storefront-Api-Key": storefrontApiKey,
@@ -52,11 +52,9 @@ CORS preflight untuk origin yang diizinkan mencakup `X-Scalev-Storefront-Api-Key
 ## Endpoint utama
 
 ```text
-GET  /v3/stores/{store_id}/public/products
-GET  /v3/stores/{store_id}/public/products/count
+GET  /v3/stores/{store_id}/public/items
+GET  /v3/stores/{store_id}/public/items/count
 GET  /v3/stores/{store_id}/public/products/{slug}
-GET  /v3/stores/{store_id}/public/bundle-price-options
-GET  /v3/stores/{store_id}/public/bundle-price-options/count
 GET  /v3/stores/{store_id}/public/bundle-price-options/{slug}
 GET  /v3/stores/{store_id}/public/categories
 GET  /v3/stores/{store_id}/public/payment-methods
@@ -85,7 +83,7 @@ Search location memakai cursor pagination. Saat `has_next` bernilai `true`, guna
 
 ## Alur checkout browser-only
 
-1. Muat katalog dengan `GET /public/products`, `GET /public/bundle-price-options`, `GET /public/categories`, dan route detail.
+1. Muat katalog dengan `GET /public/items`, `GET /public/categories`, dan route detail.
 2. Buat atau baca guest cart dengan `GET /public/cart`; simpan `X-Scalev-Guest-Token` dari response.
 3. Kirim `X-Scalev-Guest-Token` pada request add, update, remove, checkout, dan pembacaan cart berikutnya.
 4. Ambil opsi checkout dengan `GET /public/payment-methods` dan endpoint public location/postal-code.

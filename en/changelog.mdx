@@ -4,12 +4,16 @@ description: "Product updates and documentation changes"
 rss: true
 ---
 
-<Update label="May 2026" description="Storefront API bundle price option catalog endpoints" tags={["API", "Docs"]}>
-  Storefront API v3 now exposes canonical public catalog endpoints for bundle
-  price options: `GET /v3/stores/{store_id}/public/bundle-price-options`,
-  `GET /v3/stores/{store_id}/public/bundle-price-options/count`, and
-  `GET /v3/stores/{store_id}/public/bundle-price-options/{slug}`. The old v3
-  public bundle detail name is no longer part of the Storefront API contract.
+<Update label="May 2026" description="Storefront API item catalog endpoints" tags={["API", "Docs"]}>
+  Storefront API v3 now uses `GET /v3/stores/{store_id}/public/items` and
+  `GET /v3/stores/{store_id}/public/items/count` for the public catalog feed
+  because the feed returns both products and bundle price options. Product detail remains
+  `GET /v3/stores/{store_id}/public/products/{slug}`, and bundle price option detail is
+  `GET /v3/stores/{store_id}/public/bundle-price-options/{slug}`. Catalog cards use
+  `entity_type` to distinguish `product` from `bundle_price_option`, while product
+  `item_type` keeps its product meaning such as `physical` or `digital`. Public cart item
+  and direct checkout item payloads use `{ "type": "bundle_price_option", "bundle_price_option_id": ... }`
+  for bundle price options.
 </Update>
 
 <Update label="May 2026" description="Storefront API v3 checkout endpoint cleanup" tags={["API", "Docs"]}>
@@ -93,7 +97,7 @@ rss: true
 </Update>
 
 <Update label="May 2026" description="Storefront catalog schema fixes" tags={["API"]}>
-  The public OpenAPI schema for `GET /public/products/count` now documents
+  The public OpenAPI schema for the catalog count route now documents
   `{ "total": number }`, and `GET /public/products/{slug}` now documents a
   storefront product detail response instead of the public order schema.
 </Update>

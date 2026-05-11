@@ -4,12 +4,16 @@ description: "Pembaruan produk dan dokumentasi"
 rss: true
 ---
 
-<Update label="Mei 2026" description="Endpoint katalog bundle price option Storefront API" tags={["API", "Docs"]}>
-  Storefront API v3 kini mengekspos endpoint katalog public canonical untuk
-  bundle price option: `GET /v3/stores/{store_id}/public/bundle-price-options`,
-  `GET /v3/stores/{store_id}/public/bundle-price-options/count`, dan
-  `GET /v3/stores/{store_id}/public/bundle-price-options/{slug}`. Nama detail
-  bundle public v3 lama tidak lagi menjadi bagian kontrak Storefront API.
+<Update label="Mei 2026" description="Endpoint katalog item Storefront API" tags={["API", "Docs"]}>
+  Storefront API v3 kini memakai `GET /v3/stores/{store_id}/public/items` dan
+  `GET /v3/stores/{store_id}/public/items/count` untuk feed katalog public
+  karena feed ini mengembalikan product dan bundle price option. Detail product tetap
+  `GET /v3/stores/{store_id}/public/products/{slug}`, dan detail bundle price option adalah
+  `GET /v3/stores/{store_id}/public/bundle-price-options/{slug}`. Card katalog memakai
+  `entity_type` untuk membedakan `product` dari `bundle_price_option`, sementara `item_type`
+  product tetap bermakna tipe product seperti `physical` atau `digital`. Payload public cart
+  item dan direct checkout item memakai `{ "type": "bundle_price_option", "bundle_price_option_id": ... }`
+  untuk bundle price option.
 </Update>
 
 <Update label="Mei 2026" description="Cleanup endpoint checkout Storefront API v3" tags={["API", "Docs"]}>
@@ -93,7 +97,7 @@ rss: true
 </Update>
 
 <Update label="Mei 2026" description="Perbaikan schema katalog Storefront" tags={["API"]}>
-  Schema OpenAPI publik untuk `GET /public/products/count` kini mendokumentasikan
+  Schema OpenAPI publik untuk route count katalog kini mendokumentasikan
   `{ "total": number }`, dan `GET /public/products/{slug}` kini mendokumentasikan
   storefront product detail response, bukan public order schema.
 </Update>
