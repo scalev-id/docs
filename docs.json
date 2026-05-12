@@ -138,39 +138,46 @@
               {
                 "group": "Landing pages",
                 "pages": [
+                  "id/landing-page",
                   "id/checkoutsekaliguslistbuilding",
-                  "id/payment-required",
+                  "id/upsell",
                   "id/submite",
                   "id/submit-to-wa",
-                  "id/landing-page",
-                  "id/countdown",
-                  "id/popup-sales",
-                  "id/autotext-tombol",
-                  "id/anti-copas",
-                  "id/upsell",
                   "id/edit-after-submit",
-                  "id/kenapa-lp-lemot",
-                  "id/kenapa-oclp-rendah",
-                  "id/skor-pagespeed-rendah",
                   "id/harga-coret",
                   "id/externalembed",
-                  "id/embed-reels-ig",
-                  "id/embed-youtube-shorts",
                   "id/exportimportlp",
-                  "id/limit-lp",
-                  "id/floating-button-cta",
-                  "id/floating-button-wa",
-                  "id/countdown-timer",
                   "id/hapus-landingpage",
-                  "id/swap-slug",
-                  "id/optimasi-landingpage",
-                  "id/multiple-homepage",
                   "id/slug",
                   "id/scroll",
-                  "id/share-lp",
-                  "id/zoom",
                   "id/hapus-form",
-                  "id/field-telepon-tetap-muncul"
+                  {
+                    "group": "Tips & Trick Landingpage",
+                    "pages": [
+                      "id/popup-sales",
+                      "id/anti-copas",
+                      "id/autotext-tombol",
+                      "id/countdown-timer",
+                      "id/embed-reels-ig",
+                      "id/embed-youtube-shorts",
+                      "id/floating-button-cta",
+                      "id/floating-button-wa",
+                      "id/swap-slug",
+                      "id/optimasi-landingpage",
+                      "id/share-lp",
+                      "id/zoom"
+                    ]
+                  },
+                  {
+                    "group": "Troubleshot Landingpage",
+                    "pages": [
+                      "id/payment-required",
+                      "id/kenapa-oclp-rendah",
+                      "id/kenapa-lp-lemot",
+                      "id/skor-pagespeed-rendah",
+                      "id/field-telepon-tetap-muncul"
+                    ]
+                  }
                 ]
               },
               {
@@ -218,7 +225,9 @@
                   "id/domain",
                   "id/domain-manual-mailev",
                   "id/redirect-www",
-                  "id/switchdns"
+                  "id/switchdns",
+                  "id/limit-lp",
+                  "id/multiple-homepage"
                 ]
               },
               {
