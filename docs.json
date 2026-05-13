@@ -41,7 +41,17 @@
                       "id/perhitungan-pajak-scalev",
                       "id/pajak-scalev",
                       "id/payment-waba",
-                      "id/tambah-epayment"
+                      "id/tambah-epayment",
+                      {
+                        "group": "Troubleshot E-Payment",
+                        "pages": [
+                          "id/tidak-masuk-balance",
+                          "id/instruksi-pembayaran-tidak-muncul",
+                          "id/ovo-shopeepay-cepet-expired",
+                          "id/cek-manual-epayment",
+                          "id/ewallet-to-qris"
+                        ]
+                      }
                     ]
                   },
                   {
@@ -50,26 +60,12 @@
                       "id/rekening",
                       "id/conflict"
                     ]
-                  },
-                  {
-                    "group": "Troubleshot E-Payment",
-                    "pages": [
-                      "id/tidak-masuk-balance",
-                      "id/instruksi-pembayaran-tidak-muncul",
-                      "id/ovo-shopeepay-cepet-expired",
-                      "id/cek-manual-epayment",
-                      "id/ewallet-to-qris"
-                    ]
                   }
                 ]
               },
               {
                 "group": "Toko, checkout & pesanan",
                 "pages": [
-                  {
-                    "group": "Produk Digital",
-                    "pages": []
-                  },
                   "id/storefront-homepage",
                   "id/wa-order-notification",
                   "id/diskon-metode-pembayaran-tertentu",
@@ -211,7 +207,15 @@
                   "id/test-event-tiktok",
                   "id/events-manager-testing",
                   "id/verifikasimeta",
-                  "id/funnel-toko-online"
+                  "id/funnel-toko-online",
+                  {
+                    "group": "Meta Pixel",
+                    "pages": []
+                  },
+                  {
+                    "group": "TikTok Pixel",
+                    "pages": []
+                  }
                 ]
               },
               {
