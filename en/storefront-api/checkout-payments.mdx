@@ -187,7 +187,7 @@ Use the same selected checkout fields:
 
 The checkout endpoint uses the selected courier service, warehouse, destination, payment method, and checkout items to recompute the shipping cost internally. Do not treat a client-supplied `shipping_cost` as the source of truth.
 
-On success, the response includes the created order data, including `secret_slug`, `public_order_url`, `payment_url`, status, totals, line items, shipping details, and payment fields. Use `secret_slug` to read or update the order. Use `payment_url` only as a hosted fallback if your storefront does not render the payment instructions itself.
+On success, the response includes the created slim public order data, including `secret_slug`, `public_order_url`, `payment_url`, status, totals, the existing `variants` and `bundle_price_options` object maps, line items, shipping details, and payment fields. Internal order IDs, dashboard-only revenue fields, platform fees, payment-status history, and affiliate attribution are not returned. Use `secret_slug` to read or update the order. Use `payment_url` only as a hosted fallback if your storefront does not render the payment instructions itself.
 
 ## Payment instructions
 

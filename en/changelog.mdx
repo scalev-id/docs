@@ -4,6 +4,16 @@ description: "Product updates and documentation changes"
 rss: true
 ---
 
+<Update label="May 2026" description="Slimmer public order responses" tags={["API", "Docs"]}>
+  Storefront API and HTML Mode public order responses now return a smaller
+  buyer-facing shape. The response still includes `secret_slug`,
+  `public_order_url`, `payment_url`, status, totals, line items, shipping
+  display data, payment instructions such as `pg_payment_info`, and the existing
+  `variants` and `bundle_price_options` object maps, but it no
+  longer exposes internal order IDs, dashboard revenue fields, platform fees,
+  payment-status history, or affiliate attribution.
+</Update>
+
 <Update label="May 2026" description="Storefront API item catalog endpoints" tags={["API", "Docs"]}>
   Storefront API v3 now uses `GET /v3/stores/{store_id}/public/items` and
   `GET /v3/stores/{store_id}/public/items/count` for the public catalog feed

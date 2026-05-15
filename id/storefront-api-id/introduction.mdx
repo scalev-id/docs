@@ -99,7 +99,7 @@ Lihat [Checkout dan Payment](/id/storefront-api-id/checkout-payments) untuk pand
 
 ## Response payment
 
-Setelah guest checkout, membaca public order, atau membuat instruksi payment, response berisi data order yang dibutuhkan storefront untuk menampilkan langkah berikutnya ke pembeli: identity order, `public_order_url`, `payment_url`, status, total, item, detail pengiriman, dan field payment seperti `payment_method`, `sub_payment_method`, `payment_account_holder`, `payment_account_number`, `transferproof_url`, dan `pg_payment_info`. Di v3, field tersebut ada langsung di object JSON, bukan di dalam envelope `data` lama.
+Setelah guest checkout, membaca public order, atau membuat instruksi payment, response berisi data order ringkas yang dibutuhkan storefront untuk menampilkan langkah berikutnya ke pembeli: identity order, `public_order_url`, `payment_url`, status, total, object map `variants` dan `bundle_price_options` yang sudah ada, line item, detail pengiriman, dan field payment seperti `payment_method`, `sub_payment_method`, `payment_account_holder`, `payment_account_number`, `transferproof_url`, dan `pg_payment_info`. Response ini sengaja tidak mengembalikan ID order internal, revenue khusus dashboard, platform fee, payment-status history, dan atribusi affiliate. Di v3, field tersebut ada langsung di object JSON, bukan di dalam envelope `data` lama.
 
 Route order akun customer mengembalikan data order yang lebih kecil dan aman untuk customer yang sedang login. Response ini mempertahankan data order yang terlihat oleh pembeli dan menghapus detail khusus dashboard seperti analytics bisnis, fee internal, provider internals, riwayat CRM, data affiliate, dan raw metadata.
 

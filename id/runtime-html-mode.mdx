@@ -298,6 +298,8 @@ Jangan membuat order otomatis saat halaman dibuka.
 
 Setelah `createOrder` berhasil, pilih redirect setelah order sendiri. Runtime hanya membuat order; runtime tidak menjalankan pengaturan Builder **After Submit Event** untuk kamu. Lihat [Aksi setelah order HTML Mode](/id/aksi-setelah-order-html-mode).
 
+Data order yang dikembalikan adalah public response ringkas untuk redirect dan UI payment buyer-facing. Gunakan `secret_slug`, `public_order_url`, `payment_url`, `handler_phone`, `chat_message`, total, line item, field payment, serta object map `variants` dan `bundle_price_options` yang sudah ada; jangan bergantung pada ID order internal, revenue khusus dashboard, platform fee, atau atribusi affiliate.
+
 ## `Scalev.analytics.track(providerOrPayload, payload?)`
 
 Meneruskan event analytics yang sudah dikonfigurasi melalui Scalev.

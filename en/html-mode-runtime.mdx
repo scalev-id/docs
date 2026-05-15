@@ -298,6 +298,8 @@ Do not create orders automatically on page load.
 
 After `createOrder` succeeds, choose the post-order redirect yourself. The runtime creates the order only; it does not apply the Builder **After Submit Event** setting for you. See [HTML Mode checkout success paths](/en/html-mode-checkout-success-paths).
 
+The returned order data is a slim public response for redirects and buyer-facing payment UI. Use `secret_slug`, `public_order_url`, `payment_url`, `handler_phone`, `chat_message`, totals, line items, payment fields, and the existing `variants` and `bundle_price_options` object maps; do not depend on internal order IDs, dashboard revenue fields, platform fees, or affiliate attribution.
+
 ## `Scalev.analytics.track(providerOrPayload, payload?)`
 
 Forwards configured analytics events through Scalev.

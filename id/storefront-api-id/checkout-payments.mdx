@@ -187,7 +187,7 @@ Gunakan field checkout terpilih yang sama:
 
 Endpoint checkout memakai courier service, warehouse, destinasi, metode pembayaran, dan item checkout untuk menghitung ulang shipping cost di server. Jangan menjadikan `shipping_cost` dari client sebagai sumber kebenaran.
 
-Jika berhasil, response berisi data order yang dibuat, termasuk `secret_slug`, `public_order_url`, `payment_url`, status, total, item, detail pengiriman, dan field payment. Gunakan `secret_slug` untuk membaca atau mengubah order. Gunakan `payment_url` hanya sebagai hosted fallback jika storefront Anda tidak merender instruksi payment sendiri.
+Jika berhasil, response berisi data public order ringkas yang dibuat, termasuk `secret_slug`, `public_order_url`, `payment_url`, status, total, object map `variants` dan `bundle_price_options` yang sudah ada, line item, detail pengiriman, dan field payment. ID order internal, revenue khusus dashboard, platform fee, payment-status history, dan atribusi affiliate tidak dikembalikan. Gunakan `secret_slug` untuk membaca atau mengubah order. Gunakan `payment_url` hanya sebagai hosted fallback jika storefront Anda tidak merender instruksi payment sendiri.
 
 ## Instruksi payment
 

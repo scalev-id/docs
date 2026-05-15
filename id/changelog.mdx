@@ -4,6 +4,16 @@ description: "Pembaruan produk dan dokumentasi"
 rss: true
 ---
 
+<Update label="Mei 2026" description="Response public order lebih ringkas" tags={["API", "Docs"]}>
+  Response public order untuk Storefront API dan HTML Mode kini memakai shape
+  buyer-facing yang lebih kecil. Response tetap menyertakan `secret_slug`,
+  `public_order_url`, `payment_url`, status, total, line item, data tampilan
+  pengiriman, instruksi payment seperti `pg_payment_info`, serta object map
+  `variants` dan `bundle_price_options` yang sudah ada, tetapi tidak lagi
+  mengekspos ID order internal, revenue khusus dashboard, platform fee,
+  payment-status history, atau atribusi affiliate.
+</Update>
+
 <Update label="Mei 2026" description="Endpoint katalog item Storefront API" tags={["API", "Docs"]}>
   Storefront API v3 kini memakai `GET /v3/stores/{store_id}/public/items` dan
   `GET /v3/stores/{store_id}/public/items/count` untuk feed katalog public
