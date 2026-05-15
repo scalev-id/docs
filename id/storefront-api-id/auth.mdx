@@ -69,6 +69,7 @@ await fetch(`https://api.scalev.com/v3/stores/${storeId}/public/cart/items`, {
     ...(guestToken ? { "X-Scalev-Guest-Token": guestToken } : {}),
   },
   body: JSON.stringify({
+    type: "variant",
     variant_id: 494535,
     quantity: 1,
   }),

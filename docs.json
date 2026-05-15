@@ -301,6 +301,7 @@
                 "group": "Storefront API",
                 "pages": [
                   "id/storefront-api-id",
+                  "id/storefront-api-id/build-a-browser-only-storefront",
                   "id/storefront-api-id/introduction",
                   "id/storefront-api-id/auth",
                   "id/storefront-api-id/checkout-payments"
@@ -591,6 +592,7 @@
                 "group": "Storefront API",
                 "pages": [
                   "en/storefront-api",
+                  "en/storefront-api/build-a-browser-only-storefront",
                   "en/storefront-api/introduction",
                   "en/storefront-api/auth",
                   "en/storefront-api/checkout-payments"

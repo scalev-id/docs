@@ -1,0 +1,382 @@
+---
+title: "Bangun storefront browser-only dengan Storefront API v3"
+description: "Ikuti arsitektur frontend dan alur end-to-end canonical untuk membangun storefront langsung ke Storefront API v3."
+---
+
+Gunakan panduan ini saat Anda membutuhkan satu jalur implementasi storefront, bukan menyatukan alur dari banyak halaman endpoint.
+
+Storefront API v3 dirancang agar storefront bisa di-host sebagai client browser statis, misalnya di Cloudflare Pages, Vercel, Netlify, atau CDN lain, tanpa membuat backend custom atau proxy same-origin. Browser memanggil `https://api.scalev.com` secara langsung.
+
+## Arsitektur
+
+Gunakan aturan ini untuk storefront browser:
+
+- Gunakan `unique_id` store di URL runtime storefront publik.
+- Gunakan storefront public API key yang publishable di browser.
+- Kirim key sebagai `X-Scalev-Storefront-Api-Key` untuk endpoint `/public/*`.
+- Kirim customer JWT sebagai `Authorization: Bearer <access>` untuk endpoint `/customers/me/*`.
+- Simpan dan kirim ulang `X-Scalev-Guest-Token` untuk alur guest cart.
+- Jangan expose business API key di kode frontend.
+- Jangan membuat backend endpoint custom untuk katalog, cart, checkout, instruksi payment, pelacakan order, atau alur akun customer.
+
+Semua path endpoint di bawah ini relatif terhadap:
+
+```text
+https://api.scalev.com/v3/stores/{store_id}
+```
+
+## Checklist setup
+
+1. Buat atau ambil storefront public API key.
+2. Daftarkan origin storefront, misalnya `https://demo.example.com`, sebagai allowed origin.
+3. Konfigurasikan frontend dengan:
+   - `SCALEV_API_BASE=https://api.scalev.com`
+   - `SCALEV_STORE_UNIQUE_ID=<store_unique_id>`
+   - `SCALEV_STOREFRONT_API_KEY=<publishable_storefront_key>`
+4. Serve frontend dari origin yang sudah didaftarkan.
+5. Buat panggilan API langsung dari browser.
+
+Runtime Storefront memakai `unique_id` store. Endpoint setup Storefront API adalah endpoint bisnis terautentikasi. Endpoint setup bisa menerima numeric store ID lama untuk kompatibilitas, tetapi storefront browser sebaiknya dikonfigurasi dengan `unique_id` store.
+
+## Helper fetch browser minimal
+
+Gunakan satu helper untuk route storefront publik anonim:
+
+```ts
+const API_BASE = "https://api.scalev.com";
+const STORE_ID = "store_xxx";
+const STOREFRONT_KEY = "sfpk_xxx";
+
+async function storefrontFetch(path: string, init: RequestInit = {}) {
+  const headers = new Headers(init.headers);
+  headers.set("Accept", "application/json");
+  headers.set("X-Scalev-Storefront-Api-Key", STOREFRONT_KEY);
+
+  return fetch(`${API_BASE}/v3/stores/${STORE_ID}${path}`, {
+    ...init,
+    credentials: "omit",
+    headers,
+  });
+}
+```
+
+Gunakan helper lain untuk route customer yang sudah login:
+
+```ts
+async function customerFetch(
+  path: string,
+  accessToken: string,
+  init: RequestInit = {}
+) {
+  const headers = new Headers(init.headers);
+  headers.set("Accept", "application/json");
+  headers.set("Authorization", `Bearer ${accessToken}`);
+
+  return fetch(`${API_BASE}/v3/stores/${STORE_ID}${path}`, {
+    ...init,
+    credentials: "omit",
+    headers,
+  });
+}
+```
+
+Simpan guest cart token dari response guest cart pertama:
+
+```ts
+const response = await storefrontFetch("/public/cart");
+const guestToken = response.headers.get("x-scalev-guest-token");
+
+if (guestToken) {
+  localStorage.setItem("scalev_guest_token", guestToken);
+}
+```
+
+Kirim ulang guest token pada panggilan guest cart dan guest checkout berikutnya:
+
+```ts
+const headers = new Headers({
+  "Content-Type": "application/json",
+});
+
+const guestToken = localStorage.getItem("scalev_guest_token");
+
+if (guestToken) {
+  headers.set("X-Scalev-Guest-Token", guestToken);
+}
+
+await storefrontFetch("/public/cart/items", {
+  method: "POST",
+  headers,
+  body: JSON.stringify({
+    type: "variant",
+    variant_id: 494535,
+    quantity: 1,
+  }),
+});
+```
+
+## Alur katalog
+
+Gunakan urutan katalog ini:
+
+1. `GET /public/items/count`
+2. `GET /public/items`
+3. Gunakan `entity_type` untuk membedakan:
+   - `product`
+   - `bundle_price_option`
+4. Untuk detail product, panggil `GET /public/products/{slug}`.
+5. Untuk detail bundle price option, panggil `GET /public/bundle-price-options/{slug}`.
+6. Untuk harga variant, panggil `GET /public/variants/pricing?ids=...`.
+7. Untuk availability, panggil `GET /public/variants/{variant_id}/availability`.
+
+Gunakan `variant_id` untuk product variant. Gunakan `bundle_price_option_id` untuk bundle price option. Keduanya bisa dimasukkan ke payload cart dan checkout dengan typed item union.
+
+## Shape item checkout
+
+Gunakan shape ini untuk product variant:
+
+```json
+{
+  "type": "variant",
+  "variant_id": 494535,
+  "quantity": 1
+}
+```
+
+Gunakan shape ini untuk bundle price option:
+
+```json
+{
+  "type": "bundle_price_option",
+  "bundle_price_option_id": 31925,
+  "quantity": 1
+}
+```
+
+## Alur guest cart dan guest checkout
+
+Gunakan alur ini untuk buyer anonim:
+
+1. `GET /public/cart`
+   - simpan `x-scalev-guest-token`
+2. `POST /public/cart/items`
+3. `PATCH /public/cart/items/{item_id}`
+4. `DELETE /public/cart/items/{item_id}`
+5. `POST /public/checkout/shipping-options`
+6. `POST /public/checkout/summary`
+7. `POST /public/checkout`
+8. `GET /public/orders/{secret_slug}`
+9. `POST /public/orders/{secret_slug}/payment`
+
+Perilaku sumber checkout:
+
+- Jika `items` dikirim, order dibuat dari direct `items`.
+- Jika `items` tidak dikirim, order dibuat dari guest cart yang direferensikan oleh `X-Scalev-Guest-Token`.
+- Jika direct `items` dan `X-Scalev-Guest-Token` sama-sama dikirim, direct `items` menjadi sumber dan guest cart dikosongkan setelah order berhasil dibuat.
+
+## Alur auth customer
+
+Panggil:
+
+```text
+POST /public/auth/login
+```
+
+Jika response berisi `access` dan `refresh`, login selesai.
+
+Jika response adalah OTP challenge, tampilkan input OTP dan panggil:
+
+```text
+POST /public/auth/otp/verify
+```
+
+Penanganan token:
+
+- Simpan `access` untuk panggilan customer terautentikasi.
+- Simpan `refresh` jika Anda membuat sesi persisten.
+- Refresh token hanya bisa dipakai satu kali.
+- Setelah memanggil refresh, buang refresh token lama dan simpan refresh token baru.
+- Logout memakai `POST /public/auth/jwt/blacklist`.
+
+Blacklist token customer dengan:
+
+```json
+{
+  "tokens": ["<access>", "<refresh>"]
+}
+```
+
+## Alur akun customer
+
+Gunakan endpoint customer ini sesuai urutan UI akun:
+
+1. `GET /customers/me`
+2. `PATCH /customers/me`
+3. `POST /customers/me/set-new-password`
+4. `GET /customers/me/addresses`
+5. `POST /customers/me/addresses`
+6. `GET /customers/me/addresses/{address_id}`
+7. `PATCH /customers/me/addresses/{address_id}`
+8. `DELETE /customers/me/addresses/{address_id}`
+
+## Alur customer cart dan checkout
+
+Gunakan alur ini untuk customer yang login:
+
+1. `GET /customers/me/cart`
+2. `POST /customers/me/cart/items`
+3. `PATCH /customers/me/cart/items/{item_id}`
+4. `DELETE /customers/me/cart/items/{item_id}`
+5. `GET /customers/me/checkout/addresses`
+6. `GET /customers/me/checkout/payment-methods`
+7. `POST /customers/me/checkout/shipping-options`
+8. `POST /customers/me/checkout/summary`
+9. `POST /customers/me/checkout`
+10. `GET /customers/me/orders`
+11. `GET /customers/me/orders/{id}`
+
+Perilaku sumber customer checkout:
+
+- Jika `items` dikirim, order dibuat dari direct `items`.
+- Jika `items` tidak dikirim, `cart_id` memilih sumber customer cart.
+- Jika `items` dan `cart_id` sama-sama dikirim, direct `items` menjadi sumber dan cart yang direferensikan dikosongkan setelah order berhasil dibuat.
+
+## Alur lokasi
+
+Gunakan salah satu pola pemilihan lokasi yang didukung.
+
+Pola A:
+
+1. Pilih provinsi: `GET /public/locations/provinces`
+2. Pilih kota: `GET /public/locations/cities?province_id=...`
+3. Pilih subdistrict: `GET /public/locations/subdistricts?city_id=...`
+4. Kode pos: `GET /public/locations/{location_id}/postal-codes`
+
+Pola B:
+
+1. Search langsung: `GET /public/locations?search=...`
+2. Gunakan location atau subdistrict yang dikembalikan.
+3. Kode pos: `GET /public/locations/{location_id}/postal-codes`
+
+## Alur reset password
+
+Implementasikan reset password sebagai alur link di browser:
+
+1. User memasukkan email.
+2. Frontend memanggil `POST /public/auth/forget-password`.
+3. Scalev mengirim link email ke `/reset-password?token=<reset-token>`.
+4. Frontend membaca `token` dari URL.
+5. User memasukkan password baru dan konfirmasi.
+6. Frontend memanggil `POST /public/auth/save-password`.
+
+Jangan tampilkan input token reset manual. Frontend tidak boleh meminta user copy dan paste reset token. Hostname reset dipilih dari registered allowed origin saat request browser menyertakan `Origin`.
+
+## Rendering payment
+
+Gunakan field order ini untuk merender halaman payment:
+
+- `product_price`
+- `product_discount`
+- `shipping_cost`
+- `shipping_discount`
+- `other_income`
+- `gross_revenue`
+- `payment_method`
+- `sub_payment_method`
+- `payment_account_holder`
+- `payment_account_number`
+- `payment_url`
+- `pg_payment_info`
+- `store.payment_accounts`
+- `handler_phone`
+- `chat_message`
+
+Manual bank transfer bisa memakai `store.payment_accounts` saat tidak ada akun spesifik pada order. Metode hosted atau provider-backed bisa memakai `payment_url` atau `pg_payment_info`. `gross_revenue` adalah jumlah yang dibayar buyer.
+
+Lihat [Checkout dan Payment](/id/storefront-api-id/checkout-payments) untuk aturan rendering per metode.
+
+## Subscription customer dan course
+
+Untuk halaman akun customer, gunakan:
+
+- `GET /customers/me/subscriptions`
+- `GET /customers/me/subscriptions/{id}`
+- `POST /customers/me/subscriptions/{id}/cancel`
+- `POST /customers/me/subscriptions/{id}/resume`
+- `GET /customers/me/subscription-items/{id}/upgrade`
+- `POST /customers/me/subscription-items/{id}/upgrade`
+- `GET /customers/me/subscription-items/{id}/downgrade`
+- `POST /customers/me/subscription-items/{id}/downgrade`
+- `GET /customers/me/variants/{uuid}/course`
+- `GET /customers/me/course-sections/{uuid}`
+- `GET /customers/me/course-contents/{uuid}`
+- `PATCH /customers/me/course-contents/{uuid}`
+
+Endpoint course bergantung pada entitlement. Response `403` atau `404` bisa berarti customer tidak memiliki variant course tersebut, bukan berarti integrasi storefront rusak.
+
+## Payload checkout lengkap minimal
+
+Gunakan payload checkout variant lengkap seperti:
+
+```json
+{
+  "items": [
+    {
+      "type": "variant",
+      "variant_id": 494535,
+      "quantity": 1
+    }
+  ],
+  "customer_name": "Demo Customer",
+  "customer_email": "demo.customer@example.com",
+  "customer_phone": "6281234567890",
+  "shipping_address": "Jl. Demo Storefront API No. 3",
+  "shipping_province": "DKI Jakarta",
+  "shipping_city": "Kota Jakarta Pusat",
+  "shipping_subdistrict": "Cempaka Putih",
+  "shipping_postal_code": "10510",
+  "shipping_location_id": 9089,
+  "payment_method": "bank_transfer"
+}
+```
+
+Gunakan payload checkout bundle price option seperti:
+
+```json
+{
+  "items": [
+    {
+      "type": "bundle_price_option",
+      "bundle_price_option_id": 31925,
+      "quantity": 1
+    }
+  ],
+  "customer_name": "Demo Customer",
+  "customer_email": "demo.customer@example.com",
+  "payment_method": "bank_transfer"
+}
+```
+
+## Checklist agent
+
+Implementasi lengkap saat bisa:
+
+- menampilkan daftar item katalog
+- menampilkan detail product
+- menampilkan detail bundle price option
+- mengecek pricing dan availability
+- menyimpan guest cart dengan `X-Scalev-Guest-Token`
+- menambah, mengubah, dan menghapus item cart
+- memilih lokasi pengiriman
+- menghitung shipping options dan checkout summary
+- membuat public checkout order
+- menampilkan status public order dan instruksi payment
+- membuat atau mengambil instruksi payment
+- login customer dengan branch direct-token atau OTP
+- refresh dan blacklist JWT
+- mengelola profil dan alamat customer
+- memakai customer cart
+- membuat authenticated checkout order
+- menampilkan daftar dan detail authenticated order
+- menampilkan subscription dan course entitlement-gated saat ada
+- melakukan semua hal di atas dari browser tanpa backend custom
