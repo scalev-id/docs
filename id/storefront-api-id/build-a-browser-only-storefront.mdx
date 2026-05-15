@@ -1,18 +1,18 @@
 ---
-title: "Bangun storefront browser-only dengan Storefront API v3"
-description: "Ikuti arsitektur frontend dan alur end-to-end canonical untuk membangun storefront langsung ke Storefront API v3."
+title: "Bangun storefront"
+description: "Bangun storefront custom dengan Storefront API v3."
 ---
 
-Gunakan panduan ini saat Anda membutuhkan satu jalur implementasi storefront, bukan menyatukan alur dari banyak halaman endpoint.
+Storefront API v3 membantu Anda membangun UI storefront sendiri, sementara Scalev menangani katalog, cart, checkout, akun customer, lokasi pengiriman, order, dan instruksi payment. Mulai dari halaman ini untuk memahami setup yang dibutuhkan dan alur API yang dipakai frontend dari browsing produk sampai checkout dan halaman akun customer.
 
-Storefront API v3 dirancang agar storefront bisa di-host sebagai client browser statis, misalnya di Cloudflare Pages, Vercel, Netlify, atau CDN lain, tanpa membuat backend custom atau proxy same-origin. Browser memanggil `https://api.scalev.com` secara langsung.
+Storefront API v3 bisa di-host sebagai frontend statis, misalnya di Cloudflare Pages, Vercel, Netlify, atau CDN lain, tanpa membuat backend custom atau proxy same-origin. Frontend memanggil `https://api.scalev.com` secara langsung.
 
 ## Arsitektur
 
-Gunakan aturan ini untuk storefront browser:
+Gunakan aturan ini untuk frontend storefront:
 
 - Gunakan `unique_id` store di URL runtime storefront publik.
-- Gunakan storefront public API key yang publishable di browser.
+- Gunakan storefront public API key yang publishable di kode frontend.
 - Kirim key sebagai `X-Scalev-Storefront-Api-Key` untuk endpoint `/public/*`.
 - Kirim customer JWT sebagai `Authorization: Bearer <access>` untuk endpoint `/customers/me/*`.
 - Simpan dan kirim ulang `X-Scalev-Guest-Token` untuk alur guest cart.
@@ -36,9 +36,9 @@ https://api.scalev.com/v3/stores/{store_id}
 4. Serve frontend dari origin yang sudah didaftarkan.
 5. Buat panggilan API langsung dari browser.
 
-Runtime Storefront memakai `unique_id` store. Endpoint setup Storefront API adalah endpoint bisnis terautentikasi. Endpoint setup bisa menerima numeric store ID lama untuk kompatibilitas, tetapi storefront browser sebaiknya dikonfigurasi dengan `unique_id` store.
+Runtime Storefront memakai `unique_id` store. Endpoint setup Storefront API adalah endpoint bisnis terautentikasi. Endpoint setup bisa menerima numeric store ID lama untuk kompatibilitas, tetapi frontend storefront sebaiknya dikonfigurasi dengan `unique_id` store.
 
-## Helper fetch browser minimal
+## Helper fetch minimal
 
 Gunakan satu helper untuk route storefront publik anonim:
 
@@ -269,7 +269,7 @@ Implementasikan reset password sebagai alur link di browser:
 5. User memasukkan password baru dan konfirmasi.
 6. Frontend memanggil `POST /public/auth/save-password`.
 
-Jangan tampilkan input token reset manual. Frontend tidak boleh meminta user copy dan paste reset token. Hostname reset dipilih dari registered allowed origin saat request browser menyertakan `Origin`.
+Jangan tampilkan input token reset manual. Frontend tidak boleh meminta user copy dan paste reset token. Hostname reset dipilih dari registered allowed origin saat request menyertakan `Origin`.
 
 ## Rendering payment
 
@@ -379,4 +379,4 @@ Implementasi lengkap saat bisa:
 - membuat authenticated checkout order
 - menampilkan daftar dan detail authenticated order
 - menampilkan subscription dan course entitlement-gated saat ada
-- melakukan semua hal di atas dari browser tanpa backend custom
+- melakukan semua hal di atas dari frontend tanpa backend custom

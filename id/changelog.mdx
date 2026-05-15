@@ -4,10 +4,10 @@ description: "Pembaruan produk dan dokumentasi"
 rss: true
 ---
 
-<Update label="Mei 2026" description="Panduan build Storefront API browser-only" tags={["Docs", "API"]}>
+<Update label="Mei 2026" description="Panduan build Storefront API" tags={["Docs", "API"]}>
   Menambahkan panduan Storefront API end-to-end untuk agent dan frontend
-  developer yang membangun storefront browser-only. Panduan ini mencakup
-  arsitektur direct browser, checklist setup, helper fetch, alur katalog, guest
+  developer yang membangun storefront custom. Panduan ini mencakup
+  arsitektur direct frontend, checklist setup, helper fetch, alur katalog, guest
   dan customer cart checkout, auth customer, lokasi, reset password, rendering
   payment, subscription, akses course, dan checklist implementasi akhir.
 </Update>
@@ -35,7 +35,7 @@ rss: true
 </Update>
 
 <Update label="Mei 2026" description="Cleanup endpoint checkout Storefront API v3" tags={["API", "Docs"]}>
-  Storefront API v3 kini memakai satu endpoint canonical untuk order creation
+  Storefront API v3 kini memakai satu endpoint untuk order creation
   per mode auth: `POST /v3/stores/{store_id}/public/checkout` untuk public
   checkout dan `POST /v3/stores/{store_id}/customers/me/checkout` untuk customer
   terautentikasi. Path kompatibilitas checkout v3 yang deprecated sudah
@@ -138,15 +138,15 @@ rss: true
   `X-Ratelimit-*`.
 </Update>
 
-<Update label="Mei 2026" description="Storefront API browser-only" tags={["API", "Dashboard", "Docs"]}>
+<Update label="Mei 2026" description="Storefront API langsung" tags={["API", "Dashboard", "Docs"]}>
   Setup Storefront API kini didokumentasikan terpisah dari konfigurasi hosted
-  Storefront. Browser storefront dapat memakai panggilan Storefront API langsung
+  Storefront. Frontend storefront dapat memakai panggilan Storefront API langsung
   dengan CORS, identitas cart `X-Scalev-Guest-Token`, endpoint payment-method
   publik dan guided location lookup, typed guest checkout, public order read yang
   diminimalkan, pembuatan pembayaran publik yang idempotent, dan store
   `unique_id` publik di seluruh route setup dan runtime. Response login customer
   kini mendokumentasikan hasil direct-token dan OTP-challenge, link reset password
-  memakai `/reset-password?token=<reset-token>` pada origin browser storefront
+  memakai `/reset-password?token=<reset-token>` pada origin storefront
   yang tervalidasi, request Storefront API didokumentasikan sebagai direct-client
   rate limited, dan response pembayaran mendokumentasikan kapan memakai
   `payment_url` dibanding `pg_payment_info` khusus provider.

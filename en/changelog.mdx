@@ -4,9 +4,9 @@ description: "Product updates and documentation changes"
 rss: true
 ---
 
-<Update label="May 2026" description="Browser-only Storefront API build guide" tags={["Docs", "API"]}>
+<Update label="May 2026" description="Storefront API build guide" tags={["Docs", "API"]}>
   Added an end-to-end Storefront API guide for agents and frontend developers
-  building a browser-only storefront. The guide covers the direct browser
+  building a custom storefront. The guide covers the direct frontend
   architecture, setup checklist, fetch helpers, catalog flow, guest and customer
   cart checkout, customer auth, locations, password reset, payment rendering,
   subscriptions, course access, and the final implementation checklist.
@@ -35,7 +35,7 @@ rss: true
 </Update>
 
 <Update label="May 2026" description="Storefront API v3 checkout endpoint cleanup" tags={["API", "Docs"]}>
-  Storefront API v3 checkout order creation now uses one canonical endpoint per
+  Storefront API v3 checkout order creation now uses one endpoint per
   auth mode: `POST /v3/stores/{store_id}/public/checkout` for public checkout
   and `POST /v3/stores/{store_id}/customers/me/checkout` for authenticated
   customers. The deprecated v3 compatibility checkout paths were removed from
@@ -138,16 +138,16 @@ rss: true
   `X-Ratelimit-*` headers.
 </Update>
 
-<Update label="May 2026" description="Browser-only Storefront API" tags={["API", "Dashboard", "Docs"]}>
+<Update label="May 2026" description="Direct Storefront API" tags={["API", "Dashboard", "Docs"]}>
   Storefront API setup is now documented as separate from hosted Storefront
-  configuration. Browser storefronts can use direct CORS-enabled Storefront API
+  configuration. Storefront frontends can use direct CORS-enabled Storefront API
   calls, `X-Scalev-Guest-Token` cart identity, public
   payment-method and guided location lookup endpoints, typed guest checkout,
   minimized public order reads, idempotent public payment creation, and the
   public store `unique_id` across setup and runtime routes. Customer login
   responses now document the direct-token and OTP-challenge outcomes, password
   reset links use `/reset-password?token=<reset-token>` on the validated
-  storefront browser origin, Storefront API
+  registered storefront origin, Storefront API
   requests are documented as direct-client rate limited, and payment responses
   document when to use `payment_url` versus provider-specific `pg_payment_info`.
 </Update>

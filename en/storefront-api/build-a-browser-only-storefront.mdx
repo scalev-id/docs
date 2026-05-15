@@ -1,18 +1,18 @@
 ---
-title: "Build a browser-only storefront with Storefront API v3"
-description: "Follow the canonical frontend architecture and end-to-end flow for building a storefront directly against Storefront API v3."
+title: "Build a storefront"
+description: "Build a custom storefront with Storefront API v3."
 ---
 
-Use this guide when you want one storefront implementation path instead of piecing the flow together from endpoint pages.
+Storefront API v3 lets you build your own storefront UI while Scalev handles catalog, carts, checkout, customer accounts, delivery locations, orders, and payment instructions. Start here to understand the setup you need and the API flow your frontend uses from product browsing to checkout and customer account pages.
 
-Storefront API v3 is designed so a storefront can be hosted as a static browser client, for example on Cloudflare Pages, Vercel, Netlify, or any CDN, without building a custom backend or same-origin proxy. The browser calls `https://api.scalev.com` directly.
+A Storefront API storefront can be hosted as a static frontend, for example on Cloudflare Pages, Vercel, Netlify, or any CDN, without building a custom backend or same-origin proxy. The frontend calls `https://api.scalev.com` directly.
 
 ## Architecture
 
-Use these rules for browser storefronts:
+Use these rules for storefront frontends:
 
 - Use the store `unique_id` in public storefront runtime URLs.
-- Use a publishable storefront public API key in the browser.
+- Use a publishable storefront public API key in frontend code.
 - Send the key as `X-Scalev-Storefront-Api-Key` for `/public/*` endpoints.
 - Send the customer JWT as `Authorization: Bearer <access>` for `/customers/me/*` endpoints.
 - Store and resend `X-Scalev-Guest-Token` for guest cart flows.
@@ -36,9 +36,9 @@ https://api.scalev.com/v3/stores/{store_id}
 4. Serve the frontend from the registered origin.
 5. Make API calls directly from the browser.
 
-Storefront runtime uses the store `unique_id`. Storefront setup endpoints are authenticated business endpoints. The setup endpoints may accept legacy numeric store IDs for compatibility, but the browser storefront should be configured with the store `unique_id`.
+Storefront runtime uses the store `unique_id`. Storefront setup endpoints are authenticated business endpoints. The setup endpoints may accept legacy numeric store IDs for compatibility, but the storefront frontend should be configured with the store `unique_id`.
 
-## Minimal browser fetch helpers
+## Minimal fetch helpers
 
 Use one helper for anonymous public storefront routes:
 
@@ -269,7 +269,7 @@ Implement password reset as a link-based browser flow:
 5. User enters new password and confirmation.
 6. Frontend calls `POST /public/auth/save-password`.
 
-Do not show a manual reset token input. The frontend should never ask the user to copy and paste the reset token. The reset hostname is selected from the registered allowed origin when the browser request includes `Origin`.
+Do not show a manual reset token input. The frontend should never ask the user to copy and paste the reset token. The reset hostname is selected from the registered allowed origin when the request includes `Origin`.
 
 ## Payment rendering
 
@@ -379,4 +379,4 @@ An implementation is complete when it can:
 - create authenticated checkout orders
 - list and view authenticated orders
 - list subscriptions and render entitlement-gated courses when present
-- do all of the above from the browser without a custom backend
+- do all of the above from the frontend without a custom backend
