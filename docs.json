@@ -593,7 +593,8 @@
                   "en/storefront-api/build-a-browser-only-storefront",
                   "en/storefront-api/introduction",
                   "en/storefront-api/auth",
-                  "en/storefront-api/checkout-payments"
+                  "en/storefront-api/checkout-payments",
+                  "en/storefront-api/advertising-conversion-events"
                 ]
               },
               {

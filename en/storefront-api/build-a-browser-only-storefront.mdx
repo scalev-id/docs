@@ -35,6 +35,7 @@ https://api.scalev.com/v3/stores/{store_id}
    - `SCALEV_STOREFRONT_API_KEY=<publishable_storefront_key>`
 4. Serve the frontend from the registered origin.
 5. Make API calls directly from the browser.
+6. If the storefront runs ads, wire browser pixels and Scalev server conversion events with shared event IDs. See [Advertising conversion events](/en/storefront-api/advertising-conversion-events).
 
 Storefront runtime uses the store `unique_id`. Storefront setup endpoints are authenticated business endpoints. The setup endpoints may accept legacy numeric store IDs for compatibility, but the storefront frontend should be configured with the store `unique_id`.
 
@@ -166,13 +167,16 @@ Use this flow for anonymous buyers:
 6. `POST /public/checkout/summary`
 7. `POST /public/checkout`
 8. `GET /public/orders/{secret_slug}`
-9. `POST /public/orders/{secret_slug}/payment`
+9. For manual `bank_transfer`, `POST /public/orders/{secret_slug}/transfer-proof-upload`, upload the image, then `PATCH /public/orders/{secret_slug}` with `transferproof_url`.
+10. `POST /public/orders/{secret_slug}/payment`
 
 Checkout source behavior:
 
 - If `items` is supplied, the order is created from direct `items`.
 - If `items` is omitted, the order is created from the guest cart referenced by `X-Scalev-Guest-Token`.
 - If both direct `items` and `X-Scalev-Guest-Token` are supplied, direct `items` is the source and the guest cart is cleared after successful order creation.
+
+For Meta, TikTok, and SnackVideo conversion tracking, fire checkout and purchase events only after the related checkout API call succeeds. See [Advertising conversion events](/en/storefront-api/advertising-conversion-events).
 
 ## Customer auth flow
 
@@ -285,13 +289,15 @@ Use these order fields to render the payment page:
 - `sub_payment_method`
 - `payment_account_holder`
 - `payment_account_number`
+- `transferproof_url`
+- `transfer_time`
 - `payment_url`
 - `pg_payment_info`
 - `store.payment_accounts`
 - `handler_phone`
 - `chat_message`
 
-Manual bank transfer may use `store.payment_accounts` when no specific order-level account has been selected. Hosted or provider-backed methods may use `payment_url` or `pg_payment_info`. `gross_revenue` is the amount the buyer pays.
+Manual bank transfer may use `store.payment_accounts` when no specific order-level account has been selected. Use `transferproof_url` and `transfer_time` to show whether the buyer has already submitted payment proof. Hosted or provider-backed methods may use `payment_url` or `pg_payment_info`. `gross_revenue` is the amount the buyer pays.
 
 See [Checkout and Payments](/en/storefront-api/checkout-payments) for method-specific rendering rules.
 
@@ -378,5 +384,6 @@ An implementation is complete when it can:
 - use customer cart
 - create authenticated checkout orders
 - list and view authenticated orders
+- send Meta, TikTok, and SnackVideo conversion events through Scalev
 - list subscriptions and render entitlement-gated courses when present
 - do all of the above from the frontend without a custom backend

@@ -18,7 +18,8 @@ Use only payment methods returned by `GET /v3/stores/{store_id}/public/payment-m
 5. Call `POST /public/checkout/summary`.
 6. Call `POST /public/checkout` with buyer details and the selected checkout fields.
 7. Read the order with `GET /public/orders/{secret_slug}`.
-8. Call `POST /public/orders/{secret_slug}/payment` and render the returned payment data on your own payment page.
+8. For manual `bank_transfer`, request a transfer-proof upload URL, upload the image, and patch the order with the returned file URL.
+9. Call `POST /public/orders/{secret_slug}/payment` and render the returned payment data on your own payment page.
 
 ## Shipping options
 
@@ -240,6 +241,43 @@ Set `renderUrlAs` to `button` for `invoice`, `card`, and all mobile views. For o
 `bank_transfer`:
 
 Display the order total, manual bank transfer accounts, expiry countdown when enabled, and a payment-confirmation link to `/o/{secret_slug}?showPaymentConfirmation=true`. The hosted page gets bank accounts from the store `payment_accounts` where `method` is `bank_transfer` and the method is still active. `pg_payment_info` can be `{}`.
+
+For manual transfer proof, follow the same flow as the Scalev-hosted public order page:
+
+1. Let the buyer choose a bank account from `store.payment_accounts` where `method` is `bank_transfer`.
+2. Let the buyer upload a `jpg`, `png`, or `webp` proof image.
+3. Request upload metadata:
+
+```http
+POST /v3/stores/{store_id}/public/orders/{secret_slug}/transfer-proof-upload
+```
+
+```json
+{
+  "filename": "transfer-proof.png",
+  "content_type": "image/png",
+  "content_length": 12345
+}
+```
+
+4. Upload the file bytes directly to the returned `upload_url` with `PUT` and the same `Content-Type`.
+5. Patch the public order with the returned `file_url`:
+
+```http
+PATCH /v3/stores/{store_id}/public/orders/{secret_slug}
+```
+
+```json
+{
+  "transferproof_url": "https://files.scalev.com/uploads/.../transfer-proof.png",
+  "transfer_time": "2026-05-15T04:00:00Z",
+  "financial_entity_id": 12,
+  "payment_account_holder": "PT Example",
+  "payment_account_number": "1234567890"
+}
+```
+
+6. Refetch the order and show the submitted proof from `transferproof_url`.
 
 `cod`:
 

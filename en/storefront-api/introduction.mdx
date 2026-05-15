@@ -76,7 +76,12 @@ POST /v3/stores/{store_id}/public/checkout
 GET  /v3/stores/{store_id}/public/orders/{secret_slug}
 PATCH /v3/stores/{store_id}/public/orders/{secret_slug}
 POST /v3/stores/{store_id}/public/orders/{secret_slug}/payment
+POST /v3/stores/{store_id}/public/orders/{secret_slug}/transfer-proof-upload
 POST /v3/stores/{store_id}/public/discount-codes/check
+
+POST /v3/stores/{store_id}/public/analytics/meta/events
+POST /v3/stores/{store_id}/public/analytics/tiktok/events
+POST /v3/stores/{store_id}/public/analytics/snackvideo/events
 ```
 
 Location search uses cursor pagination. When `has_next` is `true`, use `next_cursor` to fetch the next page.
@@ -92,10 +97,23 @@ Location search uses cursor pagination. When `has_next` is `true`, use `next_cur
 7. Optionally validate a discount code with `POST /public/discount-codes/check`. Send `{ "code": "..." }` in the request body, along with optional checkout context (`items`, `payment_method`, `destination`, `courier_service_id`, `warehouse_unique_id`, `courier_aggregator_code`, `net_product_price`, `gross_revenue`, `shipping_cost`). Unknown or ineligible codes return `is_eligible: false`; the route only returns `404` when the store cannot be resolved.
 8. Create the order with `POST /public/checkout` using direct typed `items`, the guest cart token, or both.
 9. Read the order through `GET /public/orders/{secret_slug}` and update buyer-facing fields such as `transferproof_url`, `transfer_time`, or `notes` with `PATCH /public/orders/{secret_slug}`.
-10. Call `POST /public/orders/{secret_slug}/payment`; render the returned or existing payment instructions in your own payment page and use `payment_url` only as a hosted fallback.
-11. For customer accounts, start with `/public/auth/login`, then call `/customers/me/*` with the customer JWT.
+10. For manual `bank_transfer`, request a transfer-proof upload URL with `POST /public/orders/{secret_slug}/transfer-proof-upload`, upload the image, then patch the order with the returned `file_url`.
+11. Call `POST /public/orders/{secret_slug}/payment`; render the returned or existing payment instructions in your own payment page and use `payment_url` only as a hosted fallback.
+12. For customer accounts, start with `/public/auth/login`, then call `/customers/me/*` with the customer JWT.
 
 See [Checkout and Payments](/en/storefront-api/checkout-payments) for shipping option, summary, and method-specific payment rendering guidance.
+
+## Analytics Conversion API
+
+Use Scalev as the server-side relay for Meta, TikTok, and SnackVideo conversion events from a browser storefront. These calls use the same pixels configured in hosted Storefront analytics, but the Storefront API route selects the store from `/v3/stores/{store_id}` and `X-Scalev-Storefront-Api-Key`; do not send a custom domain to identify the store.
+
+```text
+POST /v3/stores/{store_id}/public/analytics/meta/events
+POST /v3/stores/{store_id}/public/analytics/tiktok/events
+POST /v3/stores/{store_id}/public/analytics/snackvideo/events
+```
+
+The endpoints return `204 No Content` after accepting the payload for asynchronous delivery. See [Advertising conversion events](/en/storefront-api/advertising-conversion-events) for client pixel setup, attribution cookies, event naming, payload examples, and Meta/TikTok deduplication.
 
 ## Payment responses
 
