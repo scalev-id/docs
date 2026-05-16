@@ -1,26 +1,26 @@
 ---
-title: "Advertising conversion events"
-description: "Set up Meta, TikTok, and SnackVideo conversion events for a Storefront API frontend."
+title: "Event konversi iklan"
+description: "Atur event konversi Meta, TikTok, dan SnackVideo untuk frontend Storefront API."
 ---
 
-Storefront API gives you server-side conversion endpoints for Meta, TikTok, and SnackVideo. These endpoints are the server relay. Your storefront still owns the browser setup: loading pixels, storing attribution IDs, choosing which conversion events to fire, building commerce payloads, and sending the same event ID to the browser pixel and Scalev server event for deduplication.
+Storefront API menyediakan endpoint konversi server-side untuk Meta, TikTok, dan SnackVideo. Endpoint ini hanya berperan sebagai server relay. Storefront Anda tetap mengatur bagian browser: memuat pixel, menyimpan ID atribusi, memilih event konversi yang dikirim, membuat payload commerce, dan memakai event ID yang sama di browser pixel serta event server Scalev untuk deduplikasi.
 
-Use this page when your custom storefront is used for ads.
+Gunakan halaman ini saat storefront custom Anda dipakai untuk iklan.
 
-## How the flow works
+## Cara alurnya bekerja
 
-For each conversion you want to track:
+Untuk setiap konversi yang ingin dilacak:
 
-1. Load the browser pixel for the ad platform.
-2. Capture attribution IDs from the landing URL and cookies.
-3. Build the event parameters and item payload.
-4. Generate one event ID for Meta or TikTok.
-5. Fire the browser pixel event with that event ID.
-6. Send the same event to Scalev's Storefront API analytics endpoint.
+1. Muat browser pixel dari platform iklan.
+2. Ambil ID atribusi dari URL landing dan cookie.
+3. Buat parameter event dan payload item.
+4. Buat satu event ID untuk Meta atau TikTok.
+5. Kirim event browser pixel dengan event ID tersebut.
+6. Kirim event yang sama ke endpoint analytics Storefront API Scalev.
 
-Scalev then sends the server-side event to the pixels configured in the store's Storefront analytics settings.
+Scalev kemudian mengirim event server-side ke pixel yang sudah dikonfigurasi di pengaturan Storefront analytics toko.
 
-The Storefront API routes select the store from `/v3/stores/{store_id}` and `X-Scalev-Storefront-Api-Key`. Do not send a custom domain or page ID to identify the store.
+Route Storefront API memilih toko dari `/v3/stores/{store_id}` dan `X-Scalev-Storefront-Api-Key`. Jangan mengirim custom domain atau page ID untuk mengidentifikasi toko.
 
 ```text
 POST /v3/stores/{store_id}/public/analytics/meta/events
@@ -28,7 +28,7 @@ POST /v3/stores/{store_id}/public/analytics/tiktok/events
 POST /v3/stores/{store_id}/public/analytics/snackvideo/events
 ```
 
-All three endpoints require the publishable storefront API key:
+Ketiga endpoint membutuhkan publishable Storefront API key:
 
 ```js
 const API_BASE = "https://api.scalev.com";
@@ -62,13 +62,13 @@ async function postScalevAnalytics(provider, payload) {
 }
 ```
 
-The analytics endpoints return `204 No Content` after accepting the event for asynchronous delivery.
+Endpoint analytics mengembalikan `204 No Content` setelah menerima event untuk dikirim secara asynchronous.
 
-## Configure browser pixels
+## Konfigurasi browser pixel
 
-The server relay does not replace browser pixels. You still need browser pixels for attribution, optimization, and Meta/TikTok deduplication.
+Server relay tidak menggantikan browser pixel. Anda tetap membutuhkan browser pixel untuk atribusi, optimasi, dan deduplikasi Meta/TikTok.
 
-Use the same pixel IDs that are configured in Scalev Storefront analytics. Pixel IDs are public identifiers, so you can place them in frontend config:
+Gunakan pixel ID yang sama dengan pixel yang dikonfigurasi di Scalev Storefront analytics. Pixel ID adalah identifier publik, jadi Anda dapat menyimpannya di konfigurasi frontend:
 
 ```js
 const META_PIXEL_IDS = ["1234567890"];
@@ -76,7 +76,7 @@ const TIKTOK_PIXEL_IDS = ["CABCDEF123456"];
 const SNACKVIDEO_PIXEL_IDS = ["KWAI_PIXEL_ID"];
 ```
 
-Load each provider's official browser SDK once, then initialize the configured pixels:
+Muat SDK browser resmi setiap provider satu kali, lalu inisialisasi pixel yang dikonfigurasi:
 
 ```js
 function initPixels() {
@@ -100,40 +100,40 @@ function initPixels() {
 }
 ```
 
-If you use Google Tag Manager or another tag manager, keep the same rule: the browser event and the Scalev server event must use the same event name and event ID for the same shopper action.
+Jika Anda memakai Google Tag Manager atau tag manager lain, atur dengan prinsip yang sama: event browser dan event server Scalev harus memakai nama event dan event ID yang sama untuk satu aksi pembeli.
 
-## Allow your storefront domain in Meta
+## Izinkan domain storefront di Meta
 
-Meta uses **Traffic permissions** in Events Manager to control which domains can send events through a Meta pixel. If a Meta allow list is active and your storefront domain is not on it, Meta blocks events from that domain. The pixel can still fire in the browser, and Scalev can still accept the server relay request, but the events will not be recorded by Meta.
+Meta memakai **Traffic permissions** di Events Manager untuk mengatur domain mana yang boleh mengirim event lewat Meta pixel. Jika allow list Meta aktif dan domain storefront Anda tidak ada di daftar tersebut, Meta akan memblokir event dari domain itu. Pixel masih bisa terlihat firing di browser, dan Scalev masih bisa menerima request server relay, tetapi event tidak akan tercatat oleh Meta.
 
-Set this up before you run ads or validate production events.
+Selesaikan ini sebelum menjalankan iklan atau memvalidasi event produksi.
 
-1. Open Meta **Events Manager**.
-2. Select the pixel or dataset used by the store's Storefront analytics settings.
-3. Open **Settings**.
-4. In **Traffic permissions**, create or manage the allow list.
-5. Add the production storefront domain that shoppers visit, such as `shop.example.com` or `example.com`.
-6. Confirm the change, then test a real storefront event in Meta **Test events**.
+1. Buka Meta **Events Manager**.
+2. Pilih pixel atau dataset yang dipakai oleh pengaturan Storefront analytics toko.
+3. Buka **Settings**.
+4. Di **Traffic permissions**, buat atau kelola allow list.
+5. Tambahkan domain storefront produksi yang dikunjungi pembeli, seperti `shop.example.com` atau `example.com`.
+6. Konfirmasi perubahan, lalu uji event storefront nyata di Meta **Test events**.
 
-If you add a top-level domain such as `example.com`, Meta includes its subdomains, such as `shop.example.com`. If you do not want every subdomain accepted, add the exact subdomains separately.
+Jika Anda menambahkan top-level domain seperti `example.com`, Meta juga mencakup subdomainnya, seperti `shop.example.com`. Jika Anda tidak ingin semua subdomain diterima, tambahkan subdomain yang spesifik satu per satu.
 
-Keep staging, preview, and localhost domains out of a production pixel allow list unless those events should be accepted by the production dataset. When you send server events through Scalev, keep `event_source_url` on the same storefront domain you allowed in Meta.
+Jangan memasukkan domain staging, preview, atau localhost ke allow list pixel produksi kecuali event dari domain tersebut memang harus diterima oleh dataset produksi. Saat mengirim server event lewat Scalev, pastikan `event_source_url` memakai domain storefront yang sama dengan domain yang Anda izinkan di Meta.
 
-See Meta's docs for [managing pixel traffic permissions](https://www.facebook.com/business/help/278125336598935) and [traffic permissions best practices](https://www.facebook.com/business/help/267505221173979).
+Lihat dokumentasi Meta tentang [pengelolaan pixel traffic permissions](https://www.facebook.com/business/help/278125336598935) dan [praktik terbaik traffic permissions](https://www.facebook.com/business/help/267505221173979).
 
-## Capture attribution IDs
+## Ambil ID atribusi
 
-Capture ad click IDs as soon as the app boots. The hosted Scalev storefront stores these values:
+Ambil ad click ID segera saat app berjalan. Storefront bawaan Scalev menyimpan nilai berikut:
 
-| Source | Query parameter | Cookie | Used by |
+| Sumber | Query parameter | Cookie | Dipakai oleh |
 | --- | --- | --- | --- |
 | Meta click ID | `fbclid` | `_fbc` | Meta Conversions API |
-| Meta browser ID | Generated when missing | `_fbp` | Meta Conversions API |
+| Meta browser ID | Dibuat saat belum ada | `_fbp` | Meta Conversions API |
 | TikTok click ID | `ttclid` | `_ttclid` | TikTok Events API |
-| TikTok browser ID | Set by TikTok pixel | `_ttp` | TikTok Events API |
+| TikTok browser ID | Dibuat oleh TikTok pixel | `_ttp` | TikTok Events API |
 | SnackVideo click ID | `click_id` | `_kwai_click_id` | SnackVideo Events API |
 
-Store click IDs for seven days. Meta browser IDs are usually kept for longer because Meta's browser pixel uses them across visits.
+Simpan click ID selama tujuh hari. Meta browser ID biasanya disimpan lebih lama karena browser pixel Meta memakainya lintas kunjungan.
 
 ```js
 function getCookie(name) {
@@ -191,32 +191,32 @@ export function currentAttribution() {
 }
 ```
 
-Run `captureAdAttribution()` before you fire page, product, cart, checkout, or order events.
+Jalankan `captureAdAttribution()` sebelum Anda mengirim event page, produk, cart, checkout, atau order.
 
-## Choose events
+## Pilih event
 
-Fire events after the shopper action succeeds. Do not fire conversion events before the API action they represent has completed.
+Kirim event setelah aksi pembeli berhasil. Jangan mengirim event konversi sebelum aksi API yang diwakili event tersebut selesai.
 
-| Storefront moment | Fire after | Meta event | TikTok event | SnackVideo event |
+| Momen storefront | Kirim setelah | Event Meta | Event TikTok | Event SnackVideo |
 | --- | --- | --- | --- | --- |
-| Product or bundle detail is visible | The detail API response renders | `ViewContent` | `ViewContent` | Your configured content-view event |
-| Item is added to cart | `POST /public/cart/items` succeeds | `AddToCart` | `AddToCart` | Your configured add-to-cart event |
-| Checkout starts | The checkout page or form opens with item context | `InitiateCheckout` | `InitiateCheckout` | Your configured checkout event |
-| Buyer chooses a payment method | The payment selector is opened or a method is selected | Optional configured event | Optional configured event | Optional configured event |
-| Order is created | `POST /public/checkout` or `POST /customers/me/checkout` succeeds | `Purchase` or configured submit event | `CompletePayment` or configured submit event | Your configured purchase event |
-| Payment success page is shown | Only if you did not already fire the order conversion | `Purchase` | `CompletePayment` | Your configured purchase event |
+| Detail produk atau bundle terlihat | Response API detail sudah dirender | `ViewContent` | `ViewContent` | Event content-view yang dikonfigurasi |
+| Item ditambahkan ke cart | `POST /public/cart/items` berhasil | `AddToCart` | `AddToCart` | Event add-to-cart yang dikonfigurasi |
+| Checkout dimulai | Halaman atau form checkout terbuka dengan konteks item | `InitiateCheckout` | `InitiateCheckout` | Event checkout yang dikonfigurasi |
+| Pembeli memilih metode pembayaran | Payment selector dibuka atau metode dipilih | Event opsional yang dikonfigurasi | Event opsional yang dikonfigurasi | Event opsional yang dikonfigurasi |
+| Order dibuat | `POST /public/checkout` atau `POST /customers/me/checkout` berhasil | `Purchase` atau event submit yang dikonfigurasi | `CompletePayment` atau event submit yang dikonfigurasi | Event purchase yang dikonfigurasi |
+| Halaman payment success terlihat | Hanya jika Anda belum mengirim konversi order | `Purchase` | `CompletePayment` | Event purchase yang dikonfigurasi |
 
-Pick one conversion point for purchase optimization. If you fire purchase on order creation, do not fire another purchase event on the payment page. If you only optimize for paid orders, fire the purchase event after payment confirmation instead of order creation.
+Pilih satu titik konversi untuk optimasi purchase. Jika Anda mengirim purchase saat order dibuat, jangan mengirim purchase lagi di halaman payment. Jika Anda hanya mengoptimasi order yang sudah dibayar, kirim purchase setelah konfirmasi pembayaran, bukan saat order dibuat.
 
-For TikTok, use the event names configured in TikTok Events Manager. For purchase optimization, TikTok commonly uses `CompletePayment`.
+Untuk TikTok, gunakan nama event yang dikonfigurasi di TikTok Events Manager. Untuk optimasi purchase, TikTok umumnya memakai `CompletePayment`.
 
-For SnackVideo, use the exact event names configured for the store. The Storefront API forwards the event name you send.
+Untuk SnackVideo, gunakan nama event yang persis dikonfigurasi untuk toko. Storefront API meneruskan nama event yang Anda kirim.
 
-## Build item payloads
+## Buat payload item
 
-Scalev analytics payloads use item unique IDs, not the numeric IDs used by checkout item input.
+Payload analytics Scalev memakai item unique ID, bukan numeric ID yang dipakai oleh input checkout item.
 
-For product variants:
+Untuk product variant:
 
 ```json
 {
@@ -225,7 +225,7 @@ For product variants:
 }
 ```
 
-For bundle price options:
+Untuk bundle price option:
 
 ```json
 {
@@ -234,7 +234,7 @@ For bundle price options:
 }
 ```
 
-Build the analytics item payload from the products, bundle price options, cart rows, or checkout rows that the event is about:
+Buat payload item analytics dari produk, bundle price option, cart row, atau checkout row yang menjadi konteks event:
 
 ```js
 function buildAnalyticsItems(items) {
@@ -265,13 +265,13 @@ function buildAnalyticsItems(items) {
 }
 ```
 
-For a product detail event, send the visible variant with quantity `1`. For a checkout or purchase event, send every item in the checkout.
+Untuk event detail produk, kirim variant yang terlihat dengan quantity `1`. Untuk event checkout atau purchase, kirim semua item di checkout.
 
-## Build event parameters
+## Buat parameter event
 
-Send provider-friendly commerce parameters with each event.
+Kirim parameter commerce yang ramah untuk setiap provider.
 
-For Meta, common parameters are:
+Untuk Meta, parameter umum adalah:
 
 ```js
 {
@@ -293,7 +293,7 @@ For Meta, common parameters are:
 }
 ```
 
-For TikTok, include a stable `content_id` when you can. The hosted storefront derives it from the product, bundle, or page context when the event payload does not include it.
+Untuk TikTok, sertakan `content_id` yang stabil jika memungkinkan. Storefront bawaan mengambilnya dari konteks produk, bundle, atau halaman saat payload event tidak menyertakannya.
 
 ```js
 {
@@ -311,7 +311,7 @@ For TikTok, include a stable `content_id` when you can. The hosted storefront de
 }
 ```
 
-For SnackVideo, send properties such as:
+Untuk SnackVideo, kirim properti seperti:
 
 ```js
 {
@@ -325,18 +325,18 @@ For SnackVideo, send properties such as:
 }
 ```
 
-Use the same integer amount format that you show for IDR totals in your storefront.
+Gunakan format integer yang sama dengan total IDR yang Anda tampilkan di storefront.
 
-## Deduplicate Meta and TikTok events
+## Deduplikasi event Meta dan TikTok
 
-Meta and TikTok deduplicate by event ID. Generate one event ID for one shopper action, then reuse it in both places:
+Meta dan TikTok melakukan deduplikasi memakai event ID. Buat satu event ID untuk satu aksi pembeli, lalu pakai ulang di dua tempat:
 
 - Meta browser pixel: `eventID`
-- Meta Storefront API payload: `events[].event_id`
+- Payload Meta Storefront API: `events[].event_id`
 - TikTok browser pixel: `event_id`
-- TikTok Storefront API payload: `events[].event_id`
+- Payload TikTok Storefront API: `events[].event_id`
 
-For page, product, cart, and checkout interaction events, generate a random event ID:
+Untuk event page, produk, cart, dan interaksi checkout, buat event ID random:
 
 ```js
 function newEventId(prefix = "evt") {
@@ -345,7 +345,7 @@ function newEventId(prefix = "evt") {
 }
 ```
 
-For order submit events, use a deterministic ID based on the order. This prevents duplicate purchase events if the user retries the request or reloads the success page.
+Untuk event submit order, pakai ID deterministik berdasarkan order. Ini mencegah purchase dobel jika pembeli retry request atau reload halaman success.
 
 ```js
 function orderEventId(order, eventName) {
@@ -353,9 +353,9 @@ function orderEventId(order, eventName) {
 }
 ```
 
-SnackVideo's current Storefront API payload does not use `event_id`. For SnackVideo, use `click_id` for attribution and make sure your frontend does not fire the same conversion twice.
+Payload Storefront API SnackVideo saat ini tidak memakai `event_id`. Untuk SnackVideo, pakai `click_id` untuk atribusi dan pastikan frontend tidak mengirim konversi yang sama dua kali.
 
-## Send a Meta event
+## Kirim event Meta
 
 ```js
 async function trackMetaEvent({
@@ -392,9 +392,9 @@ async function trackMetaEvent({
 }
 ```
 
-Meta user data can include `fn`, `ln`, `em`, `ph`, `ct`, `st`, `country`, `external_id`, `location_id`, `fbc`, and `fbp`. Scalev fills `client_ip_address` and `client_user_agent` from the observed API request, so you do not need to send them from the browser.
+Meta user data dapat berisi `fn`, `ln`, `em`, `ph`, `ct`, `st`, `country`, `external_id`, `location_id`, `fbc`, dan `fbp`. Scalev mengisi `client_ip_address` dan `client_user_agent` dari request API yang diterima, jadi Anda tidak perlu mengirimnya dari browser.
 
-## Send a TikTok event
+## Kirim event TikTok
 
 ```js
 async function trackTiktokEvent({
@@ -430,9 +430,9 @@ async function trackTiktokEvent({
 }
 ```
 
-TikTok user data can include `email`, `phone`, `external_id`, `ttclid`, and `ttp`. Scalev fills `ip` from the observed API request and defaults `user_agent` from the request when you omit it.
+TikTok user data dapat berisi `email`, `phone`, `external_id`, `ttclid`, dan `ttp`. Scalev mengisi `ip` dari request API yang diterima dan memakai `user_agent` dari request saat Anda tidak mengirimkannya.
 
-## Send a SnackVideo event
+## Kirim event SnackVideo
 
 ```js
 async function trackSnackVideoEvent({
@@ -463,11 +463,11 @@ async function trackSnackVideoEvent({
 }
 ```
 
-SnackVideo server events require `click_id`. If the shopper did not arrive with `click_id`, still fire the browser pixel event when configured, but skip the server event.
+Server event SnackVideo membutuhkan `click_id`. Jika pembeli tidak datang dengan `click_id`, tetap kirim browser pixel event saat dikonfigurasi, tetapi lewati server event.
 
-## Example: add to cart
+## Contoh: add to cart
 
-Fire this after `POST /public/cart/items` succeeds:
+Kirim ini setelah `POST /public/cart/items` berhasil:
 
 ```js
 async function trackAddToCart(cartItem) {
@@ -520,9 +520,9 @@ async function trackAddToCart(cartItem) {
 }
 ```
 
-## Example: checkout conversion
+## Contoh: konversi checkout
 
-Fire the purchase conversion after checkout succeeds, unless your ad strategy only counts paid orders.
+Kirim konversi purchase setelah checkout berhasil, kecuali strategi iklan Anda hanya menghitung order yang sudah dibayar.
 
 ```js
 async function trackOrderCreated(order, checkoutItems, buyer) {
@@ -583,11 +583,11 @@ async function trackOrderCreated(order, checkoutItems, buyer) {
 }
 ```
 
-If the order response or your own fraud checks mark the order as spam, skip purchase conversion events.
+Jika response order atau pengecekan fraud Anda menandai order sebagai spam, lewati event konversi purchase.
 
-## Payload reference
+## Referensi payload
 
-Meta request:
+Request Meta:
 
 ```json
 {
@@ -622,7 +622,7 @@ Meta request:
 }
 ```
 
-TikTok request:
+Request TikTok:
 
 ```json
 {
@@ -656,7 +656,7 @@ TikTok request:
 }
 ```
 
-SnackVideo request:
+Request SnackVideo:
 
 ```json
 {
@@ -684,16 +684,16 @@ SnackVideo request:
 }
 ```
 
-## Production checklist
+## Checklist produksi
 
-- Load browser pixels once per page session.
-- Capture `fbclid`, `ttclid`, and `click_id` before firing events.
-- Preserve `_fbp`, `_fbc`, `_ttp`, `_ttclid`, and `_kwai_click_id`.
-- Add the production storefront domain to the Meta pixel traffic allow list before validating Meta events.
-- Fire events only after the represented API action succeeds.
-- Use one event ID for the browser and server copy of each Meta or TikTok event.
-- Use deterministic order event IDs for purchase events.
-- Send `event_source_url` and `referrer_url` so Scalev can choose checkout or home storefront analytics configuration.
-- Send `variants` or `bundle_price_options` with item unique IDs and quantities.
-- Skip SnackVideo server events when there is no `click_id`.
-- Do not block checkout completion if the analytics request fails. Log it and let the buyer continue.
+- Muat browser pixel satu kali per page session.
+- Ambil `fbclid`, `ttclid`, dan `click_id` sebelum mengirim event.
+- Pertahankan `_fbp`, `_fbc`, `_ttp`, `_ttclid`, dan `_kwai_click_id`.
+- Tambahkan domain storefront produksi ke Meta pixel traffic allow list sebelum memvalidasi event Meta.
+- Kirim event hanya setelah aksi API yang diwakili event tersebut berhasil.
+- Pakai satu event ID untuk copy browser dan server dari setiap event Meta atau TikTok.
+- Pakai event ID deterministik untuk event purchase.
+- Kirim `event_source_url` dan `referrer_url` agar Scalev dapat memilih konfigurasi checkout atau home storefront analytics.
+- Kirim `variants` atau `bundle_price_options` dengan item unique ID dan quantity.
+- Lewati server event SnackVideo saat tidak ada `click_id`.
+- Jangan menahan checkout jika request analytics gagal. Log error tersebut dan biarkan pembeli melanjutkan.

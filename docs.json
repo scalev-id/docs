@@ -303,7 +303,8 @@
                   "id/storefront-api-id/build-a-browser-only-storefront",
                   "id/storefront-api-id/introduction",
                   "id/storefront-api-id/auth",
-                  "id/storefront-api-id/checkout-payments"
+                  "id/storefront-api-id/checkout-payments",
+                  "id/storefront-api-id/advertising-conversion-events"
                 ]
               },
               {
