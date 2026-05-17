@@ -7,6 +7,24 @@ Storefront API adalah API untuk storefront custom yang berjalan di browser. Guna
 
 Storefront API berbeda dari pengaturan Storefront bawaan. Pengaturan Storefront bawaan mengatur halaman buatan Scalev, custom domain, builder homepage dan checkout, footer pages, OTP, custom HTML, dan analytics. Pengaturan Storefront API dipakai untuk storefront API-only saat Anda mengatur frontend 100%.
 
+<Warning>
+  **Panggil Storefront API v3 langsung dari browser**
+
+  Storefront API v3 dirancang untuk dipanggil langsung dari browser atau client end-user. Jangan menaruh Storefront API v3 di balik backend proxy, reverse proxy, middleware, edge function, serverless function, atau pass-through API layer milik Anda sendiri.
+
+  Rate limiter untuk Storefront API v3 sengaja dibuat ketat karena API ini dirancang untuk penggunaan client-side langsung. Jika request ini diproxy, banyak user dapat terlihat datang dari IP server yang sama, sehingga rate limiting, deteksi spam, proteksi order duplikat, dan logika validasi lain dapat terdampak negatif.
+
+  Untuk deployment headless storefront, anggap browser sebagai caller yang dimaksud untuk Storefront API v3. Gunakan backend Anda sendiri hanya untuk hal non-Scalev seperti admin settings, custom business logic, atau private integrations.
+</Warning>
+
+## Urutan baca yang disarankan
+
+1. Mulai dari halaman ini untuk memahami arsitektur, kebutuhan setup, dan peta endpoint.
+2. Baca [Auth](/id/storefront-api-id/auth) untuk Storefront API key, guest cart token, dan customer JWT.
+3. Baca [Checkout dan Payment](/id/storefront-api-id/checkout-payments) untuk shipping, checkout summary, pembuatan order, dan rendering payment.
+4. Baca [Event konversi iklan](/id/storefront-api-id/advertising-conversion-events) jika storefront menjalankan iklan Meta, TikTok, atau SnackVideo.
+5. Akhiri dengan [Bangun storefront](/id/storefront-api-id/build-a-browser-only-storefront) sebagai panduan implementasi lengkap A-Z.
+
 ## Arsitektur
 
 Storefront API storefront bisa berupa static app di Cloudflare Pages, Vercel, Netlify, atau CDN lain. Browser memanggil `https://api.scalev.com` secara langsung.
@@ -76,7 +94,12 @@ POST /v3/stores/{store_id}/public/checkout
 GET  /v3/stores/{store_id}/public/orders/{secret_slug}
 PATCH /v3/stores/{store_id}/public/orders/{secret_slug}
 POST /v3/stores/{store_id}/public/orders/{secret_slug}/payment
+POST /v3/stores/{store_id}/public/orders/{secret_slug}/transfer-proof-upload
 POST /v3/stores/{store_id}/public/discount-codes/check
+
+POST /v3/stores/{store_id}/public/analytics/meta/events
+POST /v3/stores/{store_id}/public/analytics/tiktok/events
+POST /v3/stores/{store_id}/public/analytics/snackvideo/events
 ```
 
 Search location memakai cursor pagination. Saat `has_next` bernilai `true`, gunakan `next_cursor` untuk mengambil halaman berikutnya.
@@ -92,10 +115,23 @@ Search location memakai cursor pagination. Saat `has_next` bernilai `true`, guna
 7. Opsional, validasi kode diskon dengan `POST /public/discount-codes/check`. Kirim `{ "code": "..." }` di body request, bersama konteks checkout opsional (`items`, `payment_method`, `destination`, `courier_service_id`, `warehouse_unique_id`, `courier_aggregator_code`, `net_product_price`, `gross_revenue`, `shipping_cost`). Kode yang tidak dikenal atau tidak memenuhi syarat mengembalikan `is_eligible: false`; route hanya mengembalikan `404` jika store tidak ditemukan.
 8. Buat order dengan `POST /public/checkout` memakai direct `items` bertipe, guest cart token, atau keduanya.
 9. Baca order melalui `GET /public/orders/{secret_slug}` dan update field buyer seperti `transferproof_url`, `transfer_time`, atau `notes` dengan `PATCH /public/orders/{secret_slug}`.
-10. Panggil `POST /public/orders/{secret_slug}/payment`; render instruksi payment yang dikembalikan atau yang sudah ada di payment page Anda sendiri, dan gunakan `payment_url` hanya sebagai hosted fallback.
-11. Untuk akun customer, mulai dari `/public/auth/login`, lalu panggil `/customers/me/*` dengan customer JWT.
+10. Untuk manual `bank_transfer`, minta URL upload bukti transfer dengan `POST /public/orders/{secret_slug}/transfer-proof-upload`, upload image, lalu patch order dengan `file_url` yang dikembalikan.
+11. Panggil `POST /public/orders/{secret_slug}/payment`; render instruksi payment yang dikembalikan atau yang sudah ada di payment page Anda sendiri, dan gunakan `payment_url` hanya sebagai hosted fallback.
+12. Untuk akun customer, mulai dari `/public/auth/login`, lalu panggil `/customers/me/*` dengan customer JWT.
 
 Lihat [Checkout dan Payment](/id/storefront-api-id/checkout-payments) untuk panduan shipping option, summary, dan rendering payment per metode.
+
+## Analytics Conversion API
+
+Gunakan Scalev sebagai server-side relay untuk event konversi Meta, TikTok, dan SnackVideo dari storefront browser. Panggilan ini memakai pixel yang sama dengan konfigurasi Storefront analytics bawaan, tetapi route Storefront API memilih toko dari `/v3/stores/{store_id}` dan `X-Scalev-Storefront-Api-Key`; jangan mengirim custom domain untuk mengidentifikasi toko.
+
+```text
+POST /v3/stores/{store_id}/public/analytics/meta/events
+POST /v3/stores/{store_id}/public/analytics/tiktok/events
+POST /v3/stores/{store_id}/public/analytics/snackvideo/events
+```
+
+Endpoint mengembalikan `204 No Content` setelah menerima payload untuk dikirim secara asynchronous. Lihat [Event konversi iklan](/id/storefront-api-id/advertising-conversion-events) untuk setup client pixel, cookie atribusi, penamaan event, contoh payload, dan deduplikasi Meta/TikTok.
 
 ## Response payment
 

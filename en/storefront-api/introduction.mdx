@@ -7,6 +7,24 @@ Storefront API is the browser-facing API for custom storefronts. Use it when you
 
 Storefront API is separate from hosted Storefront settings. Hosted Storefront settings control Scalev-rendered pages, custom domains, homepage and checkout builders, footer pages, OTP, custom HTML, and analytics. Storefront API setup is for API-only storefronts where you own the frontend 100%.
 
+<Warning>
+  **Call Storefront API v3 directly from the browser**
+
+  Storefront API v3 is designed to be called directly from the browser or end-user client. Do not place Storefront API v3 behind your own backend proxy, reverse proxy, middleware, edge function, serverless function, or pass-through API layer.
+
+  The rate limiter for Storefront API v3 is intentionally strict because this API is designed for direct client-side usage. If you proxy these requests, many users may appear to come from the same server IP, which can negatively affect rate limiting, spam detection, duplicate-order protection, and other validation logic.
+
+  For headless storefront deployments, treat the browser as the intended caller of Storefront API v3. Use your own backend only for non-Scalev concerns such as admin settings, custom business logic, or private integrations.
+</Warning>
+
+## Recommended reading order
+
+1. Start with this page for the architecture, setup requirements, and endpoint map.
+2. Read [Auth](/en/storefront-api/auth) for Storefront API keys, guest cart tokens, and customer JWTs.
+3. Read [Checkout and Payments](/en/storefront-api/checkout-payments) for shipping, checkout summary, order creation, and payment rendering.
+4. Read [Advertising conversion events](/en/storefront-api/advertising-conversion-events) if the storefront runs Meta, TikTok, or SnackVideo ads.
+5. Finish with [Build a storefront](/en/storefront-api/build-a-browser-only-storefront) as the complete A-Z implementation guide.
+
 ## Architecture
 
 A Storefront API storefront can be a static app deployed on Cloudflare Pages, Vercel, Netlify, or any CDN. The browser calls `https://api.scalev.com` directly.

@@ -1,11 +1,21 @@
 ---
 title: "Build a storefront"
-description: "Build a custom storefront with Storefront API v3."
+description: "Complete A-Z implementation guide for building a custom storefront with Storefront API v3."
 ---
 
-Storefront API v3 lets you build your own storefront UI while Scalev handles catalog, carts, checkout, customer accounts, delivery locations, orders, and payment instructions. Start here to understand the setup you need and the API flow your frontend uses from product browsing to checkout and customer account pages.
+Storefront API v3 lets you build your own storefront UI while Scalev handles catalog, carts, checkout, customer accounts, delivery locations, orders, and payment instructions. Use this as the complete A-Z implementation guide after you understand the [Storefront API overview](/en/storefront-api/introduction), [auth model](/en/storefront-api/auth), [checkout flow](/en/storefront-api/checkout-payments), and optional [advertising conversion events](/en/storefront-api/advertising-conversion-events).
 
 A Storefront API storefront can be hosted as a static frontend, for example on Cloudflare Pages, Vercel, Netlify, or any CDN, without building a custom backend or same-origin proxy. The frontend calls `https://api.scalev.com` directly.
+
+<Warning>
+  **Call Storefront API v3 directly from the browser**
+
+  Storefront API v3 is designed to be called directly from the browser or end-user client. Do not place Storefront API v3 behind your own backend proxy, reverse proxy, middleware, edge function, serverless function, or pass-through API layer.
+
+  The rate limiter for Storefront API v3 is intentionally strict because this API is designed for direct client-side usage. If you proxy these requests, many users may appear to come from the same server IP, which can negatively affect rate limiting, spam detection, duplicate-order protection, and other validation logic.
+
+  For headless storefront deployments, treat the browser as the intended caller of Storefront API v3. Use your own backend only for non-Scalev concerns such as admin settings, custom business logic, or private integrations.
+</Warning>
 
 ## Architecture
 

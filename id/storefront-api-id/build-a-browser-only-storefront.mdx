@@ -1,11 +1,21 @@
 ---
 title: "Bangun storefront"
-description: "Bangun storefront custom dengan Storefront API v3."
+description: "Panduan implementasi lengkap A-Z untuk membangun storefront custom dengan Storefront API v3."
 ---
 
-Storefront API v3 membantu Anda membangun UI storefront sendiri, sementara Scalev menangani katalog, cart, checkout, akun customer, lokasi pengiriman, order, dan instruksi payment. Mulai dari halaman ini untuk memahami setup yang dibutuhkan dan alur API yang dipakai frontend dari browsing produk sampai checkout dan halaman akun customer.
+Storefront API v3 membantu Anda membangun UI storefront sendiri, sementara Scalev menangani katalog, cart, checkout, akun customer, lokasi pengiriman, order, dan instruksi payment. Gunakan halaman ini sebagai panduan implementasi lengkap A-Z setelah Anda memahami [overview Storefront API](/id/storefront-api-id/introduction), [model auth](/id/storefront-api-id/auth), [alur checkout](/id/storefront-api-id/checkout-payments), dan [event konversi iklan](/id/storefront-api-id/advertising-conversion-events) opsional.
 
 Storefront API v3 bisa di-host sebagai frontend statis, misalnya di Cloudflare Pages, Vercel, Netlify, atau CDN lain, tanpa membuat backend custom atau proxy same-origin. Frontend memanggil `https://api.scalev.com` secara langsung.
+
+<Warning>
+  **Panggil Storefront API v3 langsung dari browser**
+
+  Storefront API v3 dirancang untuk dipanggil langsung dari browser atau client end-user. Jangan menaruh Storefront API v3 di balik backend proxy, reverse proxy, middleware, edge function, serverless function, atau pass-through API layer milik Anda sendiri.
+
+  Rate limiter untuk Storefront API v3 sengaja dibuat ketat karena API ini dirancang untuk penggunaan client-side langsung. Jika request ini diproxy, banyak user dapat terlihat datang dari IP server yang sama, sehingga rate limiting, deteksi spam, proteksi order duplikat, dan logika validasi lain dapat terdampak negatif.
+
+  Untuk deployment headless storefront, anggap browser sebagai caller yang dimaksud untuk Storefront API v3. Gunakan backend Anda sendiri hanya untuk hal non-Scalev seperti admin settings, custom business logic, atau private integrations.
+</Warning>
 
 ## Arsitektur
 
@@ -35,6 +45,7 @@ https://api.scalev.com/v3/stores/{store_id}
    - `SCALEV_STOREFRONT_API_KEY=<publishable_storefront_key>`
 4. Serve frontend dari origin yang sudah didaftarkan.
 5. Buat panggilan API langsung dari browser.
+6. Jika storefront menjalankan iklan, pasang browser pixel dan event konversi server Scalev dengan event ID yang sama. Lihat [Event konversi iklan](/id/storefront-api-id/advertising-conversion-events).
 
 Runtime Storefront memakai `unique_id` store. Endpoint setup Storefront API adalah endpoint bisnis terautentikasi. Endpoint setup bisa menerima numeric store ID lama untuk kompatibilitas, tetapi frontend storefront sebaiknya dikonfigurasi dengan `unique_id` store.
 
