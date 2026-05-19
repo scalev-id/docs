@@ -317,7 +317,9 @@ As with discount and shipping helpers, payment values are normalized before the 
 
 Do not create orders automatically on page load.
 
-After `createOrder` succeeds, choose the post-order redirect yourself. The runtime creates the order only; it does not navigate automatically. Read `Scalev.data.get().after_checkout` when present, then follow [HTML Mode checkout success types](/en/html-mode-checkout-success-paths).
+After `createOrder` succeeds, HTML Checkout Pages automatically fire the configured form-submit analytics events on both client and server side. Events are only sent for analytics pixels configured on the page. New HTML Checkout Pages are prefilled in the editor with Meta and TikTok `InitiateCheckout`, SnackVideo client `formSubmit`, and SnackVideo server `EVENT_FORM_SUBMIT`; you can change them before saving. Do not manually duplicate those configured submit events unless you intentionally need an extra custom event.
+
+Choose the post-order redirect yourself. The runtime creates the order and fires submit analytics; it does not navigate automatically. Read `Scalev.data.get().after_checkout` when present, then follow [HTML Mode checkout success types](/en/html-mode-checkout-success-paths).
 
 The returned order data is a slim public response for redirects and buyer-facing payment UI. Use `secret_slug`, `public_order_url`, `payment_url`, `handler_phone`, `chat_message`, totals, line items, payment fields, and the existing `variants` and `bundle_price_options` object maps; do not depend on internal order IDs, dashboard revenue fields, platform fees, or affiliate attribution.
 

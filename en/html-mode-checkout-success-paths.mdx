@@ -15,15 +15,15 @@ const afterCheckout = Scalev.data.get().after_checkout || {
 
 `after_checkout` is editor config state only. It is not computed from the order response.
 
-## Builder parity rules
+## Redirect rules
 
-The Builder form applies these rules before redirecting:
+Use these rules when deciding where to send the buyer after `createOrder` succeeds:
 
 - E-payment methods always go to the payment instruction page. This includes `va`, `qris`, `card`, `invoice`, `alfamart`, `ovo`, `dana`, `shopeepay`, `linkaja`, and `gopay`.
 - VA submethods selected from `store.sub_payment_methods` are treated as `va`.
 - `BT_*` bank-transfer submethods are treated as `bank_transfer`, not `va`.
 - If the order status is `draft`, the payment instruction path falls back to **Self Hosted Orderan / Invoice** (`order_page`).
-- If the page is rendered inside an iframe, the Builder posts the target URL to the parent window instead of navigating the iframe directly.
+- If the page is rendered inside an iframe, post the target URL to the parent window instead of navigating the iframe directly.
 
 Use the order data returned by `createOrder`. Do not hardcode private API URLs.
 
@@ -228,7 +228,7 @@ redirectAfterOrder({
 
 ## The six types
 
-| Builder label                       | Value                       | HTML Mode behavior                                                                                                                                                                                                                |
+| Editor label                        | Value                       | HTML Mode behavior                                                                                                                                                                                                                |
 | ----------------------------------- | --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Halaman Instruksi Pembayaran        | `success_page`              | Redirect to the Scalev payment instruction page. Prefer `order.payment_url`; otherwise use `/o/{secret_slug}/success`. If `order.status` is `draft`, use **Self Hosted Orderan / Invoice** (`order_page`) instead.                |
 | Langsung ke WhatsApp                | `direct_to_whatsapp`        | Open WhatsApp using `order.handler_phone` and `order.chat_message`. Scalev chooses the handler from the store or page assignment. If `handler_phone` is missing, fall back to **Self Hosted Orderan / Invoice** (`order_page`).   |
@@ -253,6 +253,8 @@ Use `custom_url` for destinations outside the current page flow, such as a CRM h
 
 ## Notes for analytics and attribution
 
-The Builder preserves query parameters for `other_page`. It also forwards query parameters for `custom_url` only when the target host is the current host or one of the known Scalev app hosts.
+Preserve query parameters for `other_page`. For `custom_url`, forward query parameters only when the target host is the current host or one of the known Scalev app hosts.
+
+After `Scalev.checkout.createOrder(payload)` succeeds, HTML Checkout Pages automatically fire the configured form-submit analytics events for analytics pixels configured on the page. Redirect handling is still manual, so keep the redirect after `createOrder` resolves and avoid duplicating the configured submit events yourself.
 
 If the page has buttons or links that redirect to another URL, preserve the current query parameters that are commonly important for analytics, such as UTM, click, and affiliate parameters.

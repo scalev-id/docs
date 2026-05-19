@@ -15,15 +15,15 @@ const afterCheckout = Scalev.data.get().after_checkout || {
 
 `after_checkout` hanya berisi state konfigurasi dari editor. Data ini tidak dihitung dari respons order.
 
-## Aturan parity dengan Builder
+## Aturan redirect
 
-Form Builder menerapkan aturan ini sebelum redirect:
+Gunakan aturan ini saat menentukan tujuan pembeli setelah `createOrder` berhasil:
 
 - Payment method e-payment selalu diarahkan ke halaman instruksi pembayaran. Ini mencakup `va`, `qris`, `card`, `invoice`, `alfamart`, `ovo`, `dana`, `shopeepay`, `linkaja`, dan `gopay`.
 - Submethod VA dari `store.sub_payment_methods` dianggap sebagai `va`.
 - Submethod bank transfer `BT_*` dianggap sebagai `bank_transfer`, bukan `va`.
 - Jika status order adalah `draft`, jalur instruksi pembayaran memakai **Self Hosted Orderan / Invoice** (`order_page`).
-- Jika halaman dirender di dalam iframe, Builder mengirim target URL ke parent window dan tidak langsung menavigasi iframe.
+- Jika halaman dirender di dalam iframe, kirim target URL ke parent window dan jangan langsung menavigasi iframe.
 
 Gunakan data order dari respons `createOrder`. Jangan hardcode URL API privat.
 
@@ -228,7 +228,7 @@ redirectAfterOrder({
 
 ## Enam type setelah order
 
-| Label Builder                       | Value                       | Behavior HTML Mode                                                                                                                                                                                                                                      |
+| Label di editor                     | Value                       | Behavior HTML Mode                                                                                                                                                                                                                                      |
 | ----------------------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Halaman Instruksi Pembayaran        | `success_page`              | Redirect ke halaman instruksi pembayaran Scalev. Prioritaskan `order.payment_url`; jika tidak ada, gunakan `/o/{secret_slug}/success`. Jika `order.status` adalah `draft`, gunakan **Self Hosted Orderan / Invoice** (`order_page`).                    |
 | Langsung ke WhatsApp                | `direct_to_whatsapp`        | Buka WhatsApp memakai `order.handler_phone` dan `order.chat_message`. Scalev memilih handler dari assignment store atau halaman. Jika `handler_phone` tidak ada, arahkan ke **Self Hosted Orderan / Invoice** (`order_page`).                           |
@@ -253,6 +253,8 @@ Gunakan `custom_url` untuk tujuan di luar flow halaman saat ini, seperti handoff
 
 ## Catatan analytics dan attribution
 
-Builder mempertahankan query parameter untuk `other_page`. Builder juga meneruskan query parameter untuk `custom_url` hanya jika target host adalah host saat ini atau salah satu host app Scalev yang dikenal.
+Pertahankan query parameter untuk `other_page`. Untuk `custom_url`, teruskan query parameter hanya jika target host adalah host saat ini atau salah satu host app Scalev yang dikenal.
+
+Setelah `Scalev.checkout.createOrder(payload)` berhasil, HTML Checkout Page otomatis men-trigger event analytics submit form yang sudah dikonfigurasi untuk pixel analytics pada page. Redirect tetap perlu ditangani sendiri, jadi lakukan redirect setelah `createOrder` selesai dan jangan menduplikasi event submit yang sudah dikonfigurasi.
 
 Jika halaman memiliki button atau link yang redirect ke URL lain, pertahankan query parameter saat ini yang biasanya penting untuk analytics, seperti UTM, click, dan affiliate parameter.

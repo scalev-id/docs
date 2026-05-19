@@ -317,7 +317,9 @@ Seperti helper diskon dan shipping, value payment dinormalisasi sebelum request.
 
 Jangan membuat order otomatis saat halaman dibuka.
 
-Setelah `createOrder` berhasil, pilih redirect setelah order sendiri. Runtime hanya membuat order; runtime tidak melakukan navigasi otomatis. Baca `Scalev.data.get().after_checkout` jika tersedia, lalu ikuti [Aksi setelah order HTML Mode](/id/aksi-setelah-order-html-mode).
+Setelah `createOrder` berhasil, HTML Checkout Page otomatis men-trigger event analytics submit form yang sudah dikonfigurasi di sisi client dan server. Event hanya dikirim untuk pixel analytics yang sudah dikonfigurasi pada page. HTML Checkout Page baru di editor sudah terisi awal dengan Meta dan TikTok `InitiateCheckout`, SnackVideo client `formSubmit`, dan SnackVideo server `EVENT_FORM_SUBMIT`; kamu bisa mengubahnya sebelum menyimpan page. Jangan mengirim ulang event submit yang sudah dikonfigurasi kecuali memang perlu event custom tambahan.
+
+Pilih sendiri jenis redirect setelah order. Runtime membuat order dan men-trigger submit analytics; runtime tidak melakukan navigasi otomatis. Baca `Scalev.data.get().after_checkout` jika tersedia, lalu ikuti [Aksi setelah order HTML Mode](/id/aksi-setelah-order-html-mode).
 
 Data order yang dikembalikan adalah public response ringkas untuk redirect dan UI payment buyer-facing. Gunakan `secret_slug`, `public_order_url`, `payment_url`, `handler_phone`, `chat_message`, total, line item, field payment, serta object map `variants` dan `bundle_price_options` yang sudah ada; jangan bergantung pada ID order internal, revenue khusus dashboard, platform fee, atau atribusi affiliate.
 
