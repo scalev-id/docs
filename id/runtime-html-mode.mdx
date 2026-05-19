@@ -29,6 +29,8 @@ Halaman HTML Mode bisa memiliki Store Context atau tidak.
 
 Jika Store Context dipilih, `Scalev.data.get().store` berisi ringkasan store, produk terpilih, dan bundle price options terpilih saja. Data ini bukan seluruh katalog store.
 
+Jika HTML Checkout Page dipilih, `Scalev.data.get().after_checkout` berisi type aksi setelah checkout berhasil beserta konfigurasi tujuan publiknya. Object ini adalah state konfigurasi dari editor. Runtime mengeksposnya, tetapi tidak melakukan redirect otomatis setelah order dibuat.
+
 Jika Store Context belum dipilih, `store` tidak tersedia. Jangan membuat checkout, payment, shipping, diskon, katalog produk, cart, atau flow pembuatan order. Perlakukan halaman sebagai landing page biasa dan gunakan hanya method aman seperti `Scalev.data.get()`, `Scalev.analytics.track()`, dan `Scalev.prefill.get()`.
 
 ## Aturan keamanan
@@ -57,7 +59,8 @@ Bentuk respons:
     "uniqueId": "page_uid",
     "username": "brand"
   },
-  "store": null
+  "store": null,
+  "after_checkout": null
 }
 ```
 
@@ -99,13 +102,31 @@ Dengan Store Context, `store` berisi konteks terpilih saja:
         "price": 179000
       }
     ]
+  },
+  "after_checkout": {
+    "type": "other_page",
+    "other_page_path": "/thank-you"
   }
 }
 ```
 
-Gunakan data ini untuk render produk terpilih, bundle option, payment methods aktif, dan form yang memakai store. Jangan mengasumsikan produk, bundle, atau payment method yang tidak ada di payload ini.
+Gunakan data ini untuk render produk terpilih, bundle option, payment methods aktif, dan form yang memakai store. Variant produk terpilih tersedia di `store.products[].variants[]`. Jangan mengasumsikan produk, bundle, atau payment method yang tidak ada di payload ini.
 
 `store.payment_methods` berisi payment methods aktif setelah Scalev memfilter pengaturan store berdasarkan kapabilitas payment bisnis. Gunakan `store.sub_payment_methods` untuk submethod VA atau bank yang aktif saat tersedia.
+
+### Konfigurasi aksi setelah checkout
+
+`after_checkout` tersedia di HTML Checkout Page. Gunakan data ini setelah `Scalev.checkout.createOrder()` berhasil.
+
+| Field | Keterangan |
+| --- | --- |
+| `type` | Salah satu dari `success_page`, `direct_to_whatsapp`, `direct_to_custom_whatsapp`, `other_page`, `order_page`, atau `custom_url`. |
+| `custom_whatsapp_phone` | Nomor WhatsApp tetap untuk `direct_to_custom_whatsapp`, jika dikonfigurasi. |
+| `other_page_path` | Path dari slug landing page terpilih, misalnya `/thank-you`. |
+| `custom_url` | URL tujuan untuk `custom_url`, jika dikonfigurasi. |
+| `handler_assignment` | Mode assignment sales store terpilih untuk `direct_to_whatsapp`, misalnya `rotator` atau `fixed`. |
+
+Runtime tidak menjalankan aksi ini otomatis. Ikuti [Aksi setelah order HTML Mode](/id/aksi-setelah-order-html-mode) dan gunakan state konfigurasi ini untuk memilih redirect. Untuk `direct_to_whatsapp`, sales person terpilih diselesaikan saat order dibuat; gunakan `handler_phone` dari response order.
 
 ## Method lokasi
 
@@ -296,7 +317,7 @@ Seperti helper diskon dan shipping, value payment dinormalisasi sebelum request.
 
 Jangan membuat order otomatis saat halaman dibuka.
 
-Setelah `createOrder` berhasil, pilih redirect setelah order sendiri. Runtime hanya membuat order; runtime tidak menjalankan pengaturan Builder **After Submit Event** untuk kamu. Lihat [Aksi setelah order HTML Mode](/id/aksi-setelah-order-html-mode).
+Setelah `createOrder` berhasil, pilih redirect setelah order sendiri. Runtime hanya membuat order; runtime tidak melakukan navigasi otomatis. Baca `Scalev.data.get().after_checkout` jika tersedia, lalu ikuti [Aksi setelah order HTML Mode](/id/aksi-setelah-order-html-mode).
 
 Data order yang dikembalikan adalah public response ringkas untuk redirect dan UI payment buyer-facing. Gunakan `secret_slug`, `public_order_url`, `payment_url`, `handler_phone`, `chat_message`, total, line item, field payment, serta object map `variants` dan `bundle_price_options` yang sudah ada; jangan bergantung pada ID order internal, revenue khusus dashboard, platform fee, atau atribusi affiliate.
 

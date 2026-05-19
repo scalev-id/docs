@@ -1,11 +1,19 @@
 ---
-title: "HTML Mode checkout success paths"
+title: "HTML Mode checkout success types"
 description: "Choose what happens after Scalev.checkout.createOrder succeeds in a manual HTML Mode checkout."
 ---
 
-When you build a checkout form manually in HTML Mode, `Scalev.checkout.createOrder(payload)` only creates the order. It does not automatically apply the Builder form setting named **After Submit Event**.
+When you build a checkout form manually in HTML Mode, `Scalev.checkout.createOrder(payload)` only creates the order. It does not automatically redirect after the order is created.
 
-If you want the same behavior as the Builder checkout form, choose one of these six paths after `createOrder` returns successfully.
+HTML Checkout Pages expose the selected after-checkout configuration in `Scalev.data.get().after_checkout`. Use that config to choose one of these six types after `createOrder` returns successfully.
+
+```js
+const afterCheckout = Scalev.data.get().after_checkout || {
+  type: "success_page",
+};
+```
+
+`after_checkout` is editor config state only. It is not computed from the order response.
 
 ## Builder parity rules
 
@@ -133,7 +141,7 @@ function navigateAfterOrder(url) {
 }
 
 function redirectAfterOrder({
-  path,
+  type,
   orderResponse,
   paymentMethod,
   store,
@@ -146,34 +154,34 @@ function redirectAfterOrder({
     paymentMethod || order.payment_method,
     store,
   );
-  const finalPath = PAYMENT_INSTRUCTION_METHODS.has(redirectPaymentMethod)
+  const finalType = PAYMENT_INSTRUCTION_METHODS.has(redirectPaymentMethod)
     ? "success_page"
-    : path;
+    : type;
 
-  if (finalPath === "success_page") {
+  if (finalType === "success_page") {
     return navigateAfterOrder(paymentInstructionUrl(order));
   }
 
-  if (finalPath === "direct_to_whatsapp") {
+  if (finalType === "direct_to_whatsapp") {
     const phone = order.handler_phone;
     return navigateAfterOrder(
       phone ? whatsappUrl(phone, order) : publicOrderUrl(order),
     );
   }
 
-  if (finalPath === "direct_to_custom_whatsapp") {
+  if (finalType === "direct_to_custom_whatsapp") {
     return navigateAfterOrder(whatsappUrl(customWhatsappPhone, order));
   }
 
-  if (finalPath === "other_page") {
+  if (finalType === "other_page") {
     return navigateAfterOrder(withCurrentQuery(otherPagePath));
   }
 
-  if (finalPath === "order_page") {
+  if (finalType === "order_page") {
     return navigateAfterOrder(publicOrderUrl(order));
   }
 
-  if (finalPath === "custom_url") {
+  if (finalType === "custom_url") {
     return navigateAfterOrder(maybeForwardCurrentQuery(customUrl));
   }
 
@@ -186,6 +194,7 @@ Example usage:
 ```js
 const data = Scalev.data.get();
 const store = data.store;
+const afterCheckout = data.after_checkout || { type: "success_page" };
 
 const payload = {
   page: data.page.uniqueId,
@@ -207,37 +216,40 @@ if (!validation.valid) {
 const orderResponse = await Scalev.checkout.createOrder(payload);
 
 redirectAfterOrder({
-  path: "success_page",
+  type: afterCheckout.type,
   orderResponse,
   paymentMethod: payload.paymentMethod,
   store,
+  customWhatsappPhone: afterCheckout.custom_whatsapp_phone,
+  otherPagePath: afterCheckout.other_page_path,
+  customUrl: afterCheckout.custom_url,
 });
 ```
 
-## The six paths
+## The six types
 
 | Builder label                       | Value                       | HTML Mode behavior                                                                                                                                                                                                                |
 | ----------------------------------- | --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Halaman Instruksi Pembayaran        | `success_page`              | Redirect to the Scalev payment instruction page. Prefer `order.payment_url`; otherwise use `/o/{secret_slug}/success`. If `order.status` is `draft`, use **Self Hosted Orderan / Invoice** (`order_page`) instead.                |
 | Langsung ke WhatsApp                | `direct_to_whatsapp`        | Open WhatsApp using `order.handler_phone` and `order.chat_message`. Scalev chooses the handler from the store or page assignment. If `handler_phone` is missing, fall back to **Self Hosted Orderan / Invoice** (`order_page`).   |
 | Langsung ke Nomor WhatsApp tertentu | `direct_to_custom_whatsapp` | Open WhatsApp using your own configured phone number and `order.chat_message`. Use this when every order should go to a fixed sales or admin number.                                                                              |
-| Landing Page Lainnya                | `other_page`                | Redirect to another landing page path on the current host and preserve the current query string. HTML Mode does not expose the Builder page picker, so you must provide the destination path yourself.                            |
+| Landing Page Lainnya                | `other_page`                | Redirect to another landing page path on the current host and preserve the current query string. Use `after_checkout.other_page_path` from the runtime config when a page is selected.                                         |
 | Self Hosted Orderan / Invoice       | `order_page`                | Redirect to the public order or invoice page. Prefer `order.public_order_url`; otherwise use `/o/{secret_slug}` on the current origin.                                                                                            |
 | Custom URL                          | `custom_url`                | Redirect to a URL you provide. For the current host or known Scalev app hosts, you can forward the current query string to preserve attribution. For external hosts, forward only the parameters you intentionally want to share. |
 
-## Choosing a path
+## Choosing a type
 
 Use `success_page` when the buyer needs payment instructions or the most complete Scalev-hosted payment state.
 
-Use `direct_to_whatsapp` when the next step is handled by the store's assigned sales person. The important fields are `order.handler_phone` and `order.chat_message`.
+Use `direct_to_whatsapp` when the next step is handled by the store's assigned sales person. The selected config state only exposes `after_checkout.handler_assignment`; Scalev resolves the actual handler during order creation, so redirect with `order.handler_phone` from the created order response.
 
-Use `direct_to_custom_whatsapp` when the next step always goes to a fixed number. Store the phone number in your HTML or script configuration.
+Use `direct_to_custom_whatsapp` when the next step always goes to a fixed number. Read the number from `after_checkout.custom_whatsapp_phone`.
 
-Use `other_page` when the destination is another Scalev landing page on the same host, such as a thank-you page or upsell page.
+Use `other_page` when the destination is another Scalev landing page on the same host, such as a thank-you page or upsell page. Read the path from `after_checkout.other_page_path`.
 
 Use `order_page` when the buyer should see the generated public invoice or order detail page.
 
-Use `custom_url` for destinations outside the current page flow, such as a CRM handoff, external thank-you page, or custom hosted experience.
+Use `custom_url` for destinations outside the current page flow, such as a CRM handoff, external thank-you page, or custom hosted experience. Read the URL from `after_checkout.custom_url`.
 
 ## Notes for analytics and attribution
 

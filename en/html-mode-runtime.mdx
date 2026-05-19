@@ -29,6 +29,8 @@ An HTML Mode page may or may not have Store Context selected in the Scalev edito
 
 When Store Context is selected, `Scalev.data.get().store` includes only the selected store summary, selected products, and selected bundle price options. It does not include the full store catalog.
 
+When HTML Checkout Page is selected, `Scalev.data.get().after_checkout` includes the selected after-checkout success type and its public destination config. This object is the editor config state. The runtime exposes it, but it does not redirect automatically after an order is created.
+
 When Store Context is not selected, `store` is not available. Do not build checkout, payment, shipping, discount, product catalog, cart, or order creation flows. Use the page as a regular landing page and rely only on page-safe methods such as `Scalev.data.get()`, `Scalev.analytics.track()`, and `Scalev.prefill.get()`.
 
 ## Security rules
@@ -57,7 +59,8 @@ Return shape:
     "uniqueId": "page_uid",
     "username": "brand"
   },
-  "store": null
+  "store": null,
+  "after_checkout": null
 }
 ```
 
@@ -99,13 +102,31 @@ With Store Context selected, `store` contains selected context only:
         "price": 179000
       }
     ]
+  },
+  "after_checkout": {
+    "type": "other_page",
+    "other_page_path": "/thank-you"
   }
 }
 ```
 
-Use it to render selected products, bundle options, enabled payment methods, and store-aware forms. Do not assume products, bundles, or payment methods that are not present in this payload.
+Use it to render selected products, bundle options, enabled payment methods, and store-aware forms. Selected product variants are available at `store.products[].variants[]`. Do not assume products, bundles, or payment methods that are not present in this payload.
 
 `store.payment_methods` contains the enabled payment methods after Scalev filters the store settings by the business payment capabilities. Use `store.sub_payment_methods` for enabled VA or bank submethods when present.
+
+### After checkout config
+
+`after_checkout` is present on HTML Checkout Pages. Use it after `Scalev.checkout.createOrder()` succeeds.
+
+| Field | Description |
+| --- | --- |
+| `type` | One of `success_page`, `direct_to_whatsapp`, `direct_to_custom_whatsapp`, `other_page`, `order_page`, or `custom_url`. |
+| `custom_whatsapp_phone` | Fixed WhatsApp destination for `direct_to_custom_whatsapp`, when configured. |
+| `other_page_path` | Path derived from the selected landing page slug, such as `/thank-you`. |
+| `custom_url` | Destination URL for `custom_url`, when configured. |
+| `handler_assignment` | Selected handler assignment mode for `direct_to_whatsapp`, such as `rotator` or `fixed`. |
+
+The runtime does not run this action for you. Follow [HTML Mode checkout success types](/en/html-mode-checkout-success-paths) and use this config state to choose the redirect. For `direct_to_whatsapp`, the selected sales person is resolved during order creation; use `handler_phone` from the created order response.
 
 ## Location methods
 
@@ -296,7 +317,7 @@ As with discount and shipping helpers, payment values are normalized before the 
 
 Do not create orders automatically on page load.
 
-After `createOrder` succeeds, choose the post-order redirect yourself. The runtime creates the order only; it does not apply the Builder **After Submit Event** setting for you. See [HTML Mode checkout success paths](/en/html-mode-checkout-success-paths).
+After `createOrder` succeeds, choose the post-order redirect yourself. The runtime creates the order only; it does not navigate automatically. Read `Scalev.data.get().after_checkout` when present, then follow [HTML Mode checkout success types](/en/html-mode-checkout-success-paths).
 
 The returned order data is a slim public response for redirects and buyer-facing payment UI. Use `secret_slug`, `public_order_url`, `payment_url`, `handler_phone`, `chat_message`, totals, line items, payment fields, and the existing `variants` and `bundle_price_options` object maps; do not depend on internal order IDs, dashboard revenue fields, platform fees, or affiliate attribution.
 
