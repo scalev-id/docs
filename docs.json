@@ -179,21 +179,26 @@
               {
                 "group": "Tracking & iklan",
                 "pages": [
-                  "id/setting-meta-ads-user",
+                  {
+                    "group": "Meta Pixel",
+                    "pages": [
+                      "id/setting-meta-ads-user",
+                      "id/custom-audience-meta",
+                      "id/tambah-custom-audience"
+                    ]
+                  },
                   "id/snackvideouser",
                   "id/setting-tiktok-ads-user",
-                  "id/custom-audience-meta",
                   "id/tracking-email",
                   "id/default-events",
                   "id/autofill",
                   "id/real-purchase-tidak-muncul",
+                  "id/manual-trigger-purchase",
                   "id/triggerpurchase",
                   "id/pastikantiktok",
                   "id/membuat-pixel-eventapi-snackvideo",
                   "id/funnel-analysis",
-                  "id/manual-trigger-purchase",
                   "id/setting-pixel-tiktok",
-                  "id/tambah-custom-audience",
                   "id/tambah-pixel",
                   "id/tambah-pixel-tiktok",
                   "id/conversionapi",
@@ -208,10 +213,6 @@
                   "id/events-manager-testing",
                   "id/verifikasimeta",
                   "id/funnel-toko-online",
-                  {
-                    "group": "Meta Pixel",
-                    "pages": []
-                  },
                   {
                     "group": "TikTok Pixel",
                     "pages": []

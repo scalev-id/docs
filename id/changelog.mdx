@@ -4,161 +4,76 @@ description: "Pembaruan produk dan dokumentasi"
 rss: true
 ---
 
-<Update label="Mei 2026" description="Panduan build Storefront API" tags={["Docs", "API"]}>
-  Menambahkan panduan Storefront API end-to-end untuk agent dan frontend
-  developer yang membangun storefront custom. Panduan ini mencakup
-  arsitektur direct frontend, checklist setup, helper fetch, alur katalog, guest
-  dan customer cart checkout, auth customer, lokasi, reset password, rendering
-  payment, subscription, akses course, dan checklist implementasi akhir.
+<Update label="Mei 2026" tags={["Docs","API"]} description="Panduan build Storefront API">
+  Menambahkan panduan Storefront API end-to-end untuk agent dan frontend developer yang membangun storefront custom. Panduan ini mencakup arsitektur direct frontend, checklist setup, helper fetch, alur katalog, guest dan customer cart checkout, auth customer, lokasi, reset password, rendering payment, subscription, akses course, dan checklist implementasi akhir.
 </Update>
 
-<Update label="Mei 2026" description="Response public order lebih ringkas" tags={["API", "Docs"]}>
-  Response public order untuk Storefront API dan HTML Mode kini memakai shape
-  buyer-facing yang lebih kecil. Response tetap menyertakan `secret_slug`,
-  `public_order_url`, `payment_url`, status, total, line item, data tampilan
-  pengiriman, instruksi payment seperti `pg_payment_info`, serta object map
-  `variants` dan `bundle_price_options` yang sudah ada, tetapi tidak lagi
-  mengekspos ID order internal, revenue khusus dashboard, platform fee,
-  payment-status history, atau atribusi affiliate.
+<Update label="Mei 2026" tags={["API","Docs"]} description="Response public order lebih ringkas">
+  Response public order untuk Storefront API dan HTML Mode kini memakai shape buyer-facing yang lebih kecil. Response tetap menyertakan `secret_slug`, `public_order_url`, `payment_url`, status, total, line item, data tampilan pengiriman, instruksi payment seperti `pg_payment_info`, serta object map `variants` dan `bundle_price_options` yang sudah ada, tetapi tidak lagi mengekspos ID order internal, revenue khusus dashboard, platform fee, payment-status history, atau atribusi affiliate.
 </Update>
 
-<Update label="Mei 2026" description="Endpoint katalog item Storefront API" tags={["API", "Docs"]}>
-  Storefront API v3 kini memakai `GET /v3/stores/{store_id}/public/items` dan
-  `GET /v3/stores/{store_id}/public/items/count` untuk feed katalog public
-  karena feed ini mengembalikan product dan bundle price option. Detail product tetap
-  `GET /v3/stores/{store_id}/public/products/{slug}`, dan detail bundle price option adalah
-  `GET /v3/stores/{store_id}/public/bundle-price-options/{slug}`. Card katalog memakai
-  `entity_type` untuk membedakan `product` dari `bundle_price_option`, sementara `item_type`
-  product tetap bermakna tipe product seperti `physical` atau `digital`. Payload public cart
-  item dan direct checkout item memakai `{ "type": "bundle_price_option", "bundle_price_option_id": ... }`
-  untuk bundle price option.
+<Update label="Mei 2026" tags={["API","Docs"]} description="Endpoint katalog item Storefront API">
+  Storefront API v3 kini memakai `GET /v3/stores/{store_id}/public/items` dan `GET /v3/stores/{store_id}/public/items/count` untuk feed katalog public karena feed ini mengembalikan product dan bundle price option. Detail product tetap `GET /v3/stores/{store_id}/public/products/{slug}`, dan detail bundle price option adalah `GET /v3/stores/{store_id}/public/bundle-price-options/{slug}`. Card katalog memakai `entity_type` untuk membedakan `product` dari `bundle_price_option`, sementara `item_type` product tetap bermakna tipe product seperti `physical` atau `digital`. Payload public cart item dan direct checkout item memakai `{ "type": "bundle_price_option", "bundle_price_option_id": ... }` untuk bundle price option.
 </Update>
 
-<Update label="Mei 2026" description="Cleanup endpoint checkout Storefront API v3" tags={["API", "Docs"]}>
-  Storefront API v3 kini memakai satu endpoint untuk order creation
-  per mode auth: `POST /v3/stores/{store_id}/public/checkout` untuk public
-  checkout dan `POST /v3/stores/{store_id}/customers/me/checkout` untuk customer
-  terautentikasi. Path kompatibilitas checkout v3 yang deprecated sudah
-  dihapus dari kontrak. Direct checkout items sekarang memakai union bertipe
-  eksplisit untuk variant dan bundle price option, dan model sumber item yang
-  sama dipakai oleh shipping options, checkout summary, dan final order creation.
+<Update label="Mei 2026" tags={["API","Docs"]} description="Cleanup endpoint checkout Storefront API v3">
+  Storefront API v3 kini memakai satu endpoint untuk order creation per mode auth: `POST /v3/stores/{store_id}/public/checkout` untuk public checkout dan `POST /v3/stores/{store_id}/customers/me/checkout` untuk customer terautentikasi. Path kompatibilitas checkout v3 yang deprecated sudah dihapus dari kontrak. Direct checkout items sekarang memakai union bertipe eksplisit untuk variant dan bundle price option, dan model sumber item yang sama dipakai oleh shipping options, checkout summary, dan final order creation.
 </Update>
 
-<Update label="Mei 2026" description="Penyelesaian checkout fisik Storefront API" tags={["API", "Docs"]}>
-  Storefront API untuk checkout produk fisik kini selesai setelah langkah shipping
-  option dan checkout summary yang terdokumentasi. Guest checkout, guest cart
-  checkout, dan authenticated customer checkout summary serta confirm menghitung
-  ulang ongkir terpilih di server berdasarkan courier service, warehouse,
-  alamat tujuan, metode pembayaran, dan item cart sebelum membuat order.
-  Semua response penyelesaian checkout kini mengembalikan public order response
-  yang sama dengan public order read, sehingga guest checkout, guest cart
-  checkout, authenticated customer checkout confirm, dan hosted public order page
-  mengekspos field order yang konsisten. Route pengecekan discount code publik
-  kini memakai request `POST` dengan body konteks checkout JSON dan mengembalikan
-  typed ineligible response untuk kode yang tidak ditemukan. Storefront API v3
-  payment-method discovery dan checkout creation kini menolak `no_payment`,
-  sehingga submission API langsung tidak dapat membuat order storefront tanpa
-  pembayaran.
-
-  OpenAPI juga kini mencakup kontrak customer account, customer cart, customer
-  order, dan customer course yang bertipe. Public order response tetap mencakup
-  buyer-facing order link, total, line item, shipping detail, dan field pembayaran
-  seperti `public_order_url`, `payment_url`, dan `pg_payment_info`. Response order
-  customer account kini memakai object order yang lebih kecil dan aman untuk buyer.
-  Object ini mempertahankan total yang terlihat oleh buyer seperti `gross_revenue`
-  serta field kompatibilitas minimal untuk portal customer Scalev, termasuk nama
-  store, logo, unique ID, dan display flag. Object order customer account tidak
-  menyertakan `financial_entity`, `warehouse`, `origin_address`, analytics
-  bisnis/operator, net revenue, platform fee, provider, CRM, affiliate, dan data
-  internal mentah.
+<Update label="Mei 2026" tags={["Docs","API"]} description="Panduan build Storefront API">
+  Menambahkan panduan Storefront API end-to-end untuk agent dan frontend developer yang membangun storefront custom. Panduan ini mencakup arsitektur direct frontend, checklist setup, helper fetch, alur katalog, guest dan customer cart checkout, auth customer, lokasi, reset password, rendering payment, subscription, akses course, dan checklist implementasi akhir.
 </Update>
 
-<Update label="Mei 2026" description="Response endpoint customer bertipe" tags={["API"]}>
-  Endpoint storefront untuk customer terautentikasi kini mengembalikan response
-  bertipe, bukan generic success envelope. `GET`, `PATCH`, dan `PATCH /password`
-  pada `/customers/me/profile` mengembalikan `customer`, `store`, dan
-  `is_generated_password_reset`. Route cart (`GET /customers/me/cart`, tambah,
-  update, dan hapus item) mengembalikan customer cart; tambah item cart kini
-  mengembalikan `201`. Route order memakai buyer-safe order response untuk list
-  dan detail, dengan cursor pagination pada endpoint list. Route course
-  mengembalikan response access, section, content, dan progress update yang
-  bertipe.
+<Update label="Mei 2026" tags={["API","Docs"]} description="Response public order lebih ringkas">
+  Response public order untuk Storefront API dan HTML Mode kini memakai shape buyer-facing yang lebih kecil. Response tetap menyertakan `secret_slug`, `public_order_url`, `payment_url`, status, total, line item, data tampilan pengiriman, instruksi payment seperti `pg_payment_info`, serta object map `variants` dan `bundle_price_options` yang sudah ada, tetapi tidak lagi mengekspos ID order internal, revenue khusus dashboard, platform fee, payment-status history, atau atribusi affiliate.
 </Update>
 
-<Update label="Mei 2026" description="Kontrak checkout dan pembayaran Storefront API" tags={["API", "Docs"]}>
-  Storefront API kini mendokumentasikan persiapan guest checkout yang aman untuk
-  browser, termasuk shipping options dan checkout summary. Public guest checkout
-  dapat memakai guest cart token atau item variant langsung, mengembalikan field
-  shipping option yang sama dengan hosted storefront, dan mengekspos summary
-  seperti `product_price`, `shipping_cost`, `other_income`, `other_income_name`,
-  dan `gross_revenue`. OpenAPI juga kini mencakup named schema untuk endpoint
-  checkout customer serta route storefront normal-shopping yang tersisa, seperti
-  categories, variant pricing, cart merge, public order read/update, dan
-  discount-code checks. Dokumentasi Storefront API kini mencakup panduan checkout
-  dan rendering pembayaran berdasarkan perilaku hosted success page.
+<Update label="Mei 2026" tags={["API","Docs"]} description="Endpoint katalog item Storefront API">
+  Storefront API v3 kini memakai `GET /v3/stores/{store_id}/public/items` dan `GET /v3/stores/{store_id}/public/items/count` untuk feed katalog public karena feed ini mengembalikan product dan bundle price option. Detail product tetap `GET /v3/stores/{store_id}/public/products/{slug}`, dan detail bundle price option adalah `GET /v3/stores/{store_id}/public/bundle-price-options/{slug}`. Card katalog memakai `entity_type` untuk membedakan `product` dari `bundle_price_option`, sementara `item_type` product tetap bermakna tipe product seperti `physical` atau `digital`. Payload public cart item dan direct checkout item memakai `{ "type": "bundle_price_option", "bundle_price_option_id": ... }` untuk bundle price option.
 </Update>
 
-<Update label="Mei 2026" description="Response token autentikasi customer" tags={["API"]}>
-  Endpoint auth customer storefront kini mengembalikan response token JWT yang
-  bertipe. `POST /public/auth/login` mengembalikan access dan refresh token
-  customer saat store dapat menyelesaikan login langsung, atau
-  `{ "message": "..." }` saat OTP sudah dikirim dan frontend perlu menampilkan
-  langkah input OTP. `POST /public/auth/otp/verify` dan
-  `POST /public/auth/jwt/refresh` juga mengembalikan `token_type`, `expires_in`,
-  dan `refresh_expires_in`. Refresh token dirotasi pada setiap refresh, bersifat
-  sekali pakai, dan mencabut token family saat refresh token yang sudah dirotasi
-  digunakan ulang. Kirim access token sebagai `Authorization: Bearer <token>` ke
-  route `/customers/me/*`. Link reset password kini memakai
-  `/reset-password?token=<reset-token>` pada browser `Origin` saat origin tersebut
-  cocok dengan allowed origin Storefront API, dan fallback ke custom domain hosted
-  storefront jika tidak cocok. URL reset member area hosted reguler tidak berubah.
+<Update label="Mei 2026" tags={["API","Docs"]} description="Cleanup endpoint checkout Storefront API v3">
+  Storefront API v3 kini memakai satu endpoint untuk order creation per mode auth: `POST /v3/stores/{store_id}/public/checkout` untuk public checkout dan `POST /v3/stores/{store_id}/customers/me/checkout` untuk customer terautentikasi. Path kompatibilitas checkout v3 yang deprecated sudah dihapus dari kontrak. Direct checkout items sekarang memakai union bertipe eksplisit untuk variant dan bundle price option, dan model sumber item yang sama dipakai oleh shipping options, checkout summary, dan final order creation.
 </Update>
 
-<Update label="Mei 2026" description="Perbaikan schema katalog Storefront" tags={["API"]}>
-  Schema OpenAPI publik untuk route count katalog kini mendokumentasikan
-  `{ "total": number }`, dan `GET /public/products/{slug}` kini mendokumentasikan
-  storefront product detail response, bukan public order schema.
+<Update label="Mei 2026" tags={["API","Docs"]} description="Penyelesaian checkout fisik Storefront API">
+  Storefront API untuk checkout produk fisik kini selesai setelah langkah shipping option dan checkout summary yang terdokumentasi. Guest checkout, guest cart checkout, dan authenticated customer checkout summary serta confirm menghitung ulang ongkir terpilih di server berdasarkan courier service, warehouse, alamat tujuan, metode pembayaran, dan item cart sebelum membuat order. Semua response penyelesaian checkout kini mengembalikan public order response yang sama dengan public order read, sehingga guest checkout, guest cart checkout, authenticated customer checkout confirm, dan hosted public order page mengekspos field order yang konsisten. Route pengecekan discount code publik kini memakai request `POST` dengan body konteks checkout JSON dan mengembalikan typed ineligible response untuk kode yang tidak ditemukan. Storefront API v3 payment-method discovery dan checkout creation kini menolak `no_payment`, sehingga submission API langsung tidak dapat membuat order storefront tanpa pembayaran.
+
+  OpenAPI juga kini mencakup kontrak customer account, customer cart, customer order, dan customer course yang bertipe. Public order response tetap mencakup buyer-facing order link, total, line item, shipping detail, dan field pembayaran seperti `public_order_url`, `payment_url`, dan `pg_payment_info`. Response order customer account kini memakai object order yang lebih kecil dan aman untuk buyer. Object ini mempertahankan total yang terlihat oleh buyer seperti `gross_revenue` serta field kompatibilitas minimal untuk portal customer Scalev, termasuk nama store, logo, unique ID, dan display flag. Object order customer account tidak menyertakan `financial_entity`, `warehouse`, `origin_address`, analytics bisnis/operator, net revenue, platform fee, provider, CRM, affiliate, dan data internal mentah.
 </Update>
 
-<Update label="Mei 2026" description="Klarifikasi response pembayaran order" tags={["API"]}>
-  Response pembayaran order kini mendokumentasikan `pg_payment_info` per tipe
-  provider. Metode manual seperti `bank_transfer` dan `cod` mengembalikan object
-  kosong; virtual account mengekspos referensi provider dan detail akun; QRIS
-  mengekspos data QR atau payload gambar QR; e-wallet, kartu, dan invoice dapat
-  mengekspos action provider, sementara browser sebaiknya memakai `payment_url`
-  untuk redirect hosted. `sub_payment_method` didokumentasikan sebagai channel
-  provider, misalnya kode bank virtual account, saat tersedia.
+<Update label="Mei 2026" tags={["API"]} description="Response endpoint customer bertipe">
+  Endpoint storefront untuk customer terautentikasi kini mengembalikan response bertipe, bukan generic success envelope. `GET`, `PATCH`, dan `PATCH /password` pada `/customers/me/profile` mengembalikan `customer`, `store`, dan `is_generated_password_reset`. Route cart (`GET /customers/me/cart`, tambah, update, dan hapus item) mengembalikan customer cart; tambah item cart kini mengembalikan `201`. Route order memakai buyer-safe order response untuk list dan detail, dengan cursor pagination pada endpoint list. Route course mengembalikan response access, section, content, dan progress update yang bertipe.
 </Update>
 
-<Update label="Mei 2026" description="Rate limiting Storefront" tags={["API"]}>
-  Request Storefront API yang memakai `X-Scalev-Storefront-Api-Key` atau
-  `X-Scalev-Guest-Token` kini diberi rate limit sebagai request client/browser
-  langsung. Request bisnis yang terautentikasi mesin tetap diberi rate limit per
-  API key atau instalasi OAuth. Metadata rate limit dikembalikan dalam header
-  `X-Ratelimit-*`.
+<Update label="Mei 2026" tags={["API","Docs"]} description="Kontrak checkout dan pembayaran Storefront API">
+  Storefront API kini mendokumentasikan persiapan guest checkout yang aman untuk browser, termasuk shipping options dan checkout summary. Public guest checkout dapat memakai guest cart token atau item variant langsung, mengembalikan field shipping option yang sama dengan hosted storefront, dan mengekspos summary seperti `product_price`, `shipping_cost`, `other_income`, `other_income_name`, dan `gross_revenue`. OpenAPI juga kini mencakup named schema untuk endpoint checkout customer serta route storefront normal-shopping yang tersisa, seperti categories, variant pricing, cart merge, public order read/update, dan discount-code checks. Dokumentasi Storefront API kini mencakup panduan checkout dan rendering pembayaran berdasarkan perilaku hosted success page.
 </Update>
 
-<Update label="Mei 2026" description="Storefront API langsung" tags={["API", "Dashboard", "Docs"]}>
-  Setup Storefront API kini didokumentasikan terpisah dari konfigurasi hosted
-  Storefront. Frontend storefront dapat memakai panggilan Storefront API langsung
-  dengan CORS, identitas cart `X-Scalev-Guest-Token`, endpoint payment-method
-  publik dan guided location lookup, typed guest checkout, public order read yang
-  diminimalkan, pembuatan pembayaran publik yang idempotent, dan store
-  `unique_id` publik di seluruh route setup dan runtime. Response login customer
-  kini mendokumentasikan hasil direct-token dan OTP-challenge, link reset password
-  memakai `/reset-password?token=<reset-token>` pada origin storefront
-  yang tervalidasi, request Storefront API didokumentasikan sebagai direct-client
-  rate limited, dan response pembayaran mendokumentasikan kapan memakai
-  `payment_url` dibanding `pg_payment_info` khusus provider.
+<Update label="Mei 2026" tags={["API"]} description="Response token autentikasi customer">
+  Endpoint auth customer storefront kini mengembalikan response token JWT yang bertipe. `POST /public/auth/login` mengembalikan access dan refresh token customer saat store dapat menyelesaikan login langsung, atau `{ "message": "..." }` saat OTP sudah dikirim dan frontend perlu menampilkan langkah input OTP. `POST /public/auth/otp/verify` dan `POST /public/auth/jwt/refresh` juga mengembalikan `token_type`, `expires_in`, dan `refresh_expires_in`. Refresh token dirotasi pada setiap refresh, bersifat sekali pakai, dan mencabut token family saat refresh token yang sudah dirotasi digunakan ulang. Kirim access token sebagai `Authorization: Bearer <token>` ke route `/customers/me/*`. Link reset password kini memakai `/reset-password?token=<reset-token>` pada browser `Origin` saat origin tersebut cocok dengan allowed origin Storefront API, dan fallback ke custom domain hosted storefront jika tidak cocok. URL reset member area hosted reguler tidak berubah.
 </Update>
 
-<Update label="Mei 2026" description="Pemilihan field pencarian order" tags={["API"]}>
-  Order list search kini menerima `search_field`, sehingga client dapat memilih
-  satu kolom order yang dicari per request. Jika tidak diisi, `search_field`
-  default ke `order_id`.
+<Update label="Mei 2026" tags={["API"]} description="Perbaikan schema katalog Storefront">
+  Schema OpenAPI publik untuk route count katalog kini mendokumentasikan `{ "total": number }`, dan `GET /public/products/{slug}` kini mendokumentasikan storefront product detail response, bukan public order schema.
 </Update>
 
-<Update label="April 2026" description="Dokumentasi developer" tags={["Docs"]}>
-  Menerbitkan halaman dokumentasi developer Scalev pertama untuk autentikasi API,
-  otorisasi OAuth, webhook, dan pembuatan order.
+<Update label="Mei 2026" tags={["API"]} description="Klarifikasi response pembayaran order">
+  Response pembayaran order kini mendokumentasikan `pg_payment_info` per tipe provider. Metode manual seperti `bank_transfer` dan `cod` mengembalikan object kosong; virtual account mengekspos referensi provider dan detail akun; QRIS mengekspos data QR atau payload gambar QR; e-wallet, kartu, dan invoice dapat mengekspos action provider, sementara browser sebaiknya memakai `payment_url` untuk redirect hosted. `sub_payment_method` didokumentasikan sebagai channel provider, misalnya kode bank virtual account, saat tersedia.
+</Update>
+
+<Update label="Mei 2026" tags={["API"]} description="Rate limiting Storefront">
+  Request Storefront API yang memakai `X-Scalev-Storefront-Api-Key` atau `X-Scalev-Guest-Token` kini diberi rate limit sebagai request client/browser langsung. Request bisnis yang terautentikasi mesin tetap diberi rate limit per API key atau instalasi OAuth. Metadata rate limit dikembalikan dalam header `X-Ratelimit-*`.
+</Update>
+
+<Update label="Mei 2026" tags={["API","Dashboard","Docs"]} description="Storefront API langsung">
+  Setup Storefront API kini didokumentasikan terpisah dari konfigurasi hosted Storefront. Frontend storefront dapat memakai panggilan Storefront API langsung dengan CORS, identitas cart `X-Scalev-Guest-Token`, endpoint payment-method publik dan guided location lookup, typed guest checkout, public order read yang diminimalkan, pembuatan pembayaran publik yang idempotent, dan store `unique_id` publik di seluruh route setup dan runtime. Response login customer kini mendokumentasikan hasil direct-token dan OTP-challenge, link reset password memakai `/reset-password?token=<reset-token>` pada origin storefront yang tervalidasi, request Storefront API didokumentasikan sebagai direct-client rate limited, dan response pembayaran mendokumentasikan kapan memakai `payment_url` dibanding `pg_payment_info` khusus provider.
+</Update>
+
+<Update label="Mei 2026" tags={["API"]} description="Pemilihan field pencarian order">
+  Order list search kini menerima `search_field`, sehingga client dapat memilih satu kolom order yang dicari per request. Jika tidak diisi, `search_field` default ke `order_id`.
+</Update>
+
+<Update label="April 2026" tags={["Docs"]} description="Dokumentasi developer">
+  Menerbitkan halaman dokumentasi developer Scalev pertama untuk autentikasi API, otorisasi OAuth, webhook, dan pembuatan order.
 </Update>
