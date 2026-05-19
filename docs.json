@@ -184,7 +184,15 @@
                     "pages": [
                       "id/setting-meta-ads-user",
                       "id/custom-audience-meta",
-                      "id/tambah-custom-audience"
+                      "id/tambah-custom-audience",
+                      "id/tambah-pixel",
+                      "id/triggerpurchase",
+                      "id/conversionapi",
+                      "id/cek-notifikasi-event",
+                      "id/testing-events-manager-id",
+                      "id/events-manager-testing",
+                      "id/funnel-toko-online",
+                      "id/verifikasimeta"
                     ]
                   },
                   "id/snackvideouser",
@@ -194,25 +202,17 @@
                   "id/autofill",
                   "id/real-purchase-tidak-muncul",
                   "id/manual-trigger-purchase",
-                  "id/triggerpurchase",
                   "id/pastikantiktok",
                   "id/membuat-pixel-eventapi-snackvideo",
                   "id/funnel-analysis",
                   "id/setting-pixel-tiktok",
-                  "id/tambah-pixel",
                   "id/tambah-pixel-tiktok",
-                  "id/conversionapi",
-                  "id/cek-notifikasi-event",
                   "id/speed-boost",
                   "id/google-ads-gtm",
                   "id/best-practices-meta",
                   "id/setting-pixel-snackvideo",
-                  "id/testing-events-manager-id",
                   "id/test-event-snackvideo",
                   "id/test-event-tiktok",
-                  "id/events-manager-testing",
-                  "id/verifikasimeta",
-                  "id/funnel-toko-online",
                   {
                     "group": "TikTok Pixel",
                     "pages": []

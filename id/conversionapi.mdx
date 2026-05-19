@@ -2,6 +2,7 @@
 title: "Tutorial Cara Mengambil Conversion API Access Token (Supaya Bisa Diintegrasikan dengan Account Scalev Anda)"
 description: "Anda mungkin menerima peringatan dari Meta di Events Manager terkait error seperti click ID, clientipaddress, fbp, fbc, dll."
 ---
+
 Anda mungkin menerima peringatan dari Meta di Events Manager terkait error seperti click ID, client\_ip\_address, fbp, fbc, dll.
 
 Nah, Anda tidak perlu khawatir karena bisa jadi itu disebabkan oleh settingan pixel Anda di masa lalu.
@@ -13,22 +14,12 @@ Pertama, Anda harus membuat pixel Dataset dulu.
 Caranya:
 
 1. Klik **Settings**
+2. Klik menu **Datasets**
+3. Klik tombol **Add** 
 
-3. Klik menu **Datasets**
-
-5. Klik tombol **Add** 
-
-<figure>
-
-![Buat conversion api 1](https://tutorial.scalev.id/wp-content/uploads/2024/03/buat-conversion-api-1-1024x640.png)
-
-<figcaption>
-
-Buat dataset baru
-
-</figcaption>
-
-</figure>
+<Frame>
+  ![Buat Conversion Api 1](/images/buat-conversion-api-1.png)
+</Frame>
 
 Dikatakan Dataset karena sekarang datangnya data event tidak hanya dari pixel saja, melainkan dari berbagai sumber, bisa dari: pixel, Conversion API, App, atau Offline Conversion.
 
@@ -38,85 +29,39 @@ Lanjut.
 
 Klik **Create new dataset**
 
-<figure>
-
-![Buat conversion api 2](https://tutorial.scalev.id/wp-content/uploads/2024/03/buat-conversion-api-2-1024x640.png)
-
-<figcaption>
-
-Buat dataset baru
-
-</figcaption>
-
-</figure>
+<Frame>
+  ![Buat Conversion Api 2](/images/buat-conversion-api-2.png)
+</Frame>
 
 Di popup berikutnya:
 
-<figure>
+<Frame>
+  ![Buat Conversion Api 3](/images/buat-conversion-api-3.png)
+</Frame>
 
-![Buat conversion api 3](https://tutorial.scalev.id/wp-content/uploads/2024/03/buat-conversion-api-3-1024x640.png)
-
-<figcaption>
-
-Lengkapi rincian dataset baru
-
-</figcaption>
-
-</figure>
-
-1. **Name** \- beri nama untuk dataset baru Anda
-
-3. Matikan centang jika field kotak kecil ini tercentang
-
-5. Klik tombol **Create**
+1. **Name** - beri nama untuk dataset baru Anda
+2. Matikan centang jika field kotak kecil ini tercentang
+3. Klik tombol **Create**
 
 Setelah berhasil dibuat, pergi ke **Events Manager.**
 
 1. Klik nama dataset baru Anda
+2. Klik ikon titik tiga
+3. Klik **Open in Events Manage**
 
-3. Klik ikon titik tiga
+<Frame>
+  ![Buat Conversion Api 4](/images/buat-conversion-api-4.png)
 
-5. Klik **Open in Events Manager**
+  Di halaman Events Manager klik tab **Settings** lalu scroll ke bawah untuk mencari bagian **Conversions API**.
 
-<figure>
+  ![Buat Conversion Api 6a](/images/buat-conversion-api-5.png)
+</Frame>
 
-![Buat conversion api 4](https://tutorial.scalev.id/wp-content/uploads/2024/03/buat-conversion-api-4-1024x640.png)
+Di bagian **Conversions API** \> **Setup direct integration** \> **Set up with Dataset Quality API** \> klik link **Generate access token**
 
-<figcaption>
-
-Buka halaman Events Manager di dataset baru
-
-</figcaption>
-
-</figure>
-
-Di halaman Events Manager klik tab **Settings** lalu scroll ke bawah untuk mencari bagian **Conversions API**.
-
-<figure>
-
-![Buat conversion api 5](https://tutorial.scalev.id/wp-content/uploads/2024/03/buat-conversion-api-5-1024x640.png)
-
-<figcaption>
-
-Scroll ke bawah di tab Settings
-
-</figcaption>
-
-</figure>
-
-Di bagian **Conversions API** > **Setup direct integration** > **Set up with Dataset Quality API** > klik link **Generate access token**
-
-<figure>
-
-![Buat conversion api 6a](https://tutorial.scalev.id/wp-content/uploads/2024/03/buat-conversion-api-6a.png)
-
-<figcaption>
-
-Pilih Dataset Quality API
-
-</figcaption>
-
-</figure>
+<Frame>
+  ![Buat Conversion Api 6b](/images/buat-conversion-api-6a.png)
+</Frame>
 
 **Dataset Quality API** adalah update terbaru dari Meta yang katanya berfungsi untuk meningkatkan kinerja iklan menjadi lebih baik dibandingkan dengan yang tanpa ini.
 
@@ -126,17 +71,9 @@ Jadi kami sarankan untuk menggunakan versi **non-Quality API**.
 
 **NOTE:** Sekali mengaktifkan Dataset Quality API pada dataset Anda maka Anda **tidak dapat mengembalikannya ke versi lama**. Pertimbangkan terlebih dahulu sebelum membuat keputusan.
 
-<figure>
-
-![Buat conversion api 6b](https://tutorial.scalev.id/wp-content/uploads/2024/03/buat-conversion-api-6b.png)
-
-<figcaption>
-
-Pilih dataset dalam daftar
-
-</figcaption>
-
-</figure>
+<Frame>
+  ![Buat Conversion Api 6c](/images/buat-conversion-api-6b.png)
+</Frame>
 
 Pastikan Anda memilih dataset yang benar-benar ingin memakai fitur Dataset Quality API ini.
 
@@ -144,31 +81,15 @@ Pilihan yang centangnya sudah berwarna abu artinya sudah aktif dengan fitur ini.
 
 Centang kosong pada dataset yang tidak diinginkan.
 
-<figure>
-
-![Buat conversion api 6c](https://tutorial.scalev.id/wp-content/uploads/2024/03/buat-conversion-api-6c.png)
-
-<figcaption>
-
-Kode token access untuk CAPI berhasil dibuat.
-
-</figcaption>
-
-</figure>
+<Frame>
+  ![15 752x1024](/images/buat-conversion-api-6c.png)
+</Frame>
 
 Token inilah yang harus Anda copy lalu masukkan ke pixel Anda di pengaturan Analitik di Scalev.
 
-<figure>
-
-![](https://tutorial.scalev.id/wp-content/uploads/2024/03/15-752x1024.png)
-
-<figcaption>
-
-Masukkan kode token di Conversion API Access Token
-
-</figcaption>
-
-</figure>
+<Frame>
+  ![Business Settings Role 2048x1499](/images/15-752x1024.png)
+</Frame>
 
 Ulangi **Generate access token** ini setiap 90 hari supaya kinerja dataset Anda terus berjalan dengan lancar.
 
@@ -178,41 +99,25 @@ Sebelum user dapat menggenerate access token, maka pastikan terlebih dulu role u
 
 Cara memastikannya seperti ini:
 
-1\. Masuk ke BM Meta Anda dan klik ikon gear di sebelah kiri bawah
+1. Masuk ke BM Meta Anda dan klik ikon gear di sebelah kiri bawah
 
-2\. Lalu klik menu People, lalu muncul daftar orang yang ada di BM Anda
+2. Lalu klik menu People, lalu muncul daftar orang yang ada di BM Anda
 
-3\. Klik titik tiga di sebelah kanan nama orang yang ingin dipastikan hak aksesnya
+3. Klik titik tiga di sebelah kanan nama orang yang ingin dipastikan hak aksesnya
 
-<figure>
+<Frame>
+  ![Business Settings Role 2048x1499](/images/business-settings-role-2048x1499.jpeg)
+</Frame>
 
-![Business Settings Role](https://tutorial.scalev.id/wp-content/uploads/2024/03/business-settings-role-1024x749.jpeg)
+4. Akan muncul dialog seperti screenshot ini:
 
-<figcaption>
+<Frame>
+  ![Business Settings Role 2](/images/business-settings-role-2.png)
+</Frame>
 
-Pilih orang yang ingin diperiksa hak aksesnya
+5. Pastikan toggle **Manage** untuk "Apps and integrations" sudah menyala, kalau belum aktif maka nyalakan dulu.
 
-</figcaption>
-
-</figure>
-
-4\. Akan muncul dialog seperti screenshot ini:
-
-<figure>
-
-![Business Settings Role 2](https://tutorial.scalev.id/wp-content/uploads/2024/03/business-settings-role-2-1024x839.png)
-
-<figcaption>
-
-Berikan hak akses Apps and Integration ke orang pilihan Anda
-
-</figcaption>
-
-</figure>
-
-5\. Pastikan toggle **Manage** untuk "Apps and integrations" sudah menyala, kalau belum aktif maka nyalakan dulu.
-
-6\. Klik tombol Save
+6. Klik tombol Save
 
 Setelah itu Anda atau anggota di BM Anda dapat menggenerate access token pada pixel yang akan digunakan beriklan.
 
@@ -224,35 +129,19 @@ Supaya Meta dapat mencocokkan parameter yang dikirimkan melalui CAPI dari websit
 
 Jika posisi sebelumnya **Off** (nonaktif) seperti ini:
 
-<figure>
-
-![Automatic website matching 1](https://tutorial.scalev.id/wp-content/uploads/2024/03/automatic-website-matching-1-877x1024.png)
-
-<figcaption>
-
-Turn on automatic advanced matching
-
-</figcaption>
-
-</figure>
+<Frame>
+  ![Automatic Website Matching 1](/images/automatic-website-matching-1.png)
+</Frame>
 
 Maka klik toggle Off tersebut untuk mengaktifkannya **On** (aktif).
 
-<figure>
-
-![Automatic website matching 2](https://tutorial.scalev.id/wp-content/uploads/2024/03/automatic-website-matching-2-1024x927.png)
-
-<figcaption>
-
-Fitur Automatic Website Matching aktif
-
-</figcaption>
-
-</figure>
+<Frame>
+  ![Automatic Website Matching 2](/images/automatic-website-matching-2.png)
+</Frame>
 
 ## Nonaktifkan fitur tracking otomatis
 
-Masih di halaman tab **Settings** dataset baru Anda, scroll ke bawah dan cari bagian **Events Setup** > **Track events automatically without code**.
+Masih di halaman tab **Settings** dataset baru Anda, scroll ke bawah dan cari bagian **Events Setup** \> **Track events automatically without code**.
 
 Pastikan fitur ini **Off** (nonaktif) ini untuk mencegah event random yang mungkin tidak akan diperlukan untuk funnel bisnis Anda.
 
