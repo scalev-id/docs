@@ -25,6 +25,12 @@ Required scopes:
 | Create a page | `page:create` |
 | Update metadata, publish state, tags, and displays | `page:update` |
 | Delete a page | `page:delete` |
+| List stores | `store:list` |
+| List payment methods, sales people, and product knowledge | `store:read` |
+| List store products and variants | `product:list`, `product:read` |
+| List store bundles and bundle price options | `bundle:list`, `bundle:read` |
+| List payment accounts | `payment_account:list` |
+| Manage analytics pixels and GTM containers | `fb_pixel:*`, `tiktok_pixel:*`, `kwai_pixel:*`, `gtm:*` |
 
 ## Endpoints
 
@@ -44,10 +50,56 @@ POST   /v3/pages/{page_id}/page-displays
 GET    /v3/pages/{page_id}/page-displays/{display_id}
 DELETE /v3/pages/{page_id}/page-displays/{display_id}
 
+GET    /v3/stores/simplified
+GET    /v3/stores/{store_id}/products
+GET    /v3/stores/{store_id}/variants/{variant_id}
+GET    /v3/stores/{store_id}/bundles
+GET    /v3/stores/{store_id}/bundles/{bundle_id}
+GET    /v3/stores/{store_id}/bundle-price-options/{id}
+GET    /v3/stores/{store_id}/sales-people
+GET    /v3/stores/{store_id}/payment-methods
+GET    /v3/stores/{store_id}/payment-accounts
 GET    /v3/stores/{store_id}/pages
+
+GET    /v3/fb-standard-events
+GET    /v3/tiktok-standard-events
+GET    /v3/kwai-standard-events
+GET    /v3/fb-pixels
+POST   /v3/fb-pixels
+GET    /v3/fb-pixels/{id}
+PATCH  /v3/fb-pixels/{id}
+DELETE /v3/fb-pixels/{id}
+GET    /v3/tiktok-pixels
+POST   /v3/tiktok-pixels
+GET    /v3/tiktok-pixels/{id}
+PATCH  /v3/tiktok-pixels/{id}
+DELETE /v3/tiktok-pixels/{id}
+GET    /v3/kwai-pixels
+POST   /v3/kwai-pixels
+GET    /v3/kwai-pixels/{id}
+PATCH  /v3/kwai-pixels/{id}
+DELETE /v3/kwai-pixels/{id}
+GET    /v3/gtm
+POST   /v3/gtm
+GET    /v3/gtm/{id}
+PATCH  /v3/gtm/{id}
+DELETE /v3/gtm/{id}
 ```
 
 List endpoints use cursor pagination. If `has_next` is `true`, send `next_cursor` on the next request. If `has_previous` is `true`, send `previous_cursor` to move backward.
+
+## Complete setup flow
+
+1. List stores with `GET /v3/stores/simplified`. Use the returned numeric store `id` as `{store_id}` for authenticated business-scoped setup endpoints.
+2. List sellable items for the store with `GET /v3/stores/{store_id}/products` and `GET /v3/stores/{store_id}/bundles`. Use product `variants[].id` for `form_display.variant_ids`, or bundle `bundle_price_options[].id` for `form_display.bundle_price_option_ids`.
+3. Fetch one item if you need details with `GET /v3/stores/{store_id}/variants/{variant_id}` or `GET /v3/stores/{store_id}/bundle-price-options/{id}`.
+4. List existing analytics records with `GET /v3/fb-pixels`, `GET /v3/tiktok-pixels`, `GET /v3/kwai-pixels`, and `GET /v3/gtm`. Create missing records with the matching `POST` endpoint.
+5. List valid event names with `GET /v3/fb-standard-events`, `GET /v3/tiktok-standard-events`, and `GET /v3/kwai-standard-events?type=client|server`.
+6. If `after_submit_event` is `direct_to_whatsapp` with fixed assignment, list handlers with `GET /v3/stores/{store_id}/sales-people` and send the selected `id` as `store_sales_person_id`.
+7. Create or update the page display. Send Scalev record IDs in `*_pixel_ids`, `gtm_id`, `variant_ids`, `bundle_price_option_ids`, and `store_sales_person_id`.
+8. Publish by creating the page with `is_published: true`, or by patching `current_page_display_id` on `PATCH /v3/pages/{page_id}`.
+
+Custom domain setup and business-user assignment management are not part of this public v3 Landing Pages release.
 
 ## HTML Mode display payload
 
@@ -74,6 +126,7 @@ Include the analytics event fields even when they are empty:
   "tiktok_pixel_ids": [],
   "kwai_client_pixel_ids": [],
   "kwai_server_pixel_ids": [],
+  "gtm_id": null,
   "onload_fb_events": [],
   "onload_tiktok_events": [],
   "onload_kwai_client_events": [],
@@ -89,7 +142,7 @@ Include the analytics event fields even when they are empty:
 
 ## Analytics pixels and events
 
-Attach existing analytics pixels to a page display by sending the Scalev pixel record IDs on the display payload. These are the numeric Scalev record IDs, not the provider pixel code such as a Meta Pixel ID.
+Attach existing analytics pixels to a page display by sending the Scalev pixel record IDs on the display payload. These are the numeric Scalev record IDs from `GET /v3/fb-pixels`, `GET /v3/tiktok-pixels`, and `GET /v3/kwai-pixels`, not the provider pixel code such as a Meta Pixel ID.
 
 | Field | Meaning |
 | --- | --- |
@@ -97,6 +150,8 @@ Attach existing analytics pixels to a page display by sending the Scalev pixel r
 | `tiktok_pixel_ids` | Scalev record IDs for TikTok pixels |
 | `kwai_client_pixel_ids` | Scalev record IDs for SnackVideo browser pixels |
 | `kwai_server_pixel_ids` | Scalev record IDs for SnackVideo Events API pixels |
+
+Use `POST /v3/fb-pixels`, `POST /v3/tiktok-pixels`, `POST /v3/kwai-pixels`, and `POST /v3/gtm` when the business does not already have the record. Use `GET /v3/gtm` to find the `gtm_id` to send on the display payload.
 
 Only pixels owned by the same business are attached. IDs from another business or missing pixel records are ignored and will not appear in the response. Send an empty array when the new display should have no pixels for that provider.
 
@@ -108,6 +163,7 @@ Configure automatic page-load events on the same page display:
   "tiktok_pixel_ids": [202],
   "kwai_client_pixel_ids": [303],
   "kwai_server_pixel_ids": [404],
+  "gtm_id": 505,
   "onload_fb_events": ["PageView", "ViewContent"],
   "onload_tiktok_events": ["ViewContent"],
   "onload_kwai_client_events": ["contentView"],
@@ -167,6 +223,7 @@ curl -X POST https://api.scalev.com/v3/pages \
       "tiktok_pixel_ids": [],
       "kwai_client_pixel_ids": [],
       "kwai_server_pixel_ids": [],
+      "gtm_id": null,
       "onload_fb_events": [],
       "onload_tiktok_events": [],
       "onload_kwai_client_events": [],
@@ -206,6 +263,7 @@ After a page has a saved `store_id`, every new display for that page must keep t
     "tiktok_pixel_ids": [202],
     "kwai_client_pixel_ids": [303],
     "kwai_server_pixel_ids": [404],
+    "gtm_id": 505,
     "onload_fb_events": [],
     "onload_tiktok_events": [],
     "onload_kwai_client_events": [],
@@ -296,6 +354,7 @@ curl -X POST https://api.scalev.com/v3/pages/123/page-displays \
     "tiktok_pixel_ids": [],
     "kwai_client_pixel_ids": [],
     "kwai_server_pixel_ids": [],
+    "gtm_id": null,
     "onload_fb_events": [],
     "onload_tiktok_events": [],
     "onload_kwai_client_events": [],

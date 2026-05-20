@@ -25,6 +25,12 @@ Scope yang dibutuhkan:
 | Buat page | `page:create` |
 | Update metadata, status publish, tag, dan display | `page:update` |
 | Hapus page | `page:delete` |
+| List store | `store:list` |
+| List payment method, sales person, dan product knowledge | `store:read` |
+| List produk store dan variant | `product:list`, `product:read` |
+| List bundle store dan bundle price option | `bundle:list`, `bundle:read` |
+| List payment account | `payment_account:list` |
+| Kelola pixel analytics dan container GTM | `fb_pixel:*`, `tiktok_pixel:*`, `kwai_pixel:*`, `gtm:*` |
 
 ## Endpoint
 
@@ -44,10 +50,56 @@ POST   /v3/pages/{page_id}/page-displays
 GET    /v3/pages/{page_id}/page-displays/{display_id}
 DELETE /v3/pages/{page_id}/page-displays/{display_id}
 
+GET    /v3/stores/simplified
+GET    /v3/stores/{store_id}/products
+GET    /v3/stores/{store_id}/variants/{variant_id}
+GET    /v3/stores/{store_id}/bundles
+GET    /v3/stores/{store_id}/bundles/{bundle_id}
+GET    /v3/stores/{store_id}/bundle-price-options/{id}
+GET    /v3/stores/{store_id}/sales-people
+GET    /v3/stores/{store_id}/payment-methods
+GET    /v3/stores/{store_id}/payment-accounts
 GET    /v3/stores/{store_id}/pages
+
+GET    /v3/fb-standard-events
+GET    /v3/tiktok-standard-events
+GET    /v3/kwai-standard-events
+GET    /v3/fb-pixels
+POST   /v3/fb-pixels
+GET    /v3/fb-pixels/{id}
+PATCH  /v3/fb-pixels/{id}
+DELETE /v3/fb-pixels/{id}
+GET    /v3/tiktok-pixels
+POST   /v3/tiktok-pixels
+GET    /v3/tiktok-pixels/{id}
+PATCH  /v3/tiktok-pixels/{id}
+DELETE /v3/tiktok-pixels/{id}
+GET    /v3/kwai-pixels
+POST   /v3/kwai-pixels
+GET    /v3/kwai-pixels/{id}
+PATCH  /v3/kwai-pixels/{id}
+DELETE /v3/kwai-pixels/{id}
+GET    /v3/gtm
+POST   /v3/gtm
+GET    /v3/gtm/{id}
+PATCH  /v3/gtm/{id}
+DELETE /v3/gtm/{id}
 ```
 
 Endpoint list memakai cursor pagination. Jika `has_next` bernilai `true`, kirim `next_cursor` pada request berikutnya. Jika `has_previous` bernilai `true`, kirim `previous_cursor` untuk mundur ke halaman sebelumnya.
+
+## Alur setup lengkap
+
+1. List store dengan `GET /v3/stores/simplified`. Gunakan `id` store numerik sebagai `{store_id}` untuk endpoint setup business-scoped yang terautentikasi.
+2. List item yang dijual di store dengan `GET /v3/stores/{store_id}/products` dan `GET /v3/stores/{store_id}/bundles`. Gunakan `variants[].id` produk untuk `form_display.variant_ids`, atau `bundle_price_options[].id` bundle untuk `form_display.bundle_price_option_ids`.
+3. Ambil detail satu item jika perlu dengan `GET /v3/stores/{store_id}/variants/{variant_id}` atau `GET /v3/stores/{store_id}/bundle-price-options/{id}`.
+4. List record analytics yang sudah ada dengan `GET /v3/fb-pixels`, `GET /v3/tiktok-pixels`, `GET /v3/kwai-pixels`, dan `GET /v3/gtm`. Buat record yang belum ada dengan endpoint `POST` yang sesuai.
+5. List nama event yang valid dengan `GET /v3/fb-standard-events`, `GET /v3/tiktok-standard-events`, dan `GET /v3/kwai-standard-events?type=client|server`.
+6. Jika `after_submit_event` adalah `direct_to_whatsapp` dengan assignment fixed, list handler dengan `GET /v3/stores/{store_id}/sales-people` lalu kirim `id` yang dipilih sebagai `store_sales_person_id`.
+7. Buat atau update page display. Kirim ID record Scalev di `*_pixel_ids`, `gtm_id`, `variant_ids`, `bundle_price_option_ids`, dan `store_sales_person_id`.
+8. Publish saat membuat page dengan `is_published: true`, atau patch `current_page_display_id` lewat `PATCH /v3/pages/{page_id}`.
+
+Setup custom domain dan manajemen assignment business user tidak termasuk release public v3 Landing Pages ini.
 
 ## Payload display HTML Mode
 
@@ -74,6 +126,7 @@ Sertakan field event analytics walaupun nilainya kosong:
   "tiktok_pixel_ids": [],
   "kwai_client_pixel_ids": [],
   "kwai_server_pixel_ids": [],
+  "gtm_id": null,
   "onload_fb_events": [],
   "onload_tiktok_events": [],
   "onload_kwai_client_events": [],
@@ -89,7 +142,7 @@ Sertakan field event analytics walaupun nilainya kosong:
 
 ## Pixel analytics dan event
 
-Pasang pixel analytics yang sudah ada ke page display dengan mengirim ID record pixel Scalev di payload display. Ini adalah ID record numerik di Scalev, bukan kode pixel dari provider seperti Meta Pixel ID.
+Pasang pixel analytics yang sudah ada ke page display dengan mengirim ID record pixel Scalev di payload display. Ini adalah ID record numerik dari `GET /v3/fb-pixels`, `GET /v3/tiktok-pixels`, dan `GET /v3/kwai-pixels`, bukan kode pixel dari provider seperti Meta Pixel ID.
 
 | Field | Makna |
 | --- | --- |
@@ -97,6 +150,8 @@ Pasang pixel analytics yang sudah ada ke page display dengan mengirim ID record 
 | `tiktok_pixel_ids` | ID record pixel TikTok dari pengaturan analytics Scalev |
 | `kwai_client_pixel_ids` | ID record pixel browser SnackVideo |
 | `kwai_server_pixel_ids` | ID record pixel SnackVideo Events API |
+
+Gunakan `POST /v3/fb-pixels`, `POST /v3/tiktok-pixels`, `POST /v3/kwai-pixels`, dan `POST /v3/gtm` jika bisnis belum punya record tersebut. Gunakan `GET /v3/gtm` untuk mencari `gtm_id` yang dikirim di payload display.
 
 Hanya pixel milik bisnis yang sama yang akan dipasang. ID dari bisnis lain atau record pixel yang tidak ditemukan tidak akan dipasang dan tidak akan muncul di response. Kirim array kosong jika display baru tidak perlu memakai pixel untuk provider tersebut.
 
@@ -108,6 +163,7 @@ Konfigurasi event otomatis saat halaman dibuka ada di page display yang sama:
   "tiktok_pixel_ids": [202],
   "kwai_client_pixel_ids": [303],
   "kwai_server_pixel_ids": [404],
+  "gtm_id": 505,
   "onload_fb_events": ["PageView", "ViewContent"],
   "onload_tiktok_events": ["ViewContent"],
   "onload_kwai_client_events": ["contentView"],
@@ -167,6 +223,7 @@ curl -X POST https://api.scalev.com/v3/pages \
       "tiktok_pixel_ids": [],
       "kwai_client_pixel_ids": [],
       "kwai_server_pixel_ids": [],
+      "gtm_id": null,
       "onload_fb_events": [],
       "onload_tiktok_events": [],
       "onload_kwai_client_events": [],
@@ -206,6 +263,7 @@ Setelah page memiliki `store_id` tersimpan, setiap display baru untuk page terse
     "tiktok_pixel_ids": [202],
     "kwai_client_pixel_ids": [303],
     "kwai_server_pixel_ids": [404],
+    "gtm_id": 505,
     "onload_fb_events": [],
     "onload_tiktok_events": [],
     "onload_kwai_client_events": [],
@@ -296,6 +354,7 @@ curl -X POST https://api.scalev.com/v3/pages/123/page-displays \
     "tiktok_pixel_ids": [],
     "kwai_client_pixel_ids": [],
     "kwai_server_pixel_ids": [],
+    "gtm_id": null,
     "onload_fb_events": [],
     "onload_tiktok_events": [],
     "onload_kwai_client_events": [],
