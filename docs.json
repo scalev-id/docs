@@ -328,6 +328,7 @@
               {
                 "group": "Landing Pages",
                 "pages": [
+                  "id/api-landing-pages",
                   "id/runtime-html-mode",
                   "id/aksi-setelah-order-html-mode"
                 ]
@@ -619,6 +620,7 @@
               {
                 "group": "Landing pages",
                 "pages": [
+                  "en/landing-pages-api",
                   "en/html-mode-runtime",
                   "en/html-mode-checkout-success-paths"
                 ]

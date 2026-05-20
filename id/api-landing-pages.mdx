@@ -1,0 +1,263 @@
+---
+title: "API Landing Pages"
+description: "Buat dan kelola landing page Scalev lewat API v3."
+---
+
+Gunakan Landing Pages API saat backend Anda perlu membuat, melihat, memperbarui, menerbitkan, atau menghapus landing page Scalev. Endpoint ini adalah endpoint bisnis terautentikasi. Jangan panggil endpoint ini dari JavaScript browser karena membutuhkan API key bisnis atau OAuth access token.
+
+Endpoint ini dapat mengembalikan halaman Builder dan HTML Mode. Panduan ini mendokumentasikan payload HTML Mode karena itu payload yang direkomendasikan untuk membuat kode halaman langsung lewat API. Payload request Builder sengaja tidak didokumentasikan dan akan tetap seperti itu.
+
+## Auth
+
+Kirim API key bisnis atau OAuth access token di header `Authorization`:
+
+```bash
+curl https://api.scalev.com/v3/pages \
+  -H "Authorization: Bearer $SCALEV_API_KEY"
+```
+
+Scope yang dibutuhkan:
+
+| Aksi | Scope |
+| --- | --- |
+| List page dan display | `page:list` |
+| Baca satu page atau display | `page:read` |
+| Buat page | `page:create` |
+| Update metadata, status publish, tag, dan display | `page:update` |
+| Hapus page | `page:delete` |
+
+## Endpoint
+
+```text
+GET    /v3/pages
+POST   /v3/pages
+GET    /v3/pages/simplified
+GET    /v3/pages/tags
+GET    /v3/pages/{page_id}
+PATCH  /v3/pages/{page_id}
+DELETE /v3/pages/{page_id}
+GET    /v3/pages/{page_id}/public
+POST   /v3/pages/{page_id}/update-tags
+
+GET    /v3/pages/{page_id}/page-displays
+POST   /v3/pages/{page_id}/page-displays
+GET    /v3/pages/{page_id}/page-displays/{display_id}
+DELETE /v3/pages/{page_id}/page-displays/{display_id}
+
+GET    /v3/stores/{store_id}/pages
+```
+
+Endpoint list memakai cursor pagination. Jika `has_next` bernilai `true`, kirim `next_cursor` pada request berikutnya. Jika `has_previous` bernilai `true`, kirim `previous_cursor` untuk mundur ke halaman sebelumnya.
+
+## Payload display HTML Mode
+
+HTML Mode memakai `render_mode: "html_mode"` dan field kode berikut:
+
+- `html_code`: HTML body-only
+- `css_code`: CSS
+- `js_code`: JavaScript browser
+- `csp_policy`: tambahan Content Security Policy opsional
+
+Jangan kirim field display khusus Builder seperti `schema_version`, `banner`, `header`, `general`, `sidebar`, atau `main` untuk HTML Mode. Scalev mengisi default yang sesuai secara internal. Response tetap bisa berisi field tersebut.
+
+Sertakan field event analytics walaupun nilainya kosong:
+
+```json
+{
+  "render_mode": "html_mode",
+  "html_code": "<main><h1>Launch offer</h1></main>",
+  "css_code": "main { padding: 32px; }",
+  "js_code": "",
+  "csp_policy": {},
+  "meta": { "lang": "id" },
+  "onload_fb_events": [],
+  "onload_tiktok_events": [],
+  "onload_kwai_client_events": [],
+  "onload_kwai_server_events": [],
+  "fb_events_onload_parameters": {},
+  "tiktok_events_onload_parameters": {},
+  "kwai_client_events_onload_parameters": {},
+  "kwai_server_events_onload_parameters": {}
+}
+```
+
+`html_code` tidak boleh berisi `<!doctype>`, `<html>`, `<head>`, `<body>`, metadata, tag favicon, atau pengaturan domain. Gunakan [runtime HTML Mode](/id/runtime-html-mode) untuk checkout, analytics, prefill, dan konteks halaman.
+
+## Membuat HTML Sales page
+
+Jangan kirim `form_display` untuk landing page HTML biasa tanpa checkout.
+
+```bash
+curl -X POST https://api.scalev.com/v3/pages \
+  -H "Authorization: Bearer $SCALEV_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "API HTML Sales Page",
+    "slug": "api-html-sales-page",
+    "is_published": true,
+    "page_display": {
+      "render_mode": "html_mode",
+      "html_code": "<main><h1>Launch offer</h1></main>",
+      "css_code": "main { padding: 32px; }",
+      "js_code": "",
+      "csp_policy": {},
+      "meta": { "lang": "id" },
+      "onload_fb_events": [],
+      "onload_tiktok_events": [],
+      "onload_kwai_client_events": [],
+      "onload_kwai_server_events": [],
+      "fb_events_onload_parameters": {},
+      "tiktok_events_onload_parameters": {},
+      "kwai_client_events_onload_parameters": {},
+      "kwai_server_events_onload_parameters": {}
+    }
+  }'
+```
+
+Response mengembalikan object page langsung, bukan di dalam envelope lama `data`.
+
+## Membuat HTML Checkout page
+
+Tambahkan `page_display.form_display` jika halaman akan membuat order. Checkout page membutuhkan:
+
+- `store_id`
+- minimal satu item di `variant_ids` atau satu item di `bundle_price_option_ids`
+
+Setelah page memiliki `store_id` tersimpan, setiap display baru untuk page tersebut harus memakai checkout store yang sama. Display dengan `form_display.store_id` berbeda, atau display tanpa konteks store, akan ditolak.
+
+```json
+{
+  "name": "API HTML Checkout Page",
+  "slug": "api-html-checkout-page",
+  "is_published": true,
+  "page_display": {
+    "render_mode": "html_mode",
+    "html_code": "<main><h1>Checkout offer</h1><button id=\"buy\">Buy now</button></main>",
+    "css_code": "",
+    "js_code": "",
+    "csp_policy": {},
+    "meta": { "lang": "id" },
+    "onload_fb_events": [],
+    "onload_tiktok_events": [],
+    "onload_kwai_client_events": [],
+    "onload_kwai_server_events": [],
+    "fb_events_onload_parameters": {},
+    "tiktok_events_onload_parameters": {},
+    "kwai_client_events_onload_parameters": {},
+    "kwai_server_events_onload_parameters": {},
+    "form_display": {
+      "store_id": 123,
+      "variant_ids": [456],
+      "bundle_price_option_ids": [],
+      "after_submit_event": "success_page"
+    }
+  }
+}
+```
+
+Untuk perilaku setelah order berhasil dibuat, gunakan nilai `after_submit_event` berikut:
+
+| Value | Field wajib |
+| --- | --- |
+| `success_page` | Tidak ada |
+| `direct_to_whatsapp` | `handler_assignment`; jika `handler_assignment` bernilai `fixed`, kirim juga `store_sales_person_id` |
+| `direct_to_custom_whatsapp` | `custom_phone` |
+| `other_page` | `other_page_id` |
+| `custom_url` | `custom_url` |
+| `is_sending_email_invoice` | Tidak ada |
+| `order_page` | Tidak ada |
+
+Baca [aksi setelah checkout HTML Mode](/id/aksi-setelah-order-html-mode) untuk perilaku runtime setiap path.
+
+## Update page
+
+`PATCH /v3/pages/{page_id}` memperbarui metadata page dan status publish.
+
+```json
+{
+  "name": "Updated page name",
+  "slug": "updated-page-slug"
+}
+```
+
+Untuk menerbitkan display tertentu:
+
+```json
+{
+  "is_published": true,
+  "current_page_display_id": 987
+}
+```
+
+Untuk unpublish:
+
+```json
+{
+  "is_published": false,
+  "current_page_display_id": null
+}
+```
+
+## Membuat dan menerbitkan display baru
+
+Untuk mengubah HTML, CSS, JavaScript, pixel, atau konteks checkout, buat page display baru:
+
+Jika page sudah memiliki store tersimpan, display baru harus menyertakan `form_display.store_id` yang sama; menghilangkan konteks store akan ditolak.
+
+```bash
+curl -X POST https://api.scalev.com/v3/pages/123/page-displays \
+  -H "Authorization: Bearer $SCALEV_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "render_mode": "html_mode",
+    "html_code": "<main><h1>New version</h1></main>",
+    "css_code": "",
+    "js_code": "",
+    "csp_policy": {},
+    "meta": { "lang": "id" },
+    "onload_fb_events": [],
+    "onload_tiktok_events": [],
+    "onload_kwai_client_events": [],
+    "onload_kwai_server_events": [],
+    "fb_events_onload_parameters": {},
+    "tiktok_events_onload_parameters": {},
+    "kwai_client_events_onload_parameters": {},
+    "kwai_server_events_onload_parameters": {}
+  }'
+```
+
+Response berisi `id` display baru. Terbitkan dengan:
+
+```bash
+curl -X PATCH https://api.scalev.com/v3/pages/123 \
+  -H "Authorization: Bearer $SCALEV_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "is_published": true,
+    "current_page_display_id": 987
+  }'
+```
+
+## Tag dan delete
+
+Ganti semua tag dengan:
+
+```json
+{
+  "tags": ["Promo", "Checkout"]
+}
+```
+
+Panggil:
+
+```text
+POST /v3/pages/{page_id}/update-tags
+```
+
+Hapus page dengan:
+
+```text
+DELETE /v3/pages/{page_id}
+```
+
+Response delete yang berhasil mengembalikan `204 No Content`.

@@ -1,0 +1,263 @@
+---
+title: "Landing Pages API"
+description: "Create and manage Scalev landing pages through API v3."
+---
+
+Use the Landing Pages API when your backend needs to create, list, update, publish, or delete Scalev landing pages. These are authenticated business endpoints. Do not call them from browser JavaScript because they require a business API key or OAuth access token.
+
+The endpoints can return Builder and HTML Mode pages. This guide documents the HTML Mode payload because it is the recommended API payload for creating page code directly. Builder request payloads are intentionally not documented and will remain that way.
+
+## Auth
+
+Send a business API key or OAuth access token in the `Authorization` header:
+
+```bash
+curl https://api.scalev.com/v3/pages \
+  -H "Authorization: Bearer $SCALEV_API_KEY"
+```
+
+Required scopes:
+
+| Action | Scope |
+| --- | --- |
+| List pages and displays | `page:list` |
+| Read one page or display | `page:read` |
+| Create a page | `page:create` |
+| Update metadata, publish state, tags, and displays | `page:update` |
+| Delete a page | `page:delete` |
+
+## Endpoints
+
+```text
+GET    /v3/pages
+POST   /v3/pages
+GET    /v3/pages/simplified
+GET    /v3/pages/tags
+GET    /v3/pages/{page_id}
+PATCH  /v3/pages/{page_id}
+DELETE /v3/pages/{page_id}
+GET    /v3/pages/{page_id}/public
+POST   /v3/pages/{page_id}/update-tags
+
+GET    /v3/pages/{page_id}/page-displays
+POST   /v3/pages/{page_id}/page-displays
+GET    /v3/pages/{page_id}/page-displays/{display_id}
+DELETE /v3/pages/{page_id}/page-displays/{display_id}
+
+GET    /v3/stores/{store_id}/pages
+```
+
+List endpoints use cursor pagination. If `has_next` is `true`, send `next_cursor` on the next request. If `has_previous` is `true`, send `previous_cursor` to move backward.
+
+## HTML Mode display payload
+
+HTML Mode uses `render_mode: "html_mode"` and these code fields:
+
+- `html_code`: body-only HTML
+- `css_code`: CSS
+- `js_code`: browser JavaScript
+- `csp_policy`: optional Content Security Policy additions
+
+Do not send Builder-only display fields such as `schema_version`, `banner`, `header`, `general`, `sidebar`, or `main` for HTML Mode. Scalev fills acceptable defaults internally. Responses can still include those fields.
+
+Include the analytics event fields even when they are empty:
+
+```json
+{
+  "render_mode": "html_mode",
+  "html_code": "<main><h1>Launch offer</h1></main>",
+  "css_code": "main { padding: 32px; }",
+  "js_code": "",
+  "csp_policy": {},
+  "meta": { "lang": "id" },
+  "onload_fb_events": [],
+  "onload_tiktok_events": [],
+  "onload_kwai_client_events": [],
+  "onload_kwai_server_events": [],
+  "fb_events_onload_parameters": {},
+  "tiktok_events_onload_parameters": {},
+  "kwai_client_events_onload_parameters": {},
+  "kwai_server_events_onload_parameters": {}
+}
+```
+
+`html_code` must not include `<!doctype>`, `<html>`, `<head>`, `<body>`, metadata, favicon tags, or domain settings. Use the [HTML Mode runtime](/en/html-mode-runtime) for checkout, analytics, prefill, and page context.
+
+## Create an HTML Sales page
+
+Omit `form_display` for a regular HTML landing page without checkout.
+
+```bash
+curl -X POST https://api.scalev.com/v3/pages \
+  -H "Authorization: Bearer $SCALEV_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "API HTML Sales Page",
+    "slug": "api-html-sales-page",
+    "is_published": true,
+    "page_display": {
+      "render_mode": "html_mode",
+      "html_code": "<main><h1>Launch offer</h1></main>",
+      "css_code": "main { padding: 32px; }",
+      "js_code": "",
+      "csp_policy": {},
+      "meta": { "lang": "id" },
+      "onload_fb_events": [],
+      "onload_tiktok_events": [],
+      "onload_kwai_client_events": [],
+      "onload_kwai_server_events": [],
+      "fb_events_onload_parameters": {},
+      "tiktok_events_onload_parameters": {},
+      "kwai_client_events_onload_parameters": {},
+      "kwai_server_events_onload_parameters": {}
+    }
+  }'
+```
+
+The response returns the page directly, not inside the old `data` envelope.
+
+## Create an HTML Checkout page
+
+Add `page_display.form_display` when the page should create orders. Checkout pages require:
+
+- `store_id`
+- at least one `variant_ids` item or one `bundle_price_option_ids` item
+
+After a page has a saved `store_id`, every new display for that page must keep the same checkout store. A display with a different `form_display.store_id`, or a display without store context, is rejected.
+
+```json
+{
+  "name": "API HTML Checkout Page",
+  "slug": "api-html-checkout-page",
+  "is_published": true,
+  "page_display": {
+    "render_mode": "html_mode",
+    "html_code": "<main><h1>Checkout offer</h1><button id=\"buy\">Buy now</button></main>",
+    "css_code": "",
+    "js_code": "",
+    "csp_policy": {},
+    "meta": { "lang": "id" },
+    "onload_fb_events": [],
+    "onload_tiktok_events": [],
+    "onload_kwai_client_events": [],
+    "onload_kwai_server_events": [],
+    "fb_events_onload_parameters": {},
+    "tiktok_events_onload_parameters": {},
+    "kwai_client_events_onload_parameters": {},
+    "kwai_server_events_onload_parameters": {},
+    "form_display": {
+      "store_id": 123,
+      "variant_ids": [456],
+      "bundle_price_option_ids": [],
+      "after_submit_event": "success_page"
+    }
+  }
+}
+```
+
+For checkout behavior after order creation, use these `after_submit_event` values:
+
+| Value | Required fields |
+| --- | --- |
+| `success_page` | None |
+| `direct_to_whatsapp` | `handler_assignment`; if `handler_assignment` is `fixed`, also send `store_sales_person_id` |
+| `direct_to_custom_whatsapp` | `custom_phone` |
+| `other_page` | `other_page_id` |
+| `custom_url` | `custom_url` |
+| `is_sending_email_invoice` | None |
+| `order_page` | None |
+
+Read [HTML Mode checkout success paths](/en/html-mode-checkout-success-paths) for the runtime behavior of each path.
+
+## Update a page
+
+`PATCH /v3/pages/{page_id}` updates page metadata and publish state.
+
+```json
+{
+  "name": "Updated page name",
+  "slug": "updated-page-slug"
+}
+```
+
+To publish a specific display:
+
+```json
+{
+  "is_published": true,
+  "current_page_display_id": 987
+}
+```
+
+To unpublish:
+
+```json
+{
+  "is_published": false,
+  "current_page_display_id": null
+}
+```
+
+## Create and publish a new display
+
+To change HTML, CSS, JavaScript, pixels, or checkout context, create a new page display:
+
+If the page already has a saved store, the new display must include the same `form_display.store_id`; omitting store context is rejected.
+
+```bash
+curl -X POST https://api.scalev.com/v3/pages/123/page-displays \
+  -H "Authorization: Bearer $SCALEV_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "render_mode": "html_mode",
+    "html_code": "<main><h1>New version</h1></main>",
+    "css_code": "",
+    "js_code": "",
+    "csp_policy": {},
+    "meta": { "lang": "id" },
+    "onload_fb_events": [],
+    "onload_tiktok_events": [],
+    "onload_kwai_client_events": [],
+    "onload_kwai_server_events": [],
+    "fb_events_onload_parameters": {},
+    "tiktok_events_onload_parameters": {},
+    "kwai_client_events_onload_parameters": {},
+    "kwai_server_events_onload_parameters": {}
+  }'
+```
+
+The response includes the new display `id`. Publish it with:
+
+```bash
+curl -X PATCH https://api.scalev.com/v3/pages/123 \
+  -H "Authorization: Bearer $SCALEV_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "is_published": true,
+    "current_page_display_id": 987
+  }'
+```
+
+## Tags and delete
+
+Replace tags with:
+
+```json
+{
+  "tags": ["Promo", "Checkout"]
+}
+```
+
+Call:
+
+```text
+POST /v3/pages/{page_id}/update-tags
+```
+
+Delete a page with:
+
+```text
+DELETE /v3/pages/{page_id}
+```
+
+Successful delete responses return `204 No Content`.
