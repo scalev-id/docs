@@ -70,6 +70,10 @@ Include the analytics event fields even when they are empty:
   "js_code": "",
   "csp_policy": {},
   "meta": { "lang": "id" },
+  "fb_pixel_ids": [],
+  "tiktok_pixel_ids": [],
+  "kwai_client_pixel_ids": [],
+  "kwai_server_pixel_ids": [],
   "onload_fb_events": [],
   "onload_tiktok_events": [],
   "onload_kwai_client_events": [],
@@ -82,6 +86,63 @@ Include the analytics event fields even when they are empty:
 ```
 
 `html_code` must not include `<!doctype>`, `<html>`, `<head>`, `<body>`, metadata, favicon tags, or domain settings. Use the [HTML Mode runtime](/en/html-mode-runtime) for checkout, analytics, prefill, and page context.
+
+## Analytics pixels and events
+
+Attach existing analytics pixels to a page display by sending the Scalev pixel record IDs on the display payload. These are the numeric Scalev record IDs, not the provider pixel code such as a Meta Pixel ID.
+
+| Field | Meaning |
+| --- | --- |
+| `fb_pixel_ids` | Scalev record IDs for Meta/Facebook pixels |
+| `tiktok_pixel_ids` | Scalev record IDs for TikTok pixels |
+| `kwai_client_pixel_ids` | Scalev record IDs for SnackVideo browser pixels |
+| `kwai_server_pixel_ids` | Scalev record IDs for SnackVideo Events API pixels |
+
+Only pixels owned by the same business are attached. IDs from another business or missing pixel records are ignored and will not appear in the response. Send an empty array when the new display should have no pixels for that provider.
+
+Configure automatic page-load events on the same page display:
+
+```json
+{
+  "fb_pixel_ids": [101],
+  "tiktok_pixel_ids": [202],
+  "kwai_client_pixel_ids": [303],
+  "kwai_server_pixel_ids": [404],
+  "onload_fb_events": ["PageView", "ViewContent"],
+  "onload_tiktok_events": ["ViewContent"],
+  "onload_kwai_client_events": ["contentView"],
+  "onload_kwai_server_events": ["EVENT_CONTENT_VIEW"],
+  "fb_events_onload_parameters": {
+    "ViewContent": { "content_name": "Launch offer" }
+  },
+  "tiktok_events_onload_parameters": {},
+  "kwai_client_events_onload_parameters": {},
+  "kwai_server_events_onload_parameters": {}
+}
+```
+
+HTML Checkout submit events are configured inside `page_display.form_display`, not on the top-level page display:
+
+```json
+{
+  "form_display": {
+    "store_id": 123,
+    "variant_ids": [456],
+    "bundle_price_option_ids": [],
+    "after_submit_event": "success_page",
+    "onsubmit_fb_events": ["InitiateCheckout"],
+    "onsubmit_tiktok_events": ["InitiateCheckout"],
+    "onsubmit_kwai_client_events": ["formSubmit"],
+    "onsubmit_kwai_server_events": ["EVENT_FORM_SUBMIT"],
+    "fb_events_onsubmit_parameters": {},
+    "tiktok_events_onsubmit_parameters": {},
+    "kwai_client_events_onsubmit_parameters": {},
+    "kwai_server_events_onsubmit_parameters": {}
+  }
+}
+```
+
+Read responses return full pixel objects under `fb_pixels`, `tiktok_pixels`, `kwai_client_pixels`, and `kwai_server_pixels`, not the ID arrays. When creating another display from a read response, use each pixel object's `id` value in the matching `*_pixel_ids` request field.
 
 ## Create an HTML Sales page
 
@@ -102,6 +163,10 @@ curl -X POST https://api.scalev.com/v3/pages \
       "js_code": "",
       "csp_policy": {},
       "meta": { "lang": "id" },
+      "fb_pixel_ids": [],
+      "tiktok_pixel_ids": [],
+      "kwai_client_pixel_ids": [],
+      "kwai_server_pixel_ids": [],
       "onload_fb_events": [],
       "onload_tiktok_events": [],
       "onload_kwai_client_events": [],
@@ -137,6 +202,10 @@ After a page has a saved `store_id`, every new display for that page must keep t
     "js_code": "",
     "csp_policy": {},
     "meta": { "lang": "id" },
+    "fb_pixel_ids": [101],
+    "tiktok_pixel_ids": [202],
+    "kwai_client_pixel_ids": [303],
+    "kwai_server_pixel_ids": [404],
     "onload_fb_events": [],
     "onload_tiktok_events": [],
     "onload_kwai_client_events": [],
@@ -149,7 +218,15 @@ After a page has a saved `store_id`, every new display for that page must keep t
       "store_id": 123,
       "variant_ids": [456],
       "bundle_price_option_ids": [],
-      "after_submit_event": "success_page"
+      "after_submit_event": "success_page",
+      "onsubmit_fb_events": ["InitiateCheckout"],
+      "onsubmit_tiktok_events": ["InitiateCheckout"],
+      "onsubmit_kwai_client_events": ["formSubmit"],
+      "onsubmit_kwai_server_events": ["EVENT_FORM_SUBMIT"],
+      "fb_events_onsubmit_parameters": {},
+      "tiktok_events_onsubmit_parameters": {},
+      "kwai_client_events_onsubmit_parameters": {},
+      "kwai_server_events_onsubmit_parameters": {}
     }
   }
 }
@@ -215,6 +292,10 @@ curl -X POST https://api.scalev.com/v3/pages/123/page-displays \
     "js_code": "",
     "csp_policy": {},
     "meta": { "lang": "id" },
+    "fb_pixel_ids": [],
+    "tiktok_pixel_ids": [],
+    "kwai_client_pixel_ids": [],
+    "kwai_server_pixel_ids": [],
     "onload_fb_events": [],
     "onload_tiktok_events": [],
     "onload_kwai_client_events": [],

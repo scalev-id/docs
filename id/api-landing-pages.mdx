@@ -70,6 +70,10 @@ Sertakan field event analytics walaupun nilainya kosong:
   "js_code": "",
   "csp_policy": {},
   "meta": { "lang": "id" },
+  "fb_pixel_ids": [],
+  "tiktok_pixel_ids": [],
+  "kwai_client_pixel_ids": [],
+  "kwai_server_pixel_ids": [],
   "onload_fb_events": [],
   "onload_tiktok_events": [],
   "onload_kwai_client_events": [],
@@ -82,6 +86,63 @@ Sertakan field event analytics walaupun nilainya kosong:
 ```
 
 `html_code` tidak boleh berisi `<!doctype>`, `<html>`, `<head>`, `<body>`, metadata, tag favicon, atau pengaturan domain. Gunakan [runtime HTML Mode](/id/runtime-html-mode) untuk checkout, analytics, prefill, dan konteks halaman.
+
+## Pixel analytics dan event
+
+Pasang pixel analytics yang sudah ada ke page display dengan mengirim ID record pixel Scalev di payload display. Ini adalah ID record numerik di Scalev, bukan kode pixel dari provider seperti Meta Pixel ID.
+
+| Field | Makna |
+| --- | --- |
+| `fb_pixel_ids` | ID record pixel Meta/Facebook dari pengaturan analytics Scalev |
+| `tiktok_pixel_ids` | ID record pixel TikTok dari pengaturan analytics Scalev |
+| `kwai_client_pixel_ids` | ID record pixel browser SnackVideo |
+| `kwai_server_pixel_ids` | ID record pixel SnackVideo Events API |
+
+Hanya pixel milik bisnis yang sama yang akan dipasang. ID dari bisnis lain atau record pixel yang tidak ditemukan tidak akan dipasang dan tidak akan muncul di response. Kirim array kosong jika display baru tidak perlu memakai pixel untuk provider tersebut.
+
+Konfigurasi event otomatis saat halaman dibuka ada di page display yang sama:
+
+```json
+{
+  "fb_pixel_ids": [101],
+  "tiktok_pixel_ids": [202],
+  "kwai_client_pixel_ids": [303],
+  "kwai_server_pixel_ids": [404],
+  "onload_fb_events": ["PageView", "ViewContent"],
+  "onload_tiktok_events": ["ViewContent"],
+  "onload_kwai_client_events": ["contentView"],
+  "onload_kwai_server_events": ["EVENT_CONTENT_VIEW"],
+  "fb_events_onload_parameters": {
+    "ViewContent": { "content_name": "Launch offer" }
+  },
+  "tiktok_events_onload_parameters": {},
+  "kwai_client_events_onload_parameters": {},
+  "kwai_server_events_onload_parameters": {}
+}
+```
+
+Untuk HTML Checkout, event submit checkout dikonfigurasi di dalam `page_display.form_display`, bukan di level page display utama:
+
+```json
+{
+  "form_display": {
+    "store_id": 123,
+    "variant_ids": [456],
+    "bundle_price_option_ids": [],
+    "after_submit_event": "success_page",
+    "onsubmit_fb_events": ["InitiateCheckout"],
+    "onsubmit_tiktok_events": ["InitiateCheckout"],
+    "onsubmit_kwai_client_events": ["formSubmit"],
+    "onsubmit_kwai_server_events": ["EVENT_FORM_SUBMIT"],
+    "fb_events_onsubmit_parameters": {},
+    "tiktok_events_onsubmit_parameters": {},
+    "kwai_client_events_onsubmit_parameters": {},
+    "kwai_server_events_onsubmit_parameters": {}
+  }
+}
+```
+
+Response read mengembalikan object pixel lengkap di `fb_pixels`, `tiktok_pixels`, `kwai_client_pixels`, dan `kwai_server_pixels`, bukan array ID. Jika membuat display lain dari response read, gunakan nilai `id` dari tiap object pixel ke field request `*_pixel_ids` yang sesuai.
 
 ## Membuat HTML Sales page
 
@@ -102,6 +163,10 @@ curl -X POST https://api.scalev.com/v3/pages \
       "js_code": "",
       "csp_policy": {},
       "meta": { "lang": "id" },
+      "fb_pixel_ids": [],
+      "tiktok_pixel_ids": [],
+      "kwai_client_pixel_ids": [],
+      "kwai_server_pixel_ids": [],
       "onload_fb_events": [],
       "onload_tiktok_events": [],
       "onload_kwai_client_events": [],
@@ -137,6 +202,10 @@ Setelah page memiliki `store_id` tersimpan, setiap display baru untuk page terse
     "js_code": "",
     "csp_policy": {},
     "meta": { "lang": "id" },
+    "fb_pixel_ids": [101],
+    "tiktok_pixel_ids": [202],
+    "kwai_client_pixel_ids": [303],
+    "kwai_server_pixel_ids": [404],
     "onload_fb_events": [],
     "onload_tiktok_events": [],
     "onload_kwai_client_events": [],
@@ -149,7 +218,15 @@ Setelah page memiliki `store_id` tersimpan, setiap display baru untuk page terse
       "store_id": 123,
       "variant_ids": [456],
       "bundle_price_option_ids": [],
-      "after_submit_event": "success_page"
+      "after_submit_event": "success_page",
+      "onsubmit_fb_events": ["InitiateCheckout"],
+      "onsubmit_tiktok_events": ["InitiateCheckout"],
+      "onsubmit_kwai_client_events": ["formSubmit"],
+      "onsubmit_kwai_server_events": ["EVENT_FORM_SUBMIT"],
+      "fb_events_onsubmit_parameters": {},
+      "tiktok_events_onsubmit_parameters": {},
+      "kwai_client_events_onsubmit_parameters": {},
+      "kwai_server_events_onsubmit_parameters": {}
     }
   }
 }
@@ -215,6 +292,10 @@ curl -X POST https://api.scalev.com/v3/pages/123/page-displays \
     "js_code": "",
     "csp_policy": {},
     "meta": { "lang": "id" },
+    "fb_pixel_ids": [],
+    "tiktok_pixel_ids": [],
+    "kwai_client_pixel_ids": [],
+    "kwai_server_pixel_ids": [],
     "onload_fb_events": [],
     "onload_tiktok_events": [],
     "onload_kwai_client_events": [],
