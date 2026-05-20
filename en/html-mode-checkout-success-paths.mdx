@@ -21,7 +21,7 @@ Use these rules when deciding where to send the buyer after `createOrder` succee
 
 - E-payment methods always go to the payment instruction page. This includes `va`, `qris`, `card`, `invoice`, `alfamart`, `ovo`, `dana`, `shopeepay`, `linkaja`, and `gopay`.
 - VA submethods selected from `store.sub_payment_methods` are treated as `va`.
-- `BT_*` bank-transfer submethods are treated as `bank_transfer`, not `va`.
+- Manual bank transfer is treated as `bank_transfer`. When creating the order, include the selected bank account as `paymentAccountUniqueId` or `payment_account_unique_id`.
 - If the order status is `draft`, the payment instruction path falls back to **Self Hosted Orderan / Invoice** (`order_page`).
 - If the page is rendered inside an iframe, post the target URL to the parent window instead of navigating the iframe directly.
 
@@ -50,7 +50,7 @@ const order = orderResponse.data;
 
 ## Reference implementation
 
-Use this helper after `validateOrder` passes and `createOrder` succeeds.
+Use this helper after `createOrder` succeeds.
 
 ```js
 const PAYMENT_INSTRUCTION_METHODS = new Set([
@@ -74,10 +74,6 @@ const SCALEV_QUERY_FORWARD_HOSTS = new Set([
 ]);
 
 function paymentMethodForRedirect(paymentMethod, store) {
-  if (typeof paymentMethod === "string" && paymentMethod.startsWith("BT_")) {
-    return "bank_transfer";
-  }
-
   if (
     typeof paymentMethod === "string" &&
     Array.isArray(store?.sub_payment_methods) &&
@@ -205,13 +201,8 @@ const payload = {
     { variant_unique_id: selectedVariant.unique_id, quantity: 1 },
   ],
   paymentMethod: selectedPaymentMethod,
+  paymentAccountUniqueId: selectedPaymentAccount?.unique_id,
 };
-
-const validation = await Scalev.checkout.validateOrder(payload);
-if (!validation.valid) {
-  showValidationWarnings(validation.warnings);
-  return;
-}
 
 const orderResponse = await Scalev.checkout.createOrder(payload);
 

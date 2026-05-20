@@ -39,7 +39,7 @@ Jika Store Context belum dipilih, `store` tidak tersedia. Jangan membuat checkou
 - Jangan memanggil URL privat Scalev atau private API langsung dari JavaScript halaman.
 - Gunakan hanya method `window.Scalev` yang terdokumentasi.
 - Buat order hanya setelah pengunjung sengaja submit form.
-- Panggil `Scalev.checkout.validateOrder()` sebelum `Scalev.checkout.createOrder()`.
+- Utamakan `Scalev.checkout.createOrder()` saat submit; `validateOrder()` bersifat opsional karena `createOrder()` sudah memvalidasi payload.
 - Jangan mengasumsikan produk, bundle, harga, stok, payment method, opsi pengiriman, atau identitas customer yang tidak tersedia.
 
 ## `Scalev.data.get()`
@@ -79,6 +79,15 @@ Dengan Store Context, `store` berisi konteks terpilih saja:
     "name": "Main Store",
     "payment_methods": ["bank_transfer", "cod"],
     "sub_payment_methods": [],
+    "payment_accounts": [
+      {
+        "id": 30,
+        "unique_id": "payment_account_uid",
+        "method": "bank_transfer",
+        "account_holder": "PT Brand",
+        "account_number": "1234567890"
+      }
+    ],
     "products": [
       {
         "id": 1,
@@ -112,7 +121,26 @@ Dengan Store Context, `store` berisi konteks terpilih saja:
 
 Gunakan data ini untuk render produk terpilih, bundle option, payment methods aktif, dan form yang memakai store. Variant produk terpilih tersedia di `store.products[].variants[]`. Jangan mengasumsikan produk, bundle, atau payment method yang tidak ada di payload ini.
 
-`store.payment_methods` berisi payment methods aktif setelah Scalev memfilter pengaturan store berdasarkan kapabilitas payment bisnis. Gunakan `store.sub_payment_methods` untuk submethod VA atau bank yang aktif saat tersedia.
+`store.payment_methods` berisi payment methods aktif setelah Scalev memfilter pengaturan store berdasarkan kapabilitas payment bisnis. Gunakan `store.sub_payment_methods` untuk submethod VA yang aktif saat tersedia.
+
+Untuk bank transfer manual, render pilihan per rekening dari `store.payment_accounts` dengan `method` `bank_transfer`. Jangan tampilkan satu pilihan `bank_transfer` generik tanpa rekening. UI checkout bisa menggabungkan method regular dari `store.payment_methods` dengan rekening bank transfer tersebut, lalu submit rekening terpilih sebagai `paymentAccountUniqueId` atau `payment_account_unique_id`.
+
+```js
+const bankTransferAccounts = (store.payment_accounts || []).filter(
+  (account) => account.method === "bank_transfer",
+);
+
+const paymentOptions = [
+  ...(store.payment_methods || [])
+    .filter((method) => method !== "bank_transfer")
+    .map((method) => ({ type: method })),
+  ...bankTransferAccounts.map((account) => ({
+    type: "bank_transfer",
+    paymentAccountUniqueId: account.unique_id,
+    label: `${account.account_holder} - ${account.account_number}`,
+  })),
+];
+```
 
 ### Konfigurasi aksi setelah checkout
 
@@ -177,7 +205,7 @@ Nama field dapat memakai camelCase atau snake_case:
 - `paymentMethod` atau `payment_method`
 - `domain`
 
-`pageUniqueId` otomatis memakai halaman saat ini, dan `domain` otomatis memakai hostname saat ini. Value payment dinormalisasi sebelum request: value `BT_*` menjadi `bank_transfer`, dan value yang ada di `store.sub_payment_methods` menjadi `va`.
+`pageUniqueId` otomatis memakai halaman saat ini, dan `domain` otomatis memakai hostname saat ini. Value payment yang ada di `store.sub_payment_methods` dinormalisasi menjadi `va`. Untuk bank transfer manual, kirim `paymentMethod: "bank_transfer"` dan rekening terpilih sebagai `paymentAccountUniqueId` atau `payment_account_unique_id`.
 
 Gunakan hanya untuk flow checkout yang terhubung dengan store.
 
@@ -231,7 +259,7 @@ Gunakan method ini setelah pengunjung memilih produk dan tujuan pengiriman. Back
 
 ## `Scalev.checkout.validateOrder(payload)`
 
-Memvalidasi bentuk payload order tanpa membuat order.
+Opsional untuk memvalidasi bentuk payload order tanpa membuat order. Helper ini berguna untuk preflight check atau debugging, tetapi tidak wajib dipanggil sebelum `createOrder`. Pada flow submit normal, panggil `createOrder` dan tangani error validasinya.
 
 ```js
 const data = Scalev.data.get();
@@ -247,7 +275,7 @@ const validation = await Scalev.checkout.validateOrder({
   address: "Customer address",
   location: 12345,
   ordervariants: [{ variant_unique_id: firstVariant.unique_id, quantity: 1 }],
-  paymentMethod: store.payment_methods[0] || "bank_transfer",
+  paymentMethod: "cod",
 });
 ```
 
@@ -272,13 +300,16 @@ Warning umum mencakup page id, store id, nama customer, nomor customer, atau ite
 
 ## `Scalev.checkout.createOrder(payload)`
 
-Membuat public order sungguhan. Panggil method ini hanya setelah pengunjung sengaja submit form dan `validateOrder` lolos.
+Membuat public order sungguhan dan memvalidasi payload. Panggil method ini hanya setelah pengunjung sengaja submit form. Kamu tidak perlu memanggil `validateOrder` terlebih dulu.
 
 ```js
 async function submitOrder() {
   const data = Scalev.data.get();
   const store = data.store;
   const firstVariant = store.products[0].variants[0];
+  const bankTransferAccount = store.payment_accounts?.find(
+    (account) => account.method === "bank_transfer",
+  );
 
   const payload = {
     page: data.page.uniqueId,
@@ -290,12 +321,8 @@ async function submitOrder() {
     location: 12345,
     ordervariants: [{ variant_unique_id: firstVariant.unique_id, quantity: 1 }],
     paymentMethod: store.payment_methods[0] || "bank_transfer",
+    paymentAccountUniqueId: bankTransferAccount?.unique_id,
   };
-
-  const validation = await Scalev.checkout.validateOrder(payload);
-  if (!validation.valid) {
-    return showValidationWarnings(validation.warnings);
-  }
 
   const order = await Scalev.checkout.createOrder(payload);
   return order;
@@ -307,13 +334,15 @@ async function submitOrder() {
 - Customer fields: `customerName`, `customerPhone`, `customerEmail`, `name`, `phone`, `address`
 - Store dan page fields: `store`, `page`, plus alias seperti `storeUniqueId`, `store_unique_id`, `pageUniqueId`, dan `page_unique_id`
 - Lokasi dan shipping fields: `location`, `destinationSubdistrictId`, `subdistrictId`, `postalCode`, `shippingOrigin`, `courierService`, `shippingCost`, dan `courierAggregator`
-- Payment fields: `paymentMethod`, `financialEntityId`, `paymentAccount`, `paymentAccountHolder`, `paymentAccountNumber`, dan `subPaymentMethod`
+- Payment fields: `paymentMethod`, `paymentAccountUniqueId`, `payment_account_unique_id`, dan `subPaymentMethod`
 - Item fields: `ordervariants` dengan `{ variant_unique_id, quantity }`, `orderbundles` dengan `{ bundle_price_option_unique_id, quantity }`, atau legacy `orderlines`
 - Diskon dan pricing fields: `discountCodeCode`, `productDiscount`, `shippingCost`, `shippingDiscount`
 
 Gunakan value `unique_id` dari `Scalev.data.get().store`; jangan mengirim id numerik produk, variant, atau bundle sebagai identifier item order.
 
-Seperti helper diskon dan shipping, value payment dinormalisasi sebelum request. Value `BT_*` dikirim sebagai `bank_transfer`; submethod VA atau bank yang aktif di `store.sub_payment_methods` dikirim sebagai `payment_method: "va"` dengan submethod terpilih.
+Seperti helper diskon dan shipping, submethod VA yang aktif di `store.sub_payment_methods` dikirim sebagai `payment_method: "va"` dengan submethod terpilih. Untuk bank transfer manual, kirim `paymentMethod: "bank_transfer"` dan unique id rekening terpilih.
+
+Saat payment method terpilih adalah `bank_transfer`, runtime mewajibkan `paymentAccountUniqueId` atau `payment_account_unique_id` sebelum mengirim request order. Gunakan object terpilih dari `store.payment_accounts`; runtime meneruskan `unique_id` object tersebut sebagai `payment_account_unique_id` untuk order API. Jika id rekening bank, financial entity id, nama pemilik rekening, atau nomor rekening ikut dikirim, runtime mengabaikannya.
 
 Jangan membuat order otomatis saat halaman dibuka.
 
@@ -486,14 +515,8 @@ Gunakan pola ini hanya saat Store Context dipilih:
       ordervariants: [
         { variant_unique_id: firstVariant.unique_id, quantity: 1 },
       ],
-      paymentMethod: store.payment_methods[0] || "bank_transfer",
+      paymentMethod: "cod",
     };
-
-    const validation = await scalev.checkout.validateOrder(payload);
-    if (!validation.valid) {
-      console.warn(validation.warnings);
-      return;
-    }
 
     const order = await scalev.checkout.createOrder(payload);
     console.log(order);

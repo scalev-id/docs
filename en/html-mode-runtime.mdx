@@ -39,7 +39,7 @@ When Store Context is not selected, `store` is not available. Do not build check
 - Do not call private Scalev URLs or private APIs directly from page JavaScript.
 - Use only documented `window.Scalev` methods.
 - Create orders only after a visitor intentionally submits a form.
-- Call `Scalev.checkout.validateOrder()` before `Scalev.checkout.createOrder()`.
+- Prefer `Scalev.checkout.createOrder()` on submit; `validateOrder()` is optional because `createOrder()` already validates the payload.
 - Do not assume unselected products, bundles, prices, inventory, payment methods, shipping options, or customer identity.
 
 ## `Scalev.data.get()`
@@ -79,6 +79,15 @@ With Store Context selected, `store` contains selected context only:
     "name": "Main Store",
     "payment_methods": ["bank_transfer", "cod"],
     "sub_payment_methods": [],
+    "payment_accounts": [
+      {
+        "id": 30,
+        "unique_id": "payment_account_uid",
+        "method": "bank_transfer",
+        "account_holder": "PT Brand",
+        "account_number": "1234567890"
+      }
+    ],
     "products": [
       {
         "id": 1,
@@ -112,7 +121,26 @@ With Store Context selected, `store` contains selected context only:
 
 Use it to render selected products, bundle options, enabled payment methods, and store-aware forms. Selected product variants are available at `store.products[].variants[]`. Do not assume products, bundles, or payment methods that are not present in this payload.
 
-`store.payment_methods` contains the enabled payment methods after Scalev filters the store settings by the business payment capabilities. Use `store.sub_payment_methods` for enabled VA or bank submethods when present.
+`store.payment_methods` contains the enabled payment methods after Scalev filters the store settings by the business payment capabilities. Use `store.sub_payment_methods` for enabled VA submethods when present.
+
+For manual bank transfer, render account-level choices from `store.payment_accounts` where `method` is `bank_transfer`. Do not show one generic `bank_transfer` choice without an account. A checkout UI can merge regular methods from `store.payment_methods` with those bank-transfer accounts, then submit the selected bank account as `paymentAccountUniqueId` or `payment_account_unique_id`.
+
+```js
+const bankTransferAccounts = (store.payment_accounts || []).filter(
+  (account) => account.method === "bank_transfer",
+);
+
+const paymentOptions = [
+  ...(store.payment_methods || [])
+    .filter((method) => method !== "bank_transfer")
+    .map((method) => ({ type: method })),
+  ...bankTransferAccounts.map((account) => ({
+    type: "bank_transfer",
+    paymentAccountUniqueId: account.unique_id,
+    label: `${account.account_holder} - ${account.account_number}`,
+  })),
+];
+```
 
 ### After checkout config
 
@@ -177,7 +205,7 @@ Accepted field names can be camelCase or snake_case:
 - `paymentMethod` or `payment_method`
 - `domain`
 
-`pageUniqueId` defaults to the current page, and `domain` defaults to the current hostname. Payment values are normalized before the request: `BT_*` values become `bank_transfer`, and values listed in `store.sub_payment_methods` become `va`.
+`pageUniqueId` defaults to the current page, and `domain` defaults to the current hostname. Payment values listed in `store.sub_payment_methods` are normalized to `va`. For manual bank transfer, send `paymentMethod: "bank_transfer"` and the selected account as `paymentAccountUniqueId` or `payment_account_unique_id`.
 
 Use this only for store-connected checkout flows.
 
@@ -231,7 +259,7 @@ Use this after the visitor has chosen products and a shipping destination. Scale
 
 ## `Scalev.checkout.validateOrder(payload)`
 
-Validates order payload shape without creating an order.
+Optionally validates order payload shape without creating an order. This helper is useful for preflight checks or debugging, but it is not required before `createOrder`. In normal submit flows, call `createOrder` and handle its validation errors.
 
 ```js
 const data = Scalev.data.get();
@@ -247,7 +275,7 @@ const validation = await Scalev.checkout.validateOrder({
   address: "Customer address",
   location: 12345,
   ordervariants: [{ variant_unique_id: firstVariant.unique_id, quantity: 1 }],
-  paymentMethod: store.payment_methods[0] || "bank_transfer",
+  paymentMethod: "cod",
 });
 ```
 
@@ -272,13 +300,16 @@ Common warnings include missing page id, store id, customer name, customer phone
 
 ## `Scalev.checkout.createOrder(payload)`
 
-Creates a real public order. Call this only after a visitor intentionally submits the form and `validateOrder` has passed.
+Creates a real public order and validates the payload. Call this only after a visitor intentionally submits the form. You do not need to call `validateOrder` first.
 
 ```js
 async function submitOrder() {
   const data = Scalev.data.get();
   const store = data.store;
   const firstVariant = store.products[0].variants[0];
+  const bankTransferAccount = store.payment_accounts?.find(
+    (account) => account.method === "bank_transfer",
+  );
 
   const payload = {
     page: data.page.uniqueId,
@@ -290,12 +321,8 @@ async function submitOrder() {
     location: 12345,
     ordervariants: [{ variant_unique_id: firstVariant.unique_id, quantity: 1 }],
     paymentMethod: store.payment_methods[0] || "bank_transfer",
+    paymentAccountUniqueId: bankTransferAccount?.unique_id,
   };
-
-  const validation = await Scalev.checkout.validateOrder(payload);
-  if (!validation.valid) {
-    return showValidationWarnings(validation.warnings);
-  }
 
   const order = await Scalev.checkout.createOrder(payload);
   return order;
@@ -307,13 +334,15 @@ async function submitOrder() {
 - Customer fields: `customerName`, `customerPhone`, `customerEmail`, `name`, `phone`, `address`
 - Store and page fields: `store`, `page`, plus aliases such as `storeUniqueId`, `store_unique_id`, `pageUniqueId`, and `page_unique_id`
 - Location and shipping fields: `location`, `destinationSubdistrictId`, `subdistrictId`, `postalCode`, `shippingOrigin`, `courierService`, `shippingCost`, and `courierAggregator`
-- Payment fields: `paymentMethod`, `financialEntityId`, `paymentAccount`, `paymentAccountHolder`, `paymentAccountNumber`, and `subPaymentMethod`
+- Payment fields: `paymentMethod`, `paymentAccountUniqueId`, `payment_account_unique_id`, and `subPaymentMethod`
 - Item fields: `ordervariants` with `{ variant_unique_id, quantity }`, `orderbundles` with `{ bundle_price_option_unique_id, quantity }`, or legacy `orderlines`
 - Discount and pricing fields: `discountCodeCode`, `productDiscount`, `shippingCost`, `shippingDiscount`
 
 Use `unique_id` values from `Scalev.data.get().store`; do not submit numeric product, variant, or bundle ids as order item identifiers.
 
-As with discount and shipping helpers, payment values are normalized before the request. `BT_*` values are sent as `bank_transfer`; enabled VA or bank submethods in `store.sub_payment_methods` are sent as `payment_method: "va"` with the selected submethod.
+As with discount and shipping helpers, enabled VA submethods in `store.sub_payment_methods` are sent as `payment_method: "va"` with the selected submethod. For manual bank transfer, send `paymentMethod: "bank_transfer"` and the selected account unique id.
+
+When the selected payment method is `bank_transfer`, the runtime requires `paymentAccountUniqueId` or `payment_account_unique_id` before it sends the order request. Use the selected object from `store.payment_accounts`; the runtime forwards its `unique_id` as `payment_account_unique_id` for the order API. If bank account id, financial entity id, account holder, or account number fields are present, the runtime ignores them.
 
 Do not create orders automatically on page load.
 
@@ -486,14 +515,8 @@ Use this pattern only when Store Context is selected:
       ordervariants: [
         { variant_unique_id: firstVariant.unique_id, quantity: 1 },
       ],
-      paymentMethod: store.payment_methods[0] || "bank_transfer",
+      paymentMethod: "cod",
     };
-
-    const validation = await scalev.checkout.validateOrder(payload);
-    if (!validation.valid) {
-      console.warn(validation.warnings);
-      return;
-    }
 
     const order = await scalev.checkout.createOrder(payload);
     console.log(order);

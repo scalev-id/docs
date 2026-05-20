@@ -21,7 +21,7 @@ Gunakan aturan ini saat menentukan tujuan pembeli setelah `createOrder` berhasil
 
 - Payment method e-payment selalu diarahkan ke halaman instruksi pembayaran. Ini mencakup `va`, `qris`, `card`, `invoice`, `alfamart`, `ovo`, `dana`, `shopeepay`, `linkaja`, dan `gopay`.
 - Submethod VA dari `store.sub_payment_methods` dianggap sebagai `va`.
-- Submethod bank transfer `BT_*` dianggap sebagai `bank_transfer`, bukan `va`.
+- Bank transfer manual dianggap sebagai `bank_transfer`. Saat membuat order, sertakan rekening bank terpilih sebagai `paymentAccountUniqueId` atau `payment_account_unique_id`.
 - Jika status order adalah `draft`, jalur instruksi pembayaran memakai **Self Hosted Orderan / Invoice** (`order_page`).
 - Jika halaman dirender di dalam iframe, kirim target URL ke parent window dan jangan langsung menavigasi iframe.
 
@@ -50,7 +50,7 @@ const order = orderResponse.data;
 
 ## Implementasi referensi
 
-Gunakan helper ini setelah `validateOrder` lolos dan `createOrder` berhasil.
+Gunakan helper ini setelah `createOrder` berhasil.
 
 ```js
 const PAYMENT_INSTRUCTION_METHODS = new Set([
@@ -74,10 +74,6 @@ const SCALEV_QUERY_FORWARD_HOSTS = new Set([
 ]);
 
 function paymentMethodForRedirect(paymentMethod, store) {
-  if (typeof paymentMethod === "string" && paymentMethod.startsWith("BT_")) {
-    return "bank_transfer";
-  }
-
   if (
     typeof paymentMethod === "string" &&
     Array.isArray(store?.sub_payment_methods) &&
@@ -205,13 +201,8 @@ const payload = {
     { variant_unique_id: selectedVariant.unique_id, quantity: 1 },
   ],
   paymentMethod: selectedPaymentMethod,
+  paymentAccountUniqueId: selectedPaymentAccount?.unique_id,
 };
-
-const validation = await Scalev.checkout.validateOrder(payload);
-if (!validation.valid) {
-  showValidationWarnings(validation.warnings);
-  return;
-}
 
 const orderResponse = await Scalev.checkout.createOrder(payload);
 
