@@ -84,6 +84,11 @@ With Store Context selected, `store` contains selected context only:
         "id": 30,
         "unique_id": "payment_account_uid",
         "method": "bank_transfer",
+        "financial_entity": {
+          "id": 3,
+          "name": "Bank Central Asia",
+          "code": "bca"
+        },
         "account_holder": "PT Brand",
         "account_number": "1234567890"
       }
@@ -123,7 +128,7 @@ Use it to render selected products, bundle options, enabled payment methods, and
 
 `store.payment_methods` contains the enabled payment methods after Scalev filters the store settings by the business payment capabilities. Use `store.sub_payment_methods` for enabled VA submethods when present.
 
-For manual bank transfer, render account-level choices from `store.payment_accounts` where `method` is `bank_transfer`. Do not show one generic `bank_transfer` choice without an account. A checkout UI can merge regular methods from `store.payment_methods` with those bank-transfer accounts, then submit the selected bank account as `paymentAccountUniqueId` or `payment_account_unique_id`.
+For manual bank transfer, render account-level choices from `store.payment_accounts` where `method` is `bank_transfer`. Do not show one generic `bank_transfer` choice without an account. For these `bank_transfer` account choices only, show the bank name from `payment_account.financial_entity.name`; use `payment_account.financial_entity.code` only as a fallback. `account_holder` is the account owner, not the bank name. A checkout UI can merge regular methods from `store.payment_methods` with those bank-transfer accounts, then submit the selected bank account as `paymentAccountUniqueId` or `payment_account_unique_id`.
 
 ```js
 const bankTransferAccounts = (store.payment_accounts || []).filter(
@@ -133,11 +138,16 @@ const bankTransferAccounts = (store.payment_accounts || []).filter(
 const paymentOptions = [
   ...(store.payment_methods || [])
     .filter((method) => method !== "bank_transfer")
-    .map((method) => ({ type: method })),
-  ...bankTransferAccounts.map((account) => ({
+    .map((method) => ({ type: method, label: method })),
+  ...bankTransferAccounts.map((paymentAccount) => ({
     type: "bank_transfer",
-    paymentAccountUniqueId: account.unique_id,
-    label: `${account.account_holder} - ${account.account_number}`,
+    label:
+      paymentAccount.financial_entity?.name ||
+      paymentAccount.financial_entity?.code ||
+      "Bank Transfer",
+    paymentAccountUniqueId: paymentAccount.unique_id,
+    accountHolder: paymentAccount.account_holder,
+    accountNumber: paymentAccount.account_number,
   })),
 ];
 ```
