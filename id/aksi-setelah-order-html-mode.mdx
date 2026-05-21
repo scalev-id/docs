@@ -3,7 +3,7 @@ title: "Aksi setelah order HTML Mode"
 description: "Tentukan aksi setelah Scalev.checkout.createOrder berhasil di checkout HTML Mode manual."
 ---
 
-Saat kamu membuat form checkout sendiri di HTML Mode, `Scalev.checkout.createOrder(payload)` hanya membuat order. Method ini tidak otomatis melakukan redirect setelah order dibuat.
+Saat kamu membuat form checkout sendiri di HTML Mode, `Scalev.checkout.createOrder(payload)` membuat order. Halaman kamu menangani redirect setelah order dibuat.
 
 HTML Checkout Page mengekspos konfigurasi aksi setelah checkout di `Scalev.data.get().after_checkout`. Gunakan konfigurasi itu untuk memilih salah satu dari enam type ini setelah `createOrder` berhasil.
 
@@ -13,19 +13,19 @@ const afterCheckout = Scalev.data.get().after_checkout || {
 };
 ```
 
-`after_checkout` hanya berisi state konfigurasi dari editor. Data ini tidak dihitung dari respons order.
+`after_checkout` berisi state konfigurasi dari editor Scalev.
 
 ## Aturan redirect
 
 Gunakan aturan ini saat menentukan tujuan pembeli setelah `createOrder` berhasil:
 
-- Payment method e-payment selalu diarahkan ke halaman instruksi pembayaran. Ini mencakup `va`, `qris`, `card`, `invoice`, `alfamart`, `ovo`, `dana`, `shopeepay`, `linkaja`, dan `gopay`.
-- Submethod VA dari `store.sub_payment_methods` dianggap sebagai `va`.
-- Bank transfer manual dianggap sebagai `bank_transfer`. Saat membuat order, sertakan rekening bank terpilih sebagai `paymentAccountUniqueId` atau `payment_account_unique_id`.
+- Untuk halaman checkout HTML Mode baru, render label payment dari `Scalev.data.get().store.payment_method_options[].display` dan submit `value` option terpilih sebagai `paymentMethod`.
+- Payment method e-payment selalu diarahkan ke halaman instruksi pembayaran. Ini mencakup `va`, value VA flat seperti `va:BRI`, `qris`, `card`, `invoice`, `alfamart`, `ovo`, `dana`, `shopeepay`, `linkaja`, dan `gopay`.
+- Value bank transfer manual seperti `bt:BCA:payment_account_uid` dianggap sebagai `bank_transfer`.
 - Jika status order adalah `draft`, jalur instruksi pembayaran memakai **Self Hosted Orderan / Invoice** (`order_page`).
-- Jika halaman dirender di dalam iframe, kirim target URL ke parent window dan jangan langsung menavigasi iframe.
+- Jika halaman dirender di dalam iframe, kirim target URL ke parent window.
 
-Gunakan data order dari respons `createOrder`. Jangan hardcode URL API privat.
+Gunakan data order dari respons `createOrder` dan URL publik di respons tersebut.
 
 `createOrder` mengembalikan response envelope standar Scalev:
 
@@ -73,14 +73,11 @@ const SCALEV_QUERY_FORWARD_HOSTS = new Set([
   "app.scalev.com",
 ]);
 
-function paymentMethodForRedirect(paymentMethod, store) {
-  if (
-    typeof paymentMethod === "string" &&
-    Array.isArray(store?.sub_payment_methods) &&
-    store.sub_payment_methods.includes(paymentMethod)
-  ) {
-    return "va";
-  }
+function paymentMethodForRedirect(paymentMethod) {
+  if (typeof paymentMethod !== "string") return paymentMethod;
+
+  if (paymentMethod.toLowerCase().startsWith("va:")) return "va";
+  if (paymentMethod.toLowerCase().startsWith("bt:")) return "bank_transfer";
 
   return paymentMethod;
 }
@@ -140,7 +137,6 @@ function redirectAfterOrder({
   type,
   orderResponse,
   paymentMethod,
-  store,
   customWhatsappPhone,
   otherPagePath,
   customUrl,
@@ -148,7 +144,6 @@ function redirectAfterOrder({
   const order = orderResponse.data;
   const redirectPaymentMethod = paymentMethodForRedirect(
     paymentMethod || order.payment_method,
-    store,
   );
   const finalType = PAYMENT_INSTRUCTION_METHODS.has(redirectPaymentMethod)
     ? "success_page"
@@ -191,6 +186,7 @@ Contoh penggunaan:
 const data = Scalev.data.get();
 const store = data.store;
 const afterCheckout = data.after_checkout || { type: "success_page" };
+const selectedPaymentOption = store.payment_method_options[0];
 
 const payload = {
   page: data.page.uniqueId,
@@ -200,8 +196,7 @@ const payload = {
   ordervariants: [
     { variant_unique_id: selectedVariant.unique_id, quantity: 1 },
   ],
-  paymentMethod: selectedPaymentMethod,
-  paymentAccountUniqueId: selectedPaymentAccount?.unique_id,
+  paymentMethod: selectedPaymentOption.value,
 };
 
 const orderResponse = await Scalev.checkout.createOrder(payload);
@@ -210,7 +205,6 @@ redirectAfterOrder({
   type: afterCheckout.type,
   orderResponse,
   paymentMethod: payload.paymentMethod,
-  store,
   customWhatsappPhone: afterCheckout.custom_whatsapp_phone,
   otherPagePath: afterCheckout.other_page_path,
   customUrl: afterCheckout.custom_url,
@@ -221,11 +215,11 @@ redirectAfterOrder({
 
 | Label di editor                     | Value                       | Behavior HTML Mode                                                                                                                                                                                                                                      |
 | ----------------------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Halaman Instruksi Pembayaran        | `success_page`              | Redirect ke halaman instruksi pembayaran Scalev. Prioritaskan `order.payment_url`; jika tidak ada, gunakan `/o/{secret_slug}/success`. Jika `order.status` adalah `draft`, gunakan **Self Hosted Orderan / Invoice** (`order_page`).                    |
-| Langsung ke WhatsApp                | `direct_to_whatsapp`        | Buka WhatsApp memakai `order.handler_phone` dan `order.chat_message`. Scalev memilih handler dari assignment store atau halaman. Jika `handler_phone` tidak ada, arahkan ke **Self Hosted Orderan / Invoice** (`order_page`).                           |
+| Halaman Instruksi Pembayaran        | `success_page`              | Redirect ke halaman instruksi pembayaran Scalev. Prioritaskan `order.payment_url`; fallback ke `/o/{secret_slug}/success`. Untuk `order.status` bernilai `draft`, gunakan **Self Hosted Orderan / Invoice** (`order_page`).                              |
+| Langsung ke WhatsApp                | `direct_to_whatsapp`        | Buka WhatsApp memakai `order.handler_phone` dan `order.chat_message`. Scalev memilih handler dari assignment store atau halaman. Saat `handler_phone` kosong, arahkan ke **Self Hosted Orderan / Invoice** (`order_page`).                               |
 | Langsung ke Nomor WhatsApp tertentu | `direct_to_custom_whatsapp` | Buka WhatsApp memakai nomor yang kamu tentukan dan `order.chat_message`. Gunakan ini jika semua order harus masuk ke nomor sales atau admin tetap.                                                                                                      |
 | Landing Page Lainnya                | `other_page`                | Redirect ke path landing page lain di host yang sama dan pertahankan query string saat ini. Gunakan `after_checkout.other_page_path` dari konfigurasi runtime jika page sudah dipilih.                                                                  |
-| Self Hosted Orderan / Invoice       | `order_page`                | Redirect ke halaman publik order atau invoice. Prioritaskan `order.public_order_url`; jika tidak ada, gunakan `/o/{secret_slug}` di origin saat ini.                                                                                                    |
+| Self Hosted Orderan / Invoice       | `order_page`                | Redirect ke halaman publik order atau invoice. Prioritaskan `order.public_order_url`; fallback ke `/o/{secret_slug}` di origin saat ini.                                                                                                               |
 | Custom URL                          | `custom_url`                | Redirect ke URL yang kamu tentukan. Untuk host saat ini atau host app Scalev yang dikenal, kamu bisa meneruskan query string saat ini agar attribution tetap tersambung. Untuk host eksternal, teruskan hanya parameter yang memang ingin kamu bagikan. |
 
 ## Memilih type
@@ -246,6 +240,6 @@ Gunakan `custom_url` untuk tujuan di luar flow halaman saat ini, seperti handoff
 
 Pertahankan query parameter untuk `other_page`. Untuk `custom_url`, teruskan query parameter hanya jika target host adalah host saat ini atau salah satu host app Scalev yang dikenal.
 
-Setelah `Scalev.checkout.createOrder(payload)` berhasil, HTML Checkout Page otomatis men-trigger event analytics submit form yang sudah dikonfigurasi untuk pixel analytics pada page. Redirect tetap perlu ditangani sendiri, jadi lakukan redirect setelah `createOrder` selesai dan jangan menduplikasi event submit yang sudah dikonfigurasi.
+Setelah `Scalev.checkout.createOrder(payload)` berhasil, HTML Checkout Page otomatis men-trigger event analytics submit form yang sudah dikonfigurasi untuk pixel analytics pada page. Redirect tetap perlu ditangani sendiri, jadi lakukan redirect setelah `createOrder` selesai. Tambahkan event analytics terpisah hanya saat memang perlu event custom tambahan.
 
 Jika halaman memiliki button atau link yang redirect ke URL lain, pertahankan query parameter saat ini yang biasanya penting untuk analytics, seperti UTM, click, dan affiliate parameter.

@@ -3,7 +3,7 @@ title: "HTML Mode runtime"
 description: "Use the window.Scalev runtime methods available inside Scalev HTML Mode pages."
 ---
 
-Scalev HTML Mode pages can use `window.Scalev` from browser JavaScript. The runtime gives your page access to safe page context, selected store context, checkout helpers, analytics forwarding, form prefill helpers, and diagnostics without exposing private API tokens.
+Scalev HTML Mode pages can use `window.Scalev` from browser JavaScript. The runtime gives your page access to safe page context, selected store context, checkout helpers, analytics forwarding, form prefill helpers, and diagnostics while keeping private API tokens server-side.
 
 This page is written for both developers and AI agents that generate HTML Mode files. If you are generating an HTML file for Scalev, use this reference instead of calling private Scalev URLs directly.
 
@@ -17,7 +17,7 @@ Always guard runtime usage:
 const scalev = window.Scalev;
 
 if (!scalev) {
-  // Render fallback content or keep the page usable without runtime data.
+  // Render fallback content or keep the page usable while runtime data loads.
 }
 ```
 
@@ -25,22 +25,22 @@ Most methods are asynchronous and return a `Promise`. `Scalev.data.get()` and `S
 
 ## Store context
 
-An HTML Mode page may or may not have Store Context selected in the Scalev editor.
+An HTML Mode page can have Store Context selected in the Scalev editor.
 
-When Store Context is selected, `Scalev.data.get().store` includes only the selected store summary, selected products, and selected bundle price options. It does not include the full store catalog.
+When Store Context is selected, `Scalev.data.get().store` includes only the selected store summary, selected products, and selected bundle price options. Treat it as the page-specific checkout catalog.
 
-When HTML Checkout Page is selected, `Scalev.data.get().after_checkout` includes the selected after-checkout success type and its public destination config. This object is the editor config state. The runtime exposes it, but it does not redirect automatically after an order is created.
+When HTML Checkout Page is selected, `Scalev.data.get().after_checkout` includes the selected after-checkout success type and its public destination config. This object is the editor config state. The runtime exposes it so your page can run the redirect after an order is created.
 
-When Store Context is not selected, `store` is not available. Do not build checkout, payment, shipping, discount, product catalog, cart, or order creation flows. Use the page as a regular landing page and rely only on page-safe methods such as `Scalev.data.get()`, `Scalev.analytics.track()`, and `Scalev.prefill.get()`.
+When Store Context is unselected, treat `store` as unavailable. Build a regular landing page and rely only on page-safe methods such as `Scalev.data.get()`, `Scalev.analytics.track()`, and `Scalev.prefill.get()`.
 
 ## Security rules
 
-- Do not request or store API keys, business-user JWTs, storefront API keys, customer tokens, cookies, or credentials.
-- Do not call private Scalev URLs or private APIs directly from page JavaScript.
+- Keep API keys, business-user JWTs, storefront API keys, customer tokens, cookies, and credentials out of page JavaScript.
+- Use documented `window.Scalev` methods instead of private Scalev URLs or private APIs.
 - Use only documented `window.Scalev` methods.
 - Create orders only after a visitor intentionally submits a form.
 - Prefer `Scalev.checkout.createOrder()` on submit; `validateOrder()` is optional because `createOrder()` already validates the payload.
-- Do not assume unselected products, bundles, prices, inventory, payment methods, shipping options, or customer identity.
+- Use only selected products, bundles, prices, inventory, payment methods, shipping options, and customer identity values present in the runtime data.
 
 ## `Scalev.data.get()`
 
@@ -77,8 +77,22 @@ With Store Context selected, `store` contains selected context only:
     "id": 1,
     "unique_id": "store_uid",
     "name": "Main Store",
-    "payment_methods": ["bank_transfer", "cod"],
-    "sub_payment_methods": [],
+    "payment_method_options": [
+      {
+        "value": "bt:BCA:payment_account_uid",
+        "display": "Bank Central Asia (PT Interna Cipta Asia)"
+      },
+      {
+        "value": "cod",
+        "display": "COD"
+      },
+      {
+        "value": "va:BRI",
+        "display": "BRI Virtual Account"
+      }
+    ],
+    "payment_methods": ["bank_transfer", "cod", "va"],
+    "sub_payment_methods": ["BRI"],
     "payment_accounts": [
       {
         "id": 30,
@@ -87,9 +101,9 @@ With Store Context selected, `store` contains selected context only:
         "financial_entity": {
           "id": 3,
           "name": "Bank Central Asia",
-          "code": "bca"
+          "code": "BCA"
         },
-        "account_holder": "PT Brand",
+        "account_holder": "PT Interna Cipta Asia",
         "account_number": "1234567890"
       }
     ],
@@ -124,34 +138,40 @@ With Store Context selected, `store` contains selected context only:
 }
 ```
 
-Use it to render selected products, bundle options, enabled payment methods, and store-aware forms. Selected product variants are available at `store.products[].variants[]`. Do not assume products, bundles, or payment methods that are not present in this payload.
+Use it to render selected products, bundle options, enabled payment methods, and store-aware forms. Selected product variants are available at `store.products[].variants[]`. Treat this payload as the complete available context for the page.
 
-`store.payment_methods` contains the enabled payment methods after Scalev filters the store settings by the business payment capabilities. Use `store.sub_payment_methods` for enabled VA submethods when present.
+`store.payment_method_options` contains the final selectable payment option objects. Render `display` as the visitor-facing label and submit `value` as `paymentMethod` or `payment_method`.
 
-Virtual account banks are not separate `paymentMethod` values. For BRI VA, send `paymentMethod: "va"` and `subPaymentMethod: "BRI"`. Do not send combined strings such as `briva`, `bri_va`, or `va_bri`.
+Payment option values are already flattened:
 
-For manual bank transfer, render account-level choices from `store.payment_accounts` where `method` is `bank_transfer`. Do not show one generic `bank_transfer` choice without an account. For these `bank_transfer` account choices only, show the bank name from `payment_account.financial_entity.name`; use `payment_account.financial_entity.code` only as a fallback. `account_holder` is the account owner, not the bank name. A checkout UI can merge regular methods from `store.payment_methods` with those bank-transfer accounts, then submit the selected bank account as `paymentAccountUniqueId` or `payment_account_unique_id`.
+- `va:BRI` means virtual account for BRI.
+- `bt:BCA:payment_account_uid` means manual bank transfer for the BCA account represented by `payment_account_uid`.
+- Regular values such as `cod`, `qris`, `invoice`, `alfamart`, or `gopay` keep their original values.
+
+Payment option displays are ready for the client UI:
+
+- `va:BRI` displays as `BRI Virtual Account`.
+- `qris` displays as `QRIS`.
+- `gopay` displays as `GoPay`.
+- `bt:BCA:payment_account_uid` displays as `Bank Central Asia (PT Interna Cipta Asia)` when the account holder is `PT Interna Cipta Asia`.
+
+Deprecated legacy fields are still exposed for older pages:
+
+- `store.payment_methods`
+- `store.sub_payment_methods`
+- `store.payment_accounts`
+
+Use only `store.payment_method_options` for new HTML Mode checkout development. Treat deprecated fields as legacy reference data for older pages.
 
 ```js
-const bankTransferAccounts = (store.payment_accounts || []).filter(
-  (account) => account.method === "bank_transfer",
-);
+const paymentMethodOptions = store.payment_method_options || [];
+const selectedPaymentOption = paymentMethodOptions[0];
 
-const paymentOptions = [
-  ...(store.payment_methods || [])
-    .filter((method) => method !== "bank_transfer")
-    .map((method) => ({ type: method, label: method })),
-  ...bankTransferAccounts.map((paymentAccount) => ({
-    type: "bank_transfer",
-    label:
-      paymentAccount.financial_entity?.name ||
-      paymentAccount.financial_entity?.code ||
-      "Bank Transfer",
-    paymentAccountUniqueId: paymentAccount.unique_id,
-    accountHolder: paymentAccount.account_holder,
-    accountNumber: paymentAccount.account_number,
-  })),
-];
+const label = selectedPaymentOption.display;
+
+const payload = {
+  paymentMethod: selectedPaymentOption.value,
+};
 ```
 
 ### After checkout config
@@ -166,7 +186,7 @@ const paymentOptions = [
 | `custom_url` | Destination URL for `custom_url`, when configured. |
 | `handler_assignment` | Selected handler assignment mode for `direct_to_whatsapp`, such as `rotator` or `fixed`. |
 
-The runtime does not run this action for you. Follow [HTML Mode checkout success types](/en/html-mode-checkout-success-paths) and use this config state to choose the redirect. For `direct_to_whatsapp`, the selected sales person is resolved during order creation; use `handler_phone` from the created order response.
+Your page runs this action after order creation. Follow [HTML Mode checkout success types](/en/html-mode-checkout-success-paths) and use this config state to choose the redirect. For `direct_to_whatsapp`, the selected sales person is resolved during order creation; use `handler_phone` from the created order response.
 
 ## Location methods
 
@@ -189,7 +209,7 @@ const subdistricts = await Scalev.location.subdistricts(cityId, {
 });
 ```
 
-Use IDs returned by each previous step. Do not hardcode location IDs unless the user explicitly provided them.
+Use IDs returned by each previous step. Use a hardcoded location ID only when the user explicitly provided it.
 
 ## `Scalev.checkout.validateDiscount(payload)`
 
@@ -203,7 +223,7 @@ const result = await Scalev.checkout.validateDiscount({
   grossRevenue: 179000,
   netProductPrice: 179000,
   shippingCost: 0,
-  paymentMethod: store.sub_payment_methods?.[0] || "bank_transfer",
+  paymentMethod: store.payment_method_options?.[0]?.value || "cod",
 });
 ```
 
@@ -217,7 +237,7 @@ Accepted field names can be camelCase or snake_case:
 - `paymentMethod` or `payment_method`
 - `domain`
 
-`pageUniqueId` defaults to the current page, and `domain` defaults to the current hostname. For VA methods, send `paymentMethod: "va"` and the selected bank code as `subPaymentMethod`, for example `subPaymentMethod: "BRI"`. Exact values listed in `store.sub_payment_methods` are also normalized to `va` for compatibility, but do not invent combined values such as `briva`. For manual bank transfer, send `paymentMethod: "bank_transfer"` and the selected account as `paymentAccountUniqueId` or `payment_account_unique_id`.
+`pageUniqueId` defaults to the current page, and `domain` defaults to the current hostname. If the selected option value is a flattened value such as `va:BRI` or `bt:BCA:payment_account_uid`, send that exact value as `paymentMethod`. The runtime normalizes it before calling Scalev APIs.
 
 Use this only for store-connected checkout flows.
 
@@ -271,7 +291,7 @@ Use this after the visitor has chosen products and a shipping destination. Scale
 
 ## `Scalev.checkout.validateOrder(payload)`
 
-Optionally validates order payload shape without creating an order. This helper is useful for preflight checks or debugging, but it is not required before `createOrder`. In normal submit flows, call `createOrder` and handle its validation errors.
+Optionally validates order payload shape as a preflight check. This helper is useful for debugging. In normal submit flows, call `createOrder` and handle its validation errors.
 
 ```js
 const data = Scalev.data.get();
@@ -312,16 +332,14 @@ Common warnings include missing page id, store id, customer name, customer phone
 
 ## `Scalev.checkout.createOrder(payload)`
 
-Creates a real public order and validates the payload. Call this only after a visitor intentionally submits the form. You do not need to call `validateOrder` first.
+Creates a real public order and validates the payload. Call this only after a visitor intentionally submits the form. `validateOrder` is optional before `createOrder`.
 
 ```js
 async function submitOrder() {
   const data = Scalev.data.get();
   const store = data.store;
   const firstVariant = store.products[0].variants[0];
-  const bankTransferAccount = store.payment_accounts?.find(
-    (account) => account.method === "bank_transfer",
-  );
+  const selectedPaymentOption = store.payment_method_options[0];
 
   const payload = {
     page: data.page.uniqueId,
@@ -332,8 +350,7 @@ async function submitOrder() {
     address: "Customer address",
     location: 12345,
     ordervariants: [{ variant_unique_id: firstVariant.unique_id, quantity: 1 }],
-    paymentMethod: store.payment_methods[0] || "bank_transfer",
-    paymentAccountUniqueId: bankTransferAccount?.unique_id,
+    paymentMethod: selectedPaymentOption.value,
   };
 
   const order = await Scalev.checkout.createOrder(payload);
@@ -346,36 +363,34 @@ async function submitOrder() {
 - Customer fields: `customerName`, `customerPhone`, `customerEmail`, `name`, `phone`, `address`
 - Store and page fields: `store`, `page`, plus aliases such as `storeUniqueId`, `store_unique_id`, `pageUniqueId`, and `page_unique_id`
 - Location and shipping fields: `location`, `destinationSubdistrictId`, `subdistrictId`, `postalCode`, `shippingOrigin`, `courierService`, `shippingCost`, and `courierAggregator`
-- Payment fields: `paymentMethod`, `paymentAccountUniqueId`, `payment_account_unique_id`, and `subPaymentMethod`
+- Payment field: `paymentMethod` or `payment_method`
 - Item fields: `ordervariants` with `{ variant_unique_id, quantity }`, `orderbundles` with `{ bundle_price_option_unique_id, quantity }`, or legacy `orderlines`
 - Discount and pricing fields: `discountCodeCode`, `productDiscount`, `shippingCost`, `shippingDiscount`
 
-Use `unique_id` values from `Scalev.data.get().store`; do not submit numeric product, variant, or bundle ids as order item identifiers.
+Use `unique_id` values from `Scalev.data.get().store` as order item identifiers.
 
-For VA methods, submit the payment method and bank separately: `paymentMethod: "va"` and `subPaymentMethod` set to one of `store.sub_payment_methods`, such as `"BRI"`. Do not submit BRI VA as `paymentMethod: "briva"` or any other combined method string. For manual bank transfer, send `paymentMethod: "bank_transfer"` and the selected account unique id.
+For payment selection, render `store.payment_method_options[].display` and submit only the selected option `value`. The runtime turns `va:BRI` into `payment_method: "va"` plus `sub_payment_method: "BRI"` for the backend, and turns `bt:BCA:payment_account_uid` into `payment_method: "bank_transfer"` plus `payment_account_unique_id: "payment_account_uid"`.
 
-When the selected payment method is `bank_transfer`, the runtime requires `paymentAccountUniqueId` or `payment_account_unique_id` before it sends the order request. Use the selected object from `store.payment_accounts`; the runtime forwards its `unique_id` as `payment_account_unique_id` for the order API. If bank account id, financial entity id, account holder, or account number fields are present, the runtime ignores them.
+Create orders only from an intentional visitor submit action.
 
-Do not create orders automatically on page load.
+After `createOrder` succeeds, HTML Checkout Pages automatically fire the configured form-submit analytics events on both client and server side. Events are only sent for analytics pixels configured on the page. New HTML Checkout Pages are prefilled in the editor with Meta and TikTok `InitiateCheckout`, SnackVideo client `formSubmit`, and SnackVideo server `EVENT_FORM_SUBMIT`; you can change them before saving. Add a separate analytics event only when you intentionally need an extra custom event.
 
-After `createOrder` succeeds, HTML Checkout Pages automatically fire the configured form-submit analytics events on both client and server side. Events are only sent for analytics pixels configured on the page. New HTML Checkout Pages are prefilled in the editor with Meta and TikTok `InitiateCheckout`, SnackVideo client `formSubmit`, and SnackVideo server `EVENT_FORM_SUBMIT`; you can change them before saving. Do not manually duplicate those configured submit events unless you intentionally need an extra custom event.
+Choose the post-order redirect yourself. The runtime creates the order and fires submit analytics; your page handles navigation. Read `Scalev.data.get().after_checkout` when present, then follow [HTML Mode checkout success types](/en/html-mode-checkout-success-paths).
 
-Choose the post-order redirect yourself. The runtime creates the order and fires submit analytics; it does not navigate automatically. Read `Scalev.data.get().after_checkout` when present, then follow [HTML Mode checkout success types](/en/html-mode-checkout-success-paths).
-
-The returned order data is a slim public response for redirects and buyer-facing payment UI. Use `secret_slug`, `public_order_url`, `payment_url`, `handler_phone`, `chat_message`, totals, line items, payment fields, and the existing `variants` and `bundle_price_options` object maps; do not depend on internal order IDs, dashboard revenue fields, platform fees, or affiliate attribution.
+The returned order data is a slim public response for redirects and buyer-facing payment UI. Use `secret_slug`, `public_order_url`, `payment_url`, `handler_phone`, `chat_message`, totals, line items, payment fields, and the existing `variants` and `bundle_price_options` object maps. Internal order IDs, dashboard revenue fields, platform fees, and affiliate attribution are outside the public runtime contract.
 
 ### Error handling
 
-Runtime methods reject the `Promise` with a JavaScript `Error`. They do not return a stable customer-facing HTTP error envelope.
+Runtime methods reject the `Promise` with a JavaScript `Error`. Use the JavaScript `Error` as the stable customer-facing error surface.
 
-Use `error.message` for UI copy. Use `error.status`, `error.data`, and `Scalev.diagnostics.get()` only for debugging or advanced handling. Do not show `error.data.error` directly; depending on the upstream failure, it can be a string, boolean, object, or field-error map.
+Use `error.message` for UI copy. Use `error.status`, `error.data`, and `Scalev.diagnostics.get()` only for debugging or advanced handling. Keep raw `error.data.error` out of customer-facing UI because upstream failures can return a string, boolean, object, or field-error map.
 
 ```js
 try {
   const order = await Scalev.checkout.createOrder(payload);
   return order;
 } catch (error) {
-  showFormError(error.message || "Order could not be created.");
+  showFormError(error.message || "Order creation failed.");
   console.debug("Scalev checkout error", {
     status: error.status,
     data: error.data,
@@ -384,7 +399,7 @@ try {
 }
 ```
 
-Do not call `/api/v2/...` runtime proxy URLs directly from page code. Use the `Scalev.checkout.*` methods so validation errors are normalized before they reach your UI.
+Use the `Scalev.checkout.*` methods instead of `/api/v2/...` runtime proxy URLs so validation errors are normalized before they reach your UI.
 
 ## `Scalev.analytics.track(providerOrPayload, payload?)`
 
@@ -431,7 +446,7 @@ The runtime forwards the legacy Scalev analytics payload shapes for each provide
 
 For product attribution, pass `variants`, `orderVariants`, or `ordervariants` with `variant_unique_id` / `unique_id`, and `bundlePriceOptions`, `bundle_price_options`, or `orderbundles` with `bundle_price_option_unique_id` / `unique_id`.
 
-Only track events that match the page interaction. Do not send credentials or private customer tokens in analytics payloads.
+Only track events that match the page interaction. Keep credentials and private customer tokens out of analytics payloads.
 
 ## `Scalev.prefill.get()`
 
@@ -471,11 +486,11 @@ await Scalev.prefill.save(
 );
 ```
 
-Only save ordinary form values that are safe to remember. Do not save passwords, tokens, payment secrets, or private credentials.
+Only save ordinary form values that are safe to remember. Keep passwords, tokens, payment secrets, and private credentials out of prefill storage.
 
 ## `Scalev.customer.prefill()`
 
-Returns a mediated customer profile when the visitor has an active storefront customer session. If no customer session is available, or if the customer lookup fails, it returns `null`.
+Returns a mediated customer profile when the visitor has an active storefront customer session. The fallback result is `null`.
 
 ```js
 const customer = await Scalev.customer.prefill();
@@ -495,11 +510,11 @@ Returns recent runtime diagnostics for debugging.
 const diagnostics = Scalev.diagnostics.get();
 ```
 
-Diagnostics can include failed runtime requests and, when `?agent_debug=1` is present, visual warnings such as horizontal overflow or unlabeled visible form controls. Do not build customer-facing logic from diagnostics; use it for debugging and QA only.
+Diagnostics can include failed runtime requests and, when `?agent_debug=1` is present, visual warnings such as horizontal overflow or unlabeled visible form controls. Use diagnostics for debugging and QA only.
 
 ## Minimal non-store example
 
-Use this pattern when Store Context is not selected:
+Use this pattern when Store Context is unselected:
 
 ```html
 <script>

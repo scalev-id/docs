@@ -3,9 +3,9 @@ title: "Runtime HTML Mode"
 description: "Gunakan method runtime window.Scalev yang tersedia di halaman Scalev HTML Mode."
 ---
 
-Halaman Scalev HTML Mode dapat memakai `window.Scalev` dari JavaScript browser. Runtime ini memberi akses ke konteks halaman yang aman, Store Context terpilih, helper checkout, analytics forwarding, helper prefill form, dan diagnostics tanpa mengekspos token API privat.
+Halaman Scalev HTML Mode dapat memakai `window.Scalev` dari JavaScript browser. Runtime ini memberi akses ke konteks halaman yang aman, Store Context terpilih, helper checkout, analytics forwarding, helper prefill form, dan diagnostics sambil menjaga token API privat tetap di sisi server.
 
-Halaman ini ditulis untuk developer dan AI agent yang membuat file HTML Mode. Jika kamu membuat file HTML untuk Scalev, gunakan referensi ini dan jangan memanggil URL privat Scalev secara langsung.
+Halaman ini ditulis untuk developer dan AI agent yang membuat file HTML Mode. Jika kamu membuat file HTML untuk Scalev, gunakan referensi ini dan method `window.Scalev` yang terdokumentasi sebagai pengganti URL privat Scalev.
 
 ## Ketersediaan
 
@@ -25,22 +25,22 @@ Sebagian besar method bersifat asynchronous dan mengembalikan `Promise`. `Scalev
 
 ## Store Context
 
-Halaman HTML Mode bisa memiliki Store Context atau tidak.
+Halaman HTML Mode bisa memiliki Store Context.
 
-Jika Store Context dipilih, `Scalev.data.get().store` berisi ringkasan store, produk terpilih, dan bundle price options terpilih saja. Data ini bukan seluruh katalog store.
+Jika Store Context dipilih, `Scalev.data.get().store` berisi ringkasan store, produk terpilih, dan bundle price options terpilih saja. Perlakukan data ini sebagai katalog checkout khusus halaman.
 
-Jika HTML Checkout Page dipilih, `Scalev.data.get().after_checkout` berisi type aksi setelah checkout berhasil beserta konfigurasi tujuan publiknya. Object ini adalah state konfigurasi dari editor. Runtime mengeksposnya, tetapi tidak melakukan redirect otomatis setelah order dibuat.
+Jika HTML Checkout Page dipilih, `Scalev.data.get().after_checkout` berisi type aksi setelah checkout berhasil beserta konfigurasi tujuan publiknya. Object ini adalah state konfigurasi dari editor. Runtime mengeksposnya agar halaman kamu bisa menjalankan redirect setelah order dibuat.
 
-Jika Store Context belum dipilih, `store` tidak tersedia. Jangan membuat checkout, payment, shipping, diskon, katalog produk, cart, atau flow pembuatan order. Perlakukan halaman sebagai landing page biasa dan gunakan hanya method aman seperti `Scalev.data.get()`, `Scalev.analytics.track()`, dan `Scalev.prefill.get()`.
+Jika Store Context belum dipilih, perlakukan `store` sebagai data yang belum tersedia. Perlakukan halaman sebagai landing page biasa dan gunakan hanya method aman seperti `Scalev.data.get()`, `Scalev.analytics.track()`, dan `Scalev.prefill.get()`.
 
 ## Aturan keamanan
 
-- Jangan meminta atau menyimpan API key, business-user JWT, storefront API key, customer token, cookie, atau kredensial.
-- Jangan memanggil URL privat Scalev atau private API langsung dari JavaScript halaman.
+- Jaga API key, business-user JWT, storefront API key, customer token, cookie, dan kredensial tetap di luar JavaScript halaman.
+- Gunakan method `window.Scalev` yang terdokumentasi sebagai pengganti URL privat Scalev atau private API.
 - Gunakan hanya method `window.Scalev` yang terdokumentasi.
 - Buat order hanya setelah pengunjung sengaja submit form.
 - Utamakan `Scalev.checkout.createOrder()` saat submit; `validateOrder()` bersifat opsional karena `createOrder()` sudah memvalidasi payload.
-- Jangan mengasumsikan produk, bundle, harga, stok, payment method, opsi pengiriman, atau identitas customer yang tidak tersedia.
+- Gunakan hanya produk, bundle, harga, stok, payment method, opsi pengiriman, dan identitas customer yang tersedia di data runtime.
 
 ## `Scalev.data.get()`
 
@@ -77,8 +77,22 @@ Dengan Store Context, `store` berisi konteks terpilih saja:
     "id": 1,
     "unique_id": "store_uid",
     "name": "Main Store",
-    "payment_methods": ["bank_transfer", "cod"],
-    "sub_payment_methods": [],
+    "payment_method_options": [
+      {
+        "value": "bt:BCA:payment_account_uid",
+        "display": "Bank Central Asia (PT Interna Cipta Asia)"
+      },
+      {
+        "value": "cod",
+        "display": "COD"
+      },
+      {
+        "value": "va:BRI",
+        "display": "BRI Virtual Account"
+      }
+    ],
+    "payment_methods": ["bank_transfer", "cod", "va"],
+    "sub_payment_methods": ["BRI"],
     "payment_accounts": [
       {
         "id": 30,
@@ -87,9 +101,9 @@ Dengan Store Context, `store` berisi konteks terpilih saja:
         "financial_entity": {
           "id": 3,
           "name": "Bank Central Asia",
-          "code": "bca"
+          "code": "BCA"
         },
-        "account_holder": "PT Brand",
+        "account_holder": "PT Interna Cipta Asia",
         "account_number": "1234567890"
       }
     ],
@@ -124,34 +138,40 @@ Dengan Store Context, `store` berisi konteks terpilih saja:
 }
 ```
 
-Gunakan data ini untuk render produk terpilih, bundle option, payment methods aktif, dan form yang memakai store. Variant produk terpilih tersedia di `store.products[].variants[]`. Jangan mengasumsikan produk, bundle, atau payment method yang tidak ada di payload ini.
+Gunakan data ini untuk render produk terpilih, bundle option, payment methods aktif, dan form yang memakai store. Variant produk terpilih tersedia di `store.products[].variants[]`. Perlakukan payload ini sebagai seluruh konteks yang tersedia untuk halaman.
 
-`store.payment_methods` berisi payment methods aktif setelah Scalev memfilter pengaturan store berdasarkan kapabilitas payment bisnis. Gunakan `store.sub_payment_methods` untuk submethod VA yang aktif saat tersedia.
+`store.payment_method_options` berisi object payment option final yang bisa dipilih. Render `display` sebagai label untuk visitor dan submit `value` sebagai `paymentMethod` atau `payment_method`.
 
-Bank virtual account bukan value `paymentMethod` terpisah. Untuk BRI VA, kirim `paymentMethod: "va"` dan `subPaymentMethod: "BRI"`. Jangan kirim string gabungan seperti `briva`, `bri_va`, atau `va_bri`.
+Value payment option sudah dibuat flat:
 
-Untuk bank transfer manual, render pilihan per rekening dari `store.payment_accounts` dengan `method` `bank_transfer`. Jangan tampilkan satu pilihan `bank_transfer` generik tanpa rekening. Khusus pilihan rekening `bank_transfer` ini, tampilkan nama bank dari `payment_account.financial_entity.name`; gunakan `payment_account.financial_entity.code` hanya sebagai fallback. `account_holder` adalah pemilik rekening, bukan nama bank. UI checkout bisa menggabungkan method regular dari `store.payment_methods` dengan rekening bank transfer tersebut, lalu submit rekening terpilih sebagai `paymentAccountUniqueId` atau `payment_account_unique_id`.
+- `va:BRI` berarti virtual account BRI.
+- `bt:BCA:payment_account_uid` berarti bank transfer manual untuk account BCA yang diwakili `payment_account_uid`.
+- Value regular seperti `cod`, `qris`, `invoice`, `alfamart`, atau `gopay` tetap sama.
+
+Display payment option sudah siap untuk UI client:
+
+- `va:BRI` tampil sebagai `BRI Virtual Account`.
+- `qris` tampil sebagai `QRIS`.
+- `gopay` tampil sebagai `GoPay`.
+- `bt:BCA:payment_account_uid` tampil sebagai `Bank Central Asia (PT Interna Cipta Asia)` saat account holder adalah `PT Interna Cipta Asia`.
+
+Field legacy yang deprecated masih diekspos untuk halaman lama:
+
+- `store.payment_methods`
+- `store.sub_payment_methods`
+- `store.payment_accounts`
+
+Gunakan hanya `store.payment_method_options` untuk development checkout HTML Mode baru. Perlakukan field deprecated sebagai data referensi legacy untuk halaman lama.
 
 ```js
-const bankTransferAccounts = (store.payment_accounts || []).filter(
-  (account) => account.method === "bank_transfer",
-);
+const paymentMethodOptions = store.payment_method_options || [];
+const selectedPaymentOption = paymentMethodOptions[0];
 
-const paymentOptions = [
-  ...(store.payment_methods || [])
-    .filter((method) => method !== "bank_transfer")
-    .map((method) => ({ type: method, label: method })),
-  ...bankTransferAccounts.map((paymentAccount) => ({
-    type: "bank_transfer",
-    label:
-      paymentAccount.financial_entity?.name ||
-      paymentAccount.financial_entity?.code ||
-      "Bank Transfer",
-    paymentAccountUniqueId: paymentAccount.unique_id,
-    accountHolder: paymentAccount.account_holder,
-    accountNumber: paymentAccount.account_number,
-  })),
-];
+const label = selectedPaymentOption.display;
+
+const payload = {
+  paymentMethod: selectedPaymentOption.value,
+};
 ```
 
 ### Konfigurasi aksi setelah checkout
@@ -166,7 +186,7 @@ const paymentOptions = [
 | `custom_url` | URL tujuan untuk `custom_url`, jika dikonfigurasi. |
 | `handler_assignment` | Mode assignment sales store terpilih untuk `direct_to_whatsapp`, misalnya `rotator` atau `fixed`. |
 
-Runtime tidak menjalankan aksi ini otomatis. Ikuti [Aksi setelah order HTML Mode](/id/aksi-setelah-order-html-mode) dan gunakan state konfigurasi ini untuk memilih redirect. Untuk `direct_to_whatsapp`, sales person terpilih diselesaikan saat order dibuat; gunakan `handler_phone` dari response order.
+Halaman kamu menjalankan aksi ini setelah order dibuat. Ikuti [Aksi setelah order HTML Mode](/id/aksi-setelah-order-html-mode) dan gunakan state konfigurasi ini untuk memilih redirect. Untuk `direct_to_whatsapp`, sales person terpilih diselesaikan saat order dibuat; gunakan `handler_phone` dari response order.
 
 ## Method lokasi
 
@@ -189,7 +209,7 @@ const subdistricts = await Scalev.location.subdistricts(cityId, {
 });
 ```
 
-Gunakan ID dari step sebelumnya. Jangan hardcode location ID kecuali user memberikannya secara eksplisit.
+Gunakan ID dari step sebelumnya. Gunakan hardcoded location ID hanya saat user memberikannya secara eksplisit.
 
 ## `Scalev.checkout.validateDiscount(payload)`
 
@@ -203,7 +223,7 @@ const result = await Scalev.checkout.validateDiscount({
   grossRevenue: 179000,
   netProductPrice: 179000,
   shippingCost: 0,
-  paymentMethod: store.sub_payment_methods?.[0] || "bank_transfer",
+  paymentMethod: store.payment_method_options?.[0]?.value || "cod",
 });
 ```
 
@@ -217,7 +237,7 @@ Nama field dapat memakai camelCase atau snake_case:
 - `paymentMethod` atau `payment_method`
 - `domain`
 
-`pageUniqueId` otomatis memakai halaman saat ini, dan `domain` otomatis memakai hostname saat ini. Untuk VA, kirim `paymentMethod: "va"` dan kode bank terpilih sebagai `subPaymentMethod`, misalnya `subPaymentMethod: "BRI"`. Value persis yang ada di `store.sub_payment_methods` juga dinormalisasi menjadi `va` untuk kompatibilitas, tetapi jangan mengarang value gabungan seperti `briva`. Untuk bank transfer manual, kirim `paymentMethod: "bank_transfer"` dan rekening terpilih sebagai `paymentAccountUniqueId` atau `payment_account_unique_id`.
+`pageUniqueId` otomatis memakai halaman saat ini, dan `domain` otomatis memakai hostname saat ini. Jika value option terpilih adalah value flat seperti `va:BRI` atau `bt:BCA:payment_account_uid`, kirim value itu apa adanya sebagai `paymentMethod`. Runtime akan menormalisasinya sebelum memanggil API Scalev.
 
 Gunakan hanya untuk flow checkout yang terhubung dengan store.
 
@@ -237,7 +257,7 @@ const warehouses = await Scalev.checkout.searchWarehouses({
 
 Nama field yang diterima:
 
-- `storeId`, `store_id`, atau `store`; jika tidak dikirim, runtime memakai Store Context terpilih.
+- `storeId`, `store_id`, atau `store`; tanpa nilai store, runtime memakai Store Context terpilih.
 - `destinationSubdistrictId`, `destination_subdistrict_id`, `subdistrictId`, `subdistrict_id`, `destinationId`, `destination_id`, `destination`, `locationId`, `location_id`, atau `location`
 - `variants`, `orderVariants`, atau `ordervariants`: array `{ variantId | variant_id | id | variant_unique_id | variantUniqueId | unique_id | uniqueId, qty | quantity }`
 - `orderId`, `order_id`, atau `order` untuk flow order yang sudah ada
@@ -261,7 +281,7 @@ const couriers = await Scalev.checkout.searchCouriers({
 
 Nama field yang diterima:
 
-- `storeId`, `store_id`, atau `store`; jika tidak dikirim, runtime memakai Store Context terpilih.
+- `storeId`, `store_id`, atau `store`; tanpa nilai store, runtime memakai Store Context terpilih.
 - `paymentMethod` atau `payment_method`
 - `destinationSubdistrictId`, `destination_subdistrict_id`, `subdistrictId`, `subdistrict_id`, `locationId`, `location_id`, `destinationId`, `destination_id`, `destination`, atau `location`
 - `warehouseId`, `warehouse_id`, atau `warehouse`. Kamu bisa mengirim object warehouse dari hasil `searchWarehouses`.
@@ -271,7 +291,7 @@ Gunakan method ini setelah pengunjung memilih produk dan tujuan pengiriman. Back
 
 ## `Scalev.checkout.validateOrder(payload)`
 
-Opsional untuk memvalidasi bentuk payload order tanpa membuat order. Helper ini berguna untuk preflight check atau debugging, tetapi tidak wajib dipanggil sebelum `createOrder`. Pada flow submit normal, panggil `createOrder` dan tangani error validasinya.
+Opsional untuk memvalidasi bentuk payload order sebagai preflight check. Helper ini berguna untuk debugging. Pada flow submit normal, panggil `createOrder` dan tangani error validasinya.
 
 ```js
 const data = Scalev.data.get();
@@ -312,16 +332,14 @@ Warning umum mencakup page id, store id, nama customer, nomor customer, atau ite
 
 ## `Scalev.checkout.createOrder(payload)`
 
-Membuat public order sungguhan dan memvalidasi payload. Panggil method ini hanya setelah pengunjung sengaja submit form. Kamu tidak perlu memanggil `validateOrder` terlebih dulu.
+Membuat public order sungguhan dan memvalidasi payload. Panggil method ini hanya setelah pengunjung sengaja submit form. `validateOrder` bersifat opsional sebagai preflight helper.
 
 ```js
 async function submitOrder() {
   const data = Scalev.data.get();
   const store = data.store;
   const firstVariant = store.products[0].variants[0];
-  const bankTransferAccount = store.payment_accounts?.find(
-    (account) => account.method === "bank_transfer",
-  );
+  const selectedPaymentOption = store.payment_method_options[0];
 
   const payload = {
     page: data.page.uniqueId,
@@ -332,8 +350,7 @@ async function submitOrder() {
     address: "Customer address",
     location: 12345,
     ordervariants: [{ variant_unique_id: firstVariant.unique_id, quantity: 1 }],
-    paymentMethod: store.payment_methods[0] || "bank_transfer",
-    paymentAccountUniqueId: bankTransferAccount?.unique_id,
+    paymentMethod: selectedPaymentOption.value,
   };
 
   const order = await Scalev.checkout.createOrder(payload);
@@ -346,36 +363,34 @@ async function submitOrder() {
 - Customer fields: `customerName`, `customerPhone`, `customerEmail`, `name`, `phone`, `address`
 - Store dan page fields: `store`, `page`, plus alias seperti `storeUniqueId`, `store_unique_id`, `pageUniqueId`, dan `page_unique_id`
 - Lokasi dan shipping fields: `location`, `destinationSubdistrictId`, `subdistrictId`, `postalCode`, `shippingOrigin`, `courierService`, `shippingCost`, dan `courierAggregator`
-- Payment fields: `paymentMethod`, `paymentAccountUniqueId`, `payment_account_unique_id`, dan `subPaymentMethod`
+- Payment field: `paymentMethod` atau `payment_method`
 - Item fields: `ordervariants` dengan `{ variant_unique_id, quantity }`, `orderbundles` dengan `{ bundle_price_option_unique_id, quantity }`, atau legacy `orderlines`
 - Diskon dan pricing fields: `discountCodeCode`, `productDiscount`, `shippingCost`, `shippingDiscount`
 
-Gunakan value `unique_id` dari `Scalev.data.get().store`; jangan mengirim id numerik produk, variant, atau bundle sebagai identifier item order.
+Gunakan value `unique_id` dari `Scalev.data.get().store` sebagai identifier item order.
 
-Untuk VA, submit payment method dan bank secara terpisah: `paymentMethod: "va"` dan `subPaymentMethod` diisi salah satu value `store.sub_payment_methods`, misalnya `"BRI"`. Jangan submit BRI VA sebagai `paymentMethod: "briva"` atau string method gabungan lain. Untuk bank transfer manual, kirim `paymentMethod: "bank_transfer"` dan unique id rekening terpilih.
+Untuk pilihan payment, render `store.payment_method_options[].display` dan submit hanya `value` option terpilih. Runtime mengubah `va:BRI` menjadi `payment_method: "va"` plus `sub_payment_method: "BRI"` untuk backend, dan mengubah `bt:BCA:payment_account_uid` menjadi `payment_method: "bank_transfer"` plus `payment_account_unique_id: "payment_account_uid"`.
 
-Saat payment method terpilih adalah `bank_transfer`, runtime mewajibkan `paymentAccountUniqueId` atau `payment_account_unique_id` sebelum mengirim request order. Gunakan object terpilih dari `store.payment_accounts`; runtime meneruskan `unique_id` object tersebut sebagai `payment_account_unique_id` untuk order API. Jika id rekening bank, financial entity id, nama pemilik rekening, atau nomor rekening ikut dikirim, runtime mengabaikannya.
+Buat order hanya dari aksi submit pengunjung.
 
-Jangan membuat order otomatis saat halaman dibuka.
+Setelah `createOrder` berhasil, HTML Checkout Page otomatis men-trigger event analytics submit form yang sudah dikonfigurasi di sisi client dan server. Event hanya dikirim untuk pixel analytics yang sudah dikonfigurasi pada page. HTML Checkout Page baru di editor sudah terisi awal dengan Meta dan TikTok `InitiateCheckout`, SnackVideo client `formSubmit`, dan SnackVideo server `EVENT_FORM_SUBMIT`; kamu bisa mengubahnya sebelum menyimpan page. Tambahkan event analytics terpisah hanya saat memang perlu event custom tambahan.
 
-Setelah `createOrder` berhasil, HTML Checkout Page otomatis men-trigger event analytics submit form yang sudah dikonfigurasi di sisi client dan server. Event hanya dikirim untuk pixel analytics yang sudah dikonfigurasi pada page. HTML Checkout Page baru di editor sudah terisi awal dengan Meta dan TikTok `InitiateCheckout`, SnackVideo client `formSubmit`, dan SnackVideo server `EVENT_FORM_SUBMIT`; kamu bisa mengubahnya sebelum menyimpan page. Jangan mengirim ulang event submit yang sudah dikonfigurasi kecuali memang perlu event custom tambahan.
+Pilih sendiri jenis redirect setelah order. Runtime membuat order dan men-trigger submit analytics; halaman kamu menangani navigasi. Baca `Scalev.data.get().after_checkout` jika tersedia, lalu ikuti [Aksi setelah order HTML Mode](/id/aksi-setelah-order-html-mode).
 
-Pilih sendiri jenis redirect setelah order. Runtime membuat order dan men-trigger submit analytics; runtime tidak melakukan navigasi otomatis. Baca `Scalev.data.get().after_checkout` jika tersedia, lalu ikuti [Aksi setelah order HTML Mode](/id/aksi-setelah-order-html-mode).
-
-Data order yang dikembalikan adalah public response ringkas untuk redirect dan UI payment buyer-facing. Gunakan `secret_slug`, `public_order_url`, `payment_url`, `handler_phone`, `chat_message`, total, line item, field payment, serta object map `variants` dan `bundle_price_options` yang sudah ada; jangan bergantung pada ID order internal, revenue khusus dashboard, platform fee, atau atribusi affiliate.
+Data order yang dikembalikan adalah public response ringkas untuk redirect dan UI payment buyer-facing. Gunakan `secret_slug`, `public_order_url`, `payment_url`, `handler_phone`, `chat_message`, total, line item, field payment, serta object map `variants` dan `bundle_price_options` yang sudah ada. ID order internal, revenue khusus dashboard, platform fee, dan atribusi affiliate berada di luar kontrak runtime publik.
 
 ### Error handling
 
-Method runtime me-reject `Promise` dengan JavaScript `Error`. Method ini tidak mengembalikan HTTP error envelope yang stabil untuk ditampilkan ke customer.
+Method runtime me-reject `Promise` dengan JavaScript `Error`. Gunakan JavaScript `Error` sebagai surface error customer-facing yang stabil.
 
-Gunakan `error.message` untuk copy UI. Gunakan `error.status`, `error.data`, dan `Scalev.diagnostics.get()` hanya untuk debugging atau handling lanjutan. Jangan tampilkan `error.data.error` langsung; tergantung kegagalan upstream, field itu bisa berupa string, boolean, object, atau map error per field.
+Gunakan `error.message` untuk copy UI. Gunakan `error.status`, `error.data`, dan `Scalev.diagnostics.get()` hanya untuk debugging atau handling lanjutan. Jaga raw `error.data.error` tetap di luar UI customer-facing karena kegagalan upstream bisa mengembalikan string, boolean, object, atau map error per field.
 
 ```js
 try {
   const order = await Scalev.checkout.createOrder(payload);
   return order;
 } catch (error) {
-  showFormError(error.message || "Order tidak dapat dibuat.");
+  showFormError(error.message || "Order gagal dibuat.");
   console.debug("Scalev checkout error", {
     status: error.status,
     data: error.data,
@@ -384,7 +399,7 @@ try {
 }
 ```
 
-Jangan memanggil URL proxy runtime `/api/v2/...` langsung dari kode halaman. Gunakan method `Scalev.checkout.*` supaya error validasi dinormalisasi sebelum sampai ke UI.
+Gunakan method `Scalev.checkout.*` sebagai pengganti URL proxy runtime `/api/v2/...` supaya error validasi dinormalisasi sebelum sampai ke UI.
 
 ## `Scalev.analytics.track(providerOrPayload, payload?)`
 
@@ -427,11 +442,11 @@ Nama provider yang didukung:
 - `tiktok`
 - `kwai`
 
-Runtime meneruskan shape payload analytics Scalev lama untuk setiap provider. Runtime menambahkan page id saat ini, event source URL, referrer, dan attribution aman dari cookie browser atau URL parameter saat tersedia. Untuk event Facebook dan TikTok, `event_id` dibuat otomatis jika tidak dikirim.
+Runtime meneruskan shape payload analytics Scalev lama untuk setiap provider. Runtime menambahkan page id saat ini, event source URL, referrer, dan attribution aman dari cookie browser atau URL parameter saat tersedia. Untuk event Facebook dan TikTok, `event_id` dibuat otomatis saat value belum dikirim.
 
 Untuk atribusi produk, kirim `variants`, `orderVariants`, atau `ordervariants` dengan `variant_unique_id` / `unique_id`, dan `bundlePriceOptions`, `bundle_price_options`, atau `orderbundles` dengan `bundle_price_option_unique_id` / `unique_id`.
 
-Track hanya event yang sesuai dengan interaksi halaman. Jangan mengirim kredensial atau customer token privat dalam payload analytics.
+Track hanya event yang sesuai dengan interaksi halaman. Jaga kredensial dan customer token privat tetap di luar payload analytics.
 
 ## `Scalev.prefill.get()`
 
@@ -471,11 +486,11 @@ await Scalev.prefill.save(
 );
 ```
 
-Simpan hanya value form biasa yang aman untuk diingat. Jangan menyimpan password, token, rahasia pembayaran, atau kredensial privat.
+Simpan hanya value form biasa yang aman untuk diingat. Jaga password, token, rahasia pembayaran, dan kredensial privat tetap di luar prefill storage.
 
 ## `Scalev.customer.prefill()`
 
-Mengembalikan profil customer termediasi saat pengunjung memiliki sesi customer storefront aktif. Jika sesi customer tidak tersedia, atau lookup customer gagal, method ini mengembalikan `null`.
+Mengembalikan profil customer termediasi saat pengunjung memiliki sesi customer storefront aktif. Fallback result method ini adalah `null`.
 
 ```js
 const customer = await Scalev.customer.prefill();
@@ -495,9 +510,9 @@ Mengembalikan diagnostics runtime terbaru untuk debugging.
 const diagnostics = Scalev.diagnostics.get();
 ```
 
-Diagnostics dapat mencakup request runtime yang gagal dan, saat `?agent_debug=1` aktif, warning visual seperti horizontal overflow atau form control yang terlihat tetapi belum memiliki label. Jangan membuat logika customer-facing dari diagnostics; gunakan hanya untuk debugging dan QA.
+Diagnostics dapat mencakup request runtime yang gagal dan, saat `?agent_debug=1` aktif, warning visual seperti horizontal overflow atau form control yang terlihat tetapi belum memiliki label. Gunakan diagnostics hanya untuk debugging dan QA.
 
-## Contoh minimal tanpa store
+## Contoh minimal saat store belum tersedia
 
 Gunakan pola ini saat Store Context belum dipilih:
 

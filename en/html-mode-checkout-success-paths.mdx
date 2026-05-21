@@ -3,7 +3,7 @@ title: "HTML Mode checkout success types"
 description: "Choose what happens after Scalev.checkout.createOrder succeeds in a manual HTML Mode checkout."
 ---
 
-When you build a checkout form manually in HTML Mode, `Scalev.checkout.createOrder(payload)` only creates the order. It does not automatically redirect after the order is created.
+When you build a checkout form manually in HTML Mode, `Scalev.checkout.createOrder(payload)` creates the order. Your page handles the redirect after the order is created.
 
 HTML Checkout Pages expose the selected after-checkout configuration in `Scalev.data.get().after_checkout`. Use that config to choose one of these six types after `createOrder` returns successfully.
 
@@ -13,19 +13,19 @@ const afterCheckout = Scalev.data.get().after_checkout || {
 };
 ```
 
-`after_checkout` is editor config state only. It is not computed from the order response.
+`after_checkout` is editor config state from the Scalev editor.
 
 ## Redirect rules
 
 Use these rules when deciding where to send the buyer after `createOrder` succeeds:
 
-- E-payment methods always go to the payment instruction page. This includes `va`, `qris`, `card`, `invoice`, `alfamart`, `ovo`, `dana`, `shopeepay`, `linkaja`, and `gopay`.
-- VA submethods selected from `store.sub_payment_methods` are treated as `va`.
-- Manual bank transfer is treated as `bank_transfer`. When creating the order, include the selected bank account as `paymentAccountUniqueId` or `payment_account_unique_id`.
+- For new HTML Mode checkout pages, render payment labels from `Scalev.data.get().store.payment_method_options[].display` and submit the selected option `value` as `paymentMethod`.
+- E-payment methods always go to the payment instruction page. This includes `va`, flattened VA values such as `va:BRI`, `qris`, `card`, `invoice`, `alfamart`, `ovo`, `dana`, `shopeepay`, `linkaja`, and `gopay`.
+- Manual bank-transfer values such as `bt:BCA:payment_account_uid` are treated as `bank_transfer`.
 - If the order status is `draft`, the payment instruction path falls back to **Self Hosted Orderan / Invoice** (`order_page`).
 - If the page is rendered inside an iframe, post the target URL to the parent window instead of navigating the iframe directly.
 
-Use the order data returned by `createOrder`. Do not hardcode private API URLs.
+Use the order data returned by `createOrder` and the public URLs in that response.
 
 `createOrder` returns the standard Scalev response envelope:
 
@@ -73,14 +73,11 @@ const SCALEV_QUERY_FORWARD_HOSTS = new Set([
   "app.scalev.com",
 ]);
 
-function paymentMethodForRedirect(paymentMethod, store) {
-  if (
-    typeof paymentMethod === "string" &&
-    Array.isArray(store?.sub_payment_methods) &&
-    store.sub_payment_methods.includes(paymentMethod)
-  ) {
-    return "va";
-  }
+function paymentMethodForRedirect(paymentMethod) {
+  if (typeof paymentMethod !== "string") return paymentMethod;
+
+  if (paymentMethod.toLowerCase().startsWith("va:")) return "va";
+  if (paymentMethod.toLowerCase().startsWith("bt:")) return "bank_transfer";
 
   return paymentMethod;
 }
@@ -140,7 +137,6 @@ function redirectAfterOrder({
   type,
   orderResponse,
   paymentMethod,
-  store,
   customWhatsappPhone,
   otherPagePath,
   customUrl,
@@ -148,7 +144,6 @@ function redirectAfterOrder({
   const order = orderResponse.data;
   const redirectPaymentMethod = paymentMethodForRedirect(
     paymentMethod || order.payment_method,
-    store,
   );
   const finalType = PAYMENT_INSTRUCTION_METHODS.has(redirectPaymentMethod)
     ? "success_page"
@@ -191,6 +186,7 @@ Example usage:
 const data = Scalev.data.get();
 const store = data.store;
 const afterCheckout = data.after_checkout || { type: "success_page" };
+const selectedPaymentOption = store.payment_method_options[0];
 
 const payload = {
   page: data.page.uniqueId,
@@ -200,8 +196,7 @@ const payload = {
   ordervariants: [
     { variant_unique_id: selectedVariant.unique_id, quantity: 1 },
   ],
-  paymentMethod: selectedPaymentMethod,
-  paymentAccountUniqueId: selectedPaymentAccount?.unique_id,
+  paymentMethod: selectedPaymentOption.value,
 };
 
 const orderResponse = await Scalev.checkout.createOrder(payload);
@@ -210,7 +205,6 @@ redirectAfterOrder({
   type: afterCheckout.type,
   orderResponse,
   paymentMethod: payload.paymentMethod,
-  store,
   customWhatsappPhone: afterCheckout.custom_whatsapp_phone,
   otherPagePath: afterCheckout.other_page_path,
   customUrl: afterCheckout.custom_url,
@@ -246,6 +240,6 @@ Use `custom_url` for destinations outside the current page flow, such as a CRM h
 
 Preserve query parameters for `other_page`. For `custom_url`, forward query parameters only when the target host is the current host or one of the known Scalev app hosts.
 
-After `Scalev.checkout.createOrder(payload)` succeeds, HTML Checkout Pages automatically fire the configured form-submit analytics events for analytics pixels configured on the page. Redirect handling is still manual, so keep the redirect after `createOrder` resolves and avoid duplicating the configured submit events yourself.
+After `Scalev.checkout.createOrder(payload)` succeeds, HTML Checkout Pages automatically fire the configured form-submit analytics events for analytics pixels configured on the page. Redirect handling is still manual, so keep the redirect after `createOrder` resolves and add custom analytics only for intentionally separate events.
 
 If the page has buttons or links that redirect to another URL, preserve the current query parameters that are commonly important for analytics, such as UTM, click, and affiliate parameters.
