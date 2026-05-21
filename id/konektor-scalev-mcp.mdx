@@ -42,6 +42,8 @@ Scalev MCP menyediakan empat tool:
 
 Model ini menjaga konektor tetap sederhana, tetapi tetap memberi akses ke surface Scalev API v3 yang membutuhkan autentikasi bisnis. Rute alur OAuth, rute khusus dashboard, dan rute storefront browser tidak tersedia melalui MCP.
 
+Untuk aksi tulis, asisten dapat mengirim field endpoint secara langsung atau di dalam field `body`. Scalev MCP meneruskan JSON body tersebut ke Scalev API v3 tanpa mengubah isinya.
+
 Contoh pekerjaan yang umum:
 
 - menampilkan bisnis dan user yang terhubung
@@ -132,6 +134,18 @@ Scalev menegakkan izin pada setiap request API. Jika asisten mencoba menjalankan
 Tool `execute` dapat memanggil endpoint Scalev API v3 non-GET jika token OAuth yang terhubung memiliki scope yang dibutuhkan. Sebagian endpoint tersebut dapat membuat, mengubah, menghapus, memvalidasi, atau menjalankan aksi bisnis. Tinjau aksi tulis di asisten AI Anda sebelum mengonfirmasinya.
 
 Konektor tidak melewati otorisasi Scalev. Peran Anda di bisnis Scalev, scope OAuth yang disetujui, dan endpoint API tujuan tetap menentukan apakah aksi diizinkan.
+
+### Landing page HTML Mode
+
+Untuk membuat dan mem-publish landing page HTML Mode dalam satu call, asisten harus menyertakan `is_published: true` di body `createLandingPage` bersama payload `page_display`.
+
+Jika `is_published` tidak dikirim atau bernilai false, Scalev menyimpan page display tersebut sebagai draft yang belum dipublish. Dalam kondisi itu response page dapat menampilkan `render_mode: "builder"`, `current_page_display_id: null`, dan `page_display: null` karena response hanya menyertakan display yang sedang dipublish.
+
+Flow draft yang eksplisit adalah:
+
+1. Buat page.
+2. Buat page display untuk page tersebut.
+3. Patch page dengan `is_published: true` dan `current_page_display_id` berisi ID display.
 
 ## Cabut akses
 

@@ -42,6 +42,8 @@ Scalev MCP exposes four tools:
 
 This keeps the connector small while still allowing access to the business-authenticated Scalev API v3 surface. OAuth flow routes, dashboard-only routes, and storefront browser routes are not exposed through MCP.
 
+For write actions, the assistant can send endpoint fields directly or inside the `body` field. Scalev MCP forwards the resulting JSON body to Scalev API v3 unchanged.
+
 Typical tasks include:
 
 - showing the connected business and user
@@ -132,6 +134,18 @@ Scalev enforces permissions on every API request. If the assistant tries to perf
 The `execute` tool can call non-GET Scalev API v3 endpoints when the connected OAuth token has the required scope. Some of those endpoints create, update, delete, validate, or run business actions. Review write actions in your AI assistant before you confirm them.
 
 The connector does not bypass Scalev authorization. Your Scalev business role, the approved OAuth scopes, and the target API endpoint still determine whether the action is allowed.
+
+### HTML Mode landing pages
+
+To create and publish an HTML Mode landing page in one call, the assistant must include `is_published: true` in the `createLandingPage` body together with the nested `page_display` payload.
+
+If `is_published` is omitted or false, Scalev saves the nested page display as an unpublished draft. In that case the page response can show `render_mode: "builder"`, `current_page_display_id: null`, and `page_display: null` because the response only embeds the current published display.
+
+The explicit draft flow is:
+
+1. Create the page.
+2. Create a page display for that page.
+3. Patch the page with `is_published: true` and `current_page_display_id` set to the display ID.
 
 ## Revoke access
 
