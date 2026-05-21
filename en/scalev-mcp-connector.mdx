@@ -1,0 +1,171 @@
+---
+title: "Scalev MCP connector"
+description: "Connect AI assistants to your Scalev business with OAuth."
+---
+
+Scalev MCP lets AI assistants that support remote MCP connect to your Scalev business. Use it when you want an assistant to inspect business data, find available Scalev API v3 actions, or run approved business API requests through a permissioned OAuth connection.
+
+The connector URL is:
+
+```text
+https://mcp.scalev.com/mcp
+```
+
+Do not paste Scalev API keys into an AI assistant. Use the MCP connector so Scalev can authenticate you with OAuth, show the requested permissions, and enforce access on every request.
+
+## How it works
+
+The flow is:
+
+```text
+AI assistant
+  -> Scalev MCP connector
+  -> Scalev API v3
+```
+
+When you connect an assistant, Scalev opens an OAuth approval flow. You sign in, choose the business, review the requested permissions, and approve access.
+
+After approval, the assistant calls the Scalev MCP connector. The connector forwards the OAuth token to Scalev API v3. Scalev validates the token, resolves the business and user, checks scopes, and runs the requested API action.
+
+You only need to enter the MCP connector URL. The assistant discovers the Scalev OAuth issuer at `https://api.scalev.com/v3/oauth`, then reads its metadata and opens the approval page at `https://app.scalev.com/oauth/authorize`.
+
+Do not use `https://app.scalev.com/oauth/authorize` as the MCP connector URL. That URL is the browser approval page used during OAuth.
+
+## Available tools
+
+Scalev MCP exposes four tools:
+
+- `get_me`: shows the connected Scalev business, user, OAuth app, and permission context.
+- `search`: finds business-authenticated Scalev API v3 endpoints that the assistant can ask to use.
+- `get`: reads one GET endpoint returned by `search`.
+- `execute`: runs one non-GET endpoint returned by `search`, such as create, update, delete, validation, or action endpoints.
+
+This keeps the connector small while still allowing access to the business-authenticated Scalev API v3 surface. OAuth flow routes, dashboard-only routes, and storefront browser routes are not exposed through MCP.
+
+Typical tasks include:
+
+- showing the connected business and user
+- listing orders, products, bundles, customers, stores, or landing pages
+- reading page, order, product, or WhatsApp account details
+- validating or creating allowed business resources through Scalev API v3
+- running any approved business-authenticated API action that appears in `search`, using `get` for GET endpoints and `execute` for non-GET endpoints
+
+## Requirements
+
+You need:
+
+- a Scalev account with access to a business
+- an AI assistant or MCP client that supports remote MCP servers with OAuth
+- access to the Scalev MCP connector URL
+
+Some AI assistants limit custom connectors by plan, workspace, or administrator setting. Check your AI assistant settings if you do not see an option to add a custom MCP server.
+
+## Connect an AI assistant
+
+1. Open the connector or tools settings in your AI assistant.
+2. Add a custom MCP server or connector.
+3. Enter `https://mcp.scalev.com/mcp` as the connector URL.
+4. Continue to the Scalev OAuth approval screen.
+5. Sign in to Scalev if prompted.
+6. Choose the business you want the assistant to access.
+7. Review the requested permissions.
+8. Click **Authorize**.
+9. Return to the AI assistant and test the connection.
+
+Useful first prompts:
+
+- "Show my Scalev business profile."
+- "Search for the Scalev endpoint to list landing pages."
+- "Find the API action for reading an order, then show me the required fields."
+
+## Use with ChatGPT
+
+ChatGPT can connect to Scalev through a custom MCP connector when that feature is available for your account or workspace.
+
+1. Make sure custom MCP connectors or developer mode are enabled for your ChatGPT account or workspace.
+2. Create a custom MCP app or connector.
+3. Use `https://mcp.scalev.com/mcp` as the MCP server URL.
+4. Publish or enable the connector for the workspace if your plan requires admin review.
+5. Connect Scalev and complete the Scalev OAuth approval flow.
+6. In a new chat, select Scalev from the tools menu before asking it to work with your Scalev business.
+
+ChatGPT may ask you to confirm write actions before they run. Review those confirmations before approving changes in Scalev.
+
+Reference: [Apps in ChatGPT](https://help.openai.com/en/articles/11487775-connectors-in-chatgpt) and [Building MCP servers for ChatGPT](https://platform.openai.com/docs/mcp/).
+
+## Use with Claude
+
+Claude supports remote MCP servers through custom connectors.
+
+For individual Claude plans:
+
+1. Open **Customize > Connectors** in Claude.
+2. Click **+**.
+3. Choose **Add custom connector**.
+4. Enter `https://mcp.scalev.com/mcp` as the remote MCP server URL.
+5. Click **Add**.
+6. Click **Connect** and complete the Scalev OAuth approval flow.
+
+For Claude Team and Enterprise workspaces:
+
+1. Ask an Owner or Primary Owner to open **Organization settings > Connectors**.
+2. Click **Add**.
+3. Choose **Custom > Web**.
+4. Enter `https://mcp.scalev.com/mcp` as the remote MCP server URL.
+5. Click **Add**.
+6. Each member can then open **Customize > Connectors**, find Scalev, and click **Connect**.
+
+To use Scalev in a Claude conversation, open the **+** menu in the composer, choose **Connectors**, and enable Scalev for that chat.
+
+Reference: [Claude custom connectors using remote MCP](https://support.claude.com/en/articles/11175166-get-started-with-custom-connectors-using-remote-mcp).
+
+## Permissions
+
+The approval screen shows the permissions requested by the connector. Scalev only grants permissions that the official Scalev MCP connector is allowed to request.
+
+The first connection may request the full set of machine-safe Scalev API v3 permissions so the assistant can discover and use the available business API actions. Dashboard-only permissions are not part of MCP approval.
+
+Scalev enforces permissions on every API request. If the assistant tries to perform an action outside the approved scopes, Scalev rejects the request.
+
+## Write actions
+
+The `execute` tool can call non-GET Scalev API v3 endpoints when the connected OAuth token has the required scope. Some of those endpoints create, update, delete, validate, or run business actions. Review write actions in your AI assistant before you confirm them.
+
+The connector does not bypass Scalev authorization. Your Scalev business role, the approved OAuth scopes, and the target API endpoint still determine whether the action is allowed.
+
+## Revoke access
+
+You can revoke the connection at any time:
+
+1. Open Scalev.
+2. Go to **Settings > Apps**.
+3. Find **Scalev MCP**.
+4. Click **Revoke Access**.
+
+After revocation, the assistant must reconnect and complete OAuth approval again before it can call Scalev.
+
+## Troubleshooting
+
+### The assistant says authentication is required
+
+Reconnect the Scalev MCP connector and complete the OAuth approval flow again.
+
+### The assistant gets a forbidden or insufficient permission error
+
+The connected business, your user role, or the approved scopes do not allow the requested action. Reconnect if you need to approve different scopes.
+
+### The assistant cannot discover the connector
+
+Check that the connector URL is exactly `https://mcp.scalev.com/mcp`. Your AI assistant must support remote MCP servers with OAuth.
+
+If your assistant asks for an authorization server URL, use `https://api.scalev.com/v3/oauth`. If it asks for a connector or MCP server URL, use `https://mcp.scalev.com/mcp`.
+
+### The assistant does not show any landing pages
+
+Make sure you selected the correct Scalev business during approval and that the business has landing pages available to your user.
+
+## Related docs
+
+- [Authorization with OAuth](/en/authorization-with-o-auth)
+- [Authentication with API key](/en/authentication-with-api-key)
+- [Scalev API v3 introduction](/en/dev-introduction)

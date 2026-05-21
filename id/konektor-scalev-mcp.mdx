@@ -1,0 +1,171 @@
+---
+title: "Konektor Scalev MCP"
+description: "Hubungkan asisten AI ke bisnis Scalev Anda dengan OAuth."
+---
+
+Scalev MCP memungkinkan asisten AI yang mendukung remote MCP terhubung ke bisnis Scalev Anda. Gunakan konektor ini saat Anda ingin asisten memeriksa data bisnis, mencari aksi Scalev API v3 yang tersedia, atau menjalankan request API bisnis yang sudah disetujui melalui koneksi OAuth.
+
+URL konektor adalah:
+
+```text
+https://mcp.scalev.com/mcp
+```
+
+Jangan tempel API key Scalev ke asisten AI. Gunakan konektor MCP agar Scalev dapat mengautentikasi Anda dengan OAuth, menampilkan izin yang diminta, dan menegakkan akses pada setiap request.
+
+## Cara kerjanya
+
+Alurnya adalah:
+
+```text
+Asisten AI
+  -> Konektor Scalev MCP
+  -> Scalev API v3
+```
+
+Saat Anda menghubungkan asisten, Scalev membuka alur persetujuan OAuth. Anda masuk, memilih bisnis, meninjau izin yang diminta, lalu menyetujui akses.
+
+Setelah disetujui, asisten memanggil konektor Scalev MCP. Konektor meneruskan token OAuth ke Scalev API v3. Scalev memvalidasi token, menentukan bisnis dan user, memeriksa scope, lalu menjalankan aksi API yang diminta.
+
+Anda hanya perlu memasukkan URL konektor MCP. Asisten akan menemukan issuer OAuth Scalev di `https://api.scalev.com/v3/oauth`, lalu membaca metadata-nya dan membuka halaman persetujuan di `https://app.scalev.com/oauth/authorize`.
+
+Jangan gunakan `https://app.scalev.com/oauth/authorize` sebagai URL konektor MCP. URL tersebut adalah halaman persetujuan browser yang dipakai selama OAuth.
+
+## Tools yang tersedia
+
+Scalev MCP menyediakan empat tool:
+
+- `get_me`: menampilkan bisnis Scalev, user, OAuth app, dan konteks izin yang terhubung.
+- `search`: mencari endpoint Scalev API v3 yang membutuhkan autentikasi bisnis dan dapat diminta oleh asisten.
+- `get`: membaca satu endpoint GET yang ditemukan melalui `search`.
+- `execute`: menjalankan satu endpoint non-GET yang ditemukan melalui `search`, seperti endpoint create, update, delete, validasi, atau aksi.
+
+Model ini menjaga konektor tetap sederhana, tetapi tetap memberi akses ke surface Scalev API v3 yang membutuhkan autentikasi bisnis. Rute alur OAuth, rute khusus dashboard, dan rute storefront browser tidak tersedia melalui MCP.
+
+Contoh pekerjaan yang umum:
+
+- menampilkan bisnis dan user yang terhubung
+- menampilkan daftar order, produk, bundle, customer, toko, atau landing page
+- membaca detail page, order, produk, atau WhatsApp account
+- memvalidasi atau membuat resource bisnis yang diizinkan melalui Scalev API v3
+- menjalankan aksi API bisnis yang sudah disetujui dan muncul di `search`, memakai `get` untuk endpoint GET dan `execute` untuk endpoint non-GET
+
+## Kebutuhan
+
+Anda membutuhkan:
+
+- akun Scalev dengan akses ke sebuah bisnis
+- asisten AI atau MCP client yang mendukung remote MCP server dengan OAuth
+- akses ke URL konektor Scalev MCP
+
+Sebagian asisten AI membatasi custom connector berdasarkan plan, workspace, atau pengaturan administrator. Periksa pengaturan asisten AI Anda jika tidak melihat opsi untuk menambahkan custom MCP server.
+
+## Hubungkan asisten AI
+
+1. Buka pengaturan connector atau tools di asisten AI Anda.
+2. Tambahkan custom MCP server atau connector.
+3. Masukkan `https://mcp.scalev.com/mcp` sebagai URL konektor.
+4. Lanjutkan ke layar persetujuan OAuth Scalev.
+5. Masuk ke Scalev jika diminta.
+6. Pilih bisnis yang ingin Anda berikan akses ke asisten.
+7. Tinjau izin yang diminta.
+8. Klik **Authorize**.
+9. Kembali ke asisten AI dan uji koneksinya.
+
+Contoh prompt pertama:
+
+- "Tampilkan profil bisnis Scalev saya."
+- "Cari endpoint Scalev untuk menampilkan daftar landing page."
+- "Cari aksi API untuk membaca order, lalu tampilkan field yang dibutuhkan."
+
+## Gunakan dengan ChatGPT
+
+ChatGPT dapat terhubung ke Scalev melalui custom MCP connector jika fitur tersebut tersedia untuk akun atau workspace Anda.
+
+1. Pastikan custom MCP connector atau developer mode aktif untuk akun atau workspace ChatGPT Anda.
+2. Buat custom MCP app atau connector.
+3. Gunakan `https://mcp.scalev.com/mcp` sebagai MCP server URL.
+4. Publish atau aktifkan connector untuk workspace jika plan Anda memerlukan review admin.
+5. Hubungkan Scalev dan selesaikan alur persetujuan OAuth Scalev.
+6. Di chat baru, pilih Scalev dari menu tools sebelum meminta asisten bekerja dengan bisnis Scalev Anda.
+
+ChatGPT dapat meminta konfirmasi sebelum menjalankan aksi tulis. Tinjau konfirmasi tersebut sebelum menyetujui perubahan di Scalev.
+
+Referensi: [Apps in ChatGPT](https://help.openai.com/en/articles/11487775-connectors-in-chatgpt) dan [Building MCP servers for ChatGPT](https://platform.openai.com/docs/mcp/).
+
+## Gunakan dengan Claude
+
+Claude mendukung remote MCP server melalui custom connectors.
+
+Untuk plan Claude individual:
+
+1. Buka **Customize > Connectors** di Claude.
+2. Klik **+**.
+3. Pilih **Add custom connector**.
+4. Masukkan `https://mcp.scalev.com/mcp` sebagai remote MCP server URL.
+5. Klik **Add**.
+6. Klik **Connect** dan selesaikan alur persetujuan OAuth Scalev.
+
+Untuk workspace Claude Team dan Enterprise:
+
+1. Minta Owner atau Primary Owner membuka **Organization settings > Connectors**.
+2. Klik **Add**.
+3. Pilih **Custom > Web**.
+4. Masukkan `https://mcp.scalev.com/mcp` sebagai remote MCP server URL.
+5. Klik **Add**.
+6. Setiap member lalu dapat membuka **Customize > Connectors**, mencari Scalev, dan klik **Connect**.
+
+Untuk menggunakan Scalev di percakapan Claude, buka menu **+** di composer, pilih **Connectors**, lalu aktifkan Scalev untuk chat tersebut.
+
+Referensi: [Claude custom connectors using remote MCP](https://support.claude.com/en/articles/11175166-get-started-with-custom-connectors-using-remote-mcp).
+
+## Izin
+
+Layar persetujuan menampilkan izin yang diminta oleh konektor. Scalev hanya memberikan izin yang boleh diminta oleh konektor resmi Scalev MCP.
+
+Koneksi pertama dapat meminta seluruh izin Scalev API v3 yang aman untuk mesin agar asisten dapat menemukan dan memakai aksi API bisnis yang tersedia. Izin khusus dashboard tidak menjadi bagian dari persetujuan MCP.
+
+Scalev menegakkan izin pada setiap request API. Jika asisten mencoba menjalankan aksi di luar scope yang disetujui, Scalev akan menolak request tersebut.
+
+## Aksi tulis
+
+Tool `execute` dapat memanggil endpoint Scalev API v3 non-GET jika token OAuth yang terhubung memiliki scope yang dibutuhkan. Sebagian endpoint tersebut dapat membuat, mengubah, menghapus, memvalidasi, atau menjalankan aksi bisnis. Tinjau aksi tulis di asisten AI Anda sebelum mengonfirmasinya.
+
+Konektor tidak melewati otorisasi Scalev. Peran Anda di bisnis Scalev, scope OAuth yang disetujui, dan endpoint API tujuan tetap menentukan apakah aksi diizinkan.
+
+## Cabut akses
+
+Anda dapat mencabut koneksi kapan saja:
+
+1. Buka Scalev.
+2. Masuk ke **Settings > Apps**.
+3. Cari **Scalev MCP**.
+4. Klik **Revoke Access**.
+
+Setelah akses dicabut, asisten harus terhubung ulang dan menyelesaikan persetujuan OAuth lagi sebelum dapat memanggil Scalev.
+
+## Troubleshooting
+
+### Asisten mengatakan authentication is required
+
+Hubungkan ulang konektor Scalev MCP dan selesaikan alur persetujuan OAuth lagi.
+
+### Asisten mendapat error forbidden atau insufficient permission
+
+Bisnis yang terhubung, peran user Anda, atau scope yang disetujui tidak mengizinkan aksi tersebut. Hubungkan ulang jika Anda perlu menyetujui scope yang berbeda.
+
+### Asisten tidak dapat menemukan konektor
+
+Pastikan URL konektor persis `https://mcp.scalev.com/mcp`. Asisten AI Anda harus mendukung remote MCP server dengan OAuth.
+
+Jika asisten meminta authorization server URL, gunakan `https://api.scalev.com/v3/oauth`. Jika asisten meminta connector atau MCP server URL, gunakan `https://mcp.scalev.com/mcp`.
+
+### Asisten tidak menampilkan landing page
+
+Pastikan Anda memilih bisnis Scalev yang benar saat persetujuan dan bisnis tersebut memiliki landing page yang dapat diakses oleh user Anda.
+
+## Dokumen terkait
+
+- [Otorisasi dengan OAuth](/id/otorisasi-dengan-o-auth)
+- [Autentikasi dengan API key](/id/autentikasi-dengan-api-key)
+- [Pendahuluan Scalev API v3](/id/dev-pendahuluan)

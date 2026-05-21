@@ -56,10 +56,7 @@
                   },
                   {
                     "group": "Bank Transfer",
-                    "pages": [
-                      "id/rekening",
-                      "id/conflict"
-                    ]
+                    "pages": ["id/rekening", "id/conflict"]
                   }
                 ]
               },
@@ -298,6 +295,7 @@
               "id/dev-pendahuluan",
               "id/otorisasi-dengan-o-auth",
               "id/autentikasi-dengan-api-key",
+              "id/konektor-scalev-mcp",
               {
                 "group": "Storefront API",
                 "pages": [
@@ -321,9 +319,7 @@
               },
               {
                 "group": "Contoh penggunaan",
-                "pages": [
-                  "id/membuat-pesanan"
-                ]
+                "pages": ["id/membuat-pesanan"]
               },
               {
                 "group": "Landing Pages",
@@ -343,9 +339,7 @@
           {
             "tab": "Changelog",
             "icon": "newspaper",
-            "pages": [
-              "id/changelog"
-            ]
+            "pages": ["id/changelog"]
           }
         ]
       },
@@ -590,6 +584,7 @@
               "en/dev-introduction",
               "en/authorization-with-o-auth",
               "en/authentication-with-api-key",
+              "en/scalev-mcp-connector",
               {
                 "group": "Storefront API",
                 "pages": [
@@ -613,9 +608,7 @@
               },
               {
                 "group": "Use cases",
-                "pages": [
-                  "en/creating-orders"
-                ]
+                "pages": ["en/creating-orders"]
               },
               {
                 "group": "Landing pages",
@@ -635,9 +628,7 @@
           {
             "tab": "Changelog",
             "icon": "newspaper",
-            "pages": [
-              "en/changelog"
-            ]
+            "pages": ["en/changelog"]
           }
         ]
       }
