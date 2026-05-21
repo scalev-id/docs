@@ -364,6 +364,28 @@ Pilih sendiri jenis redirect setelah order. Runtime membuat order dan men-trigge
 
 Data order yang dikembalikan adalah public response ringkas untuk redirect dan UI payment buyer-facing. Gunakan `secret_slug`, `public_order_url`, `payment_url`, `handler_phone`, `chat_message`, total, line item, field payment, serta object map `variants` dan `bundle_price_options` yang sudah ada; jangan bergantung pada ID order internal, revenue khusus dashboard, platform fee, atau atribusi affiliate.
 
+### Error handling
+
+Method runtime me-reject `Promise` dengan JavaScript `Error`. Method ini tidak mengembalikan HTTP error envelope yang stabil untuk ditampilkan ke customer.
+
+Gunakan `error.message` untuk copy UI. Gunakan `error.status`, `error.data`, dan `Scalev.diagnostics.get()` hanya untuk debugging atau handling lanjutan. Jangan tampilkan `error.data.error` langsung; tergantung kegagalan upstream, field itu bisa berupa string, boolean, object, atau map error per field.
+
+```js
+try {
+  const order = await Scalev.checkout.createOrder(payload);
+  return order;
+} catch (error) {
+  showFormError(error.message || "Order tidak dapat dibuat.");
+  console.debug("Scalev checkout error", {
+    status: error.status,
+    data: error.data,
+    diagnostics: Scalev.diagnostics.get(),
+  });
+}
+```
+
+Jangan memanggil URL proxy runtime `/api/v2/...` langsung dari kode halaman. Gunakan method `Scalev.checkout.*` supaya error validasi dinormalisasi sebelum sampai ke UI.
+
 ## `Scalev.analytics.track(providerOrPayload, payload?)`
 
 Meneruskan event analytics yang sudah dikonfigurasi melalui Scalev.

@@ -364,6 +364,28 @@ Choose the post-order redirect yourself. The runtime creates the order and fires
 
 The returned order data is a slim public response for redirects and buyer-facing payment UI. Use `secret_slug`, `public_order_url`, `payment_url`, `handler_phone`, `chat_message`, totals, line items, payment fields, and the existing `variants` and `bundle_price_options` object maps; do not depend on internal order IDs, dashboard revenue fields, platform fees, or affiliate attribution.
 
+### Error handling
+
+Runtime methods reject the `Promise` with a JavaScript `Error`. They do not return a stable customer-facing HTTP error envelope.
+
+Use `error.message` for UI copy. Use `error.status`, `error.data`, and `Scalev.diagnostics.get()` only for debugging or advanced handling. Do not show `error.data.error` directly; depending on the upstream failure, it can be a string, boolean, object, or field-error map.
+
+```js
+try {
+  const order = await Scalev.checkout.createOrder(payload);
+  return order;
+} catch (error) {
+  showFormError(error.message || "Order could not be created.");
+  console.debug("Scalev checkout error", {
+    status: error.status,
+    data: error.data,
+    diagnostics: Scalev.diagnostics.get(),
+  });
+}
+```
+
+Do not call `/api/v2/...` runtime proxy URLs directly from page code. Use the `Scalev.checkout.*` methods so validation errors are normalized before they reach your UI.
+
 ## `Scalev.analytics.track(providerOrPayload, payload?)`
 
 Forwards configured analytics events through Scalev.
