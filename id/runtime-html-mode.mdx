@@ -128,6 +128,8 @@ Gunakan data ini untuk render produk terpilih, bundle option, payment methods ak
 
 `store.payment_methods` berisi payment methods aktif setelah Scalev memfilter pengaturan store berdasarkan kapabilitas payment bisnis. Gunakan `store.sub_payment_methods` untuk submethod VA yang aktif saat tersedia.
 
+Bank virtual account bukan value `paymentMethod` terpisah. Untuk BRI VA, kirim `paymentMethod: "va"` dan `subPaymentMethod: "BRI"`. Jangan kirim string gabungan seperti `briva`, `bri_va`, atau `va_bri`.
+
 Untuk bank transfer manual, render pilihan per rekening dari `store.payment_accounts` dengan `method` `bank_transfer`. Jangan tampilkan satu pilihan `bank_transfer` generik tanpa rekening. Khusus pilihan rekening `bank_transfer` ini, tampilkan nama bank dari `payment_account.financial_entity.name`; gunakan `payment_account.financial_entity.code` hanya sebagai fallback. `account_holder` adalah pemilik rekening, bukan nama bank. UI checkout bisa menggabungkan method regular dari `store.payment_methods` dengan rekening bank transfer tersebut, lalu submit rekening terpilih sebagai `paymentAccountUniqueId` atau `payment_account_unique_id`.
 
 ```js
@@ -215,7 +217,7 @@ Nama field dapat memakai camelCase atau snake_case:
 - `paymentMethod` atau `payment_method`
 - `domain`
 
-`pageUniqueId` otomatis memakai halaman saat ini, dan `domain` otomatis memakai hostname saat ini. Value payment yang ada di `store.sub_payment_methods` dinormalisasi menjadi `va`. Untuk bank transfer manual, kirim `paymentMethod: "bank_transfer"` dan rekening terpilih sebagai `paymentAccountUniqueId` atau `payment_account_unique_id`.
+`pageUniqueId` otomatis memakai halaman saat ini, dan `domain` otomatis memakai hostname saat ini. Untuk VA, kirim `paymentMethod: "va"` dan kode bank terpilih sebagai `subPaymentMethod`, misalnya `subPaymentMethod: "BRI"`. Value persis yang ada di `store.sub_payment_methods` juga dinormalisasi menjadi `va` untuk kompatibilitas, tetapi jangan mengarang value gabungan seperti `briva`. Untuk bank transfer manual, kirim `paymentMethod: "bank_transfer"` dan rekening terpilih sebagai `paymentAccountUniqueId` atau `payment_account_unique_id`.
 
 Gunakan hanya untuk flow checkout yang terhubung dengan store.
 
@@ -350,7 +352,7 @@ async function submitOrder() {
 
 Gunakan value `unique_id` dari `Scalev.data.get().store`; jangan mengirim id numerik produk, variant, atau bundle sebagai identifier item order.
 
-Seperti helper diskon dan shipping, submethod VA yang aktif di `store.sub_payment_methods` dikirim sebagai `payment_method: "va"` dengan submethod terpilih. Untuk bank transfer manual, kirim `paymentMethod: "bank_transfer"` dan unique id rekening terpilih.
+Untuk VA, submit payment method dan bank secara terpisah: `paymentMethod: "va"` dan `subPaymentMethod` diisi salah satu value `store.sub_payment_methods`, misalnya `"BRI"`. Jangan submit BRI VA sebagai `paymentMethod: "briva"` atau string method gabungan lain. Untuk bank transfer manual, kirim `paymentMethod: "bank_transfer"` dan unique id rekening terpilih.
 
 Saat payment method terpilih adalah `bank_transfer`, runtime mewajibkan `paymentAccountUniqueId` atau `payment_account_unique_id` sebelum mengirim request order. Gunakan object terpilih dari `store.payment_accounts`; runtime meneruskan `unique_id` object tersebut sebagai `payment_account_unique_id` untuk order API. Jika id rekening bank, financial entity id, nama pemilik rekening, atau nomor rekening ikut dikirim, runtime mengabaikannya.
 
