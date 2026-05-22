@@ -166,7 +166,7 @@ Di halaman authorize Scalev, merchant dapat meninjau dan menyetujui:
 - izin webhook, jika berlaku
 - persetujuan tag billing, jika berlaku
 
-Merchant dapat memilih beberapa bisnis dalam satu persetujuan OAuth jika keanggotaan mereka di setiap bisnis mengizinkan otorisasi aplikasi. Scalev membuat atau memperbarui satu instalasi untuk setiap bisnis yang dipilih. Scope, pengaturan webhook, dan persetujuan tag billing yang sama berlaku untuk semua bisnis yang dipilih pada alur saat ini.
+Merchant dapat memilih beberapa bisnis dalam satu persetujuan OAuth jika keanggotaan mereka di setiap bisnis mengizinkan otorisasi aplikasi. Scalev mencatat akses secara terpisah untuk setiap bisnis yang dipilih. Scope, pengaturan webhook, dan persetujuan tag billing yang sama berlaku untuk semua bisnis yang dipilih pada alur saat ini.
 
 Frontend kemudian menyelesaikan alur consent dan me-redirect merchant kembali ke `redirect_uri` yang Anda konfigurasi.
 
@@ -274,16 +274,16 @@ Untuk token OAuth, endpoint ini mengembalikan identitas token dan user serta daf
 }
 ```
 
-`/v3/me` adalah identitas token dan user. Endpoint ini bukan identitas bisnis yang sedang dipilih. Status instalasi bisnis dan scope yang disetujui berada di dalam `connected_businesses[]`.
+`/v3/me` adalah identitas token dan user. Endpoint ini bukan identitas bisnis yang sedang dipilih. Status bisnis terhubung dan scope yang disetujui berada di dalam `connected_businesses[]`.
 
 ### Pilih Bisnis untuk Request API
 
-Request API `/v3` yang bersifat business-scoped selalu berjalan pada satu instalasi bisnis yang dipilih.
+Request API `/v3` yang bersifat business-scoped selalu berjalan pada satu bisnis yang dipilih.
 
 - jika token memiliki satu bisnis terhubung, selector dapat dihilangkan
 - jika token memiliki beberapa bisnis terhubung, kirim `b_uid=<business.unique_id>` pada setiap request business-scoped
 - gunakan `unique_id` dari `/v3/me.connected_businesses[]`
-- jika instalasi bisnis yang dipilih dicabut atau dinonaktifkan, bisnis tersebut gagal tetapi bisnis lain yang terhubung tetap dapat digunakan
+- jika akses ke bisnis yang dipilih dicabut atau dinonaktifkan, bisnis tersebut gagal tetapi bisnis lain yang terhubung tetap dapat digunakan
 
 Contoh:
 
@@ -292,7 +292,7 @@ GET https://api.scalev.com/v3/orders?b_uid=ABC123
 Authorization: Bearer ACCESS_TOKEN
 ```
 
-Scalev memakai business unique ID di selector API. Internal token dapat memakai ID database, tetapi integrasi Anda harus memakai `unique_id` yang dikembalikan oleh `/v3/me`.
+Gunakan `unique_id` bisnis yang dikembalikan oleh `/v3/me` sebagai selector API, misalnya `b_uid=ABC123`.
 
 ### Pemeriksaan Awal yang Berguna
 
@@ -356,7 +356,7 @@ Contoh:
 }
 ```
 
-`/v3/oauth/installation/status` menentukan satu snapshot instalasi. Jika Anda mengirim referensi token multi-bisnis, Scalev mengembalikan error karena endpoint ini tidak memiliki selector bisnis. Gunakan `/v3/me` untuk melihat daftar bisnis yang terhubung ke token multi-bisnis.
+`/v3/oauth/installation/status` mengembalikan satu snapshot koneksi merchant. Jika Anda mengirim referensi token multi-bisnis, Scalev mengembalikan error karena endpoint ini tidak memiliki selector bisnis. Gunakan `/v3/me` untuk melihat daftar bisnis yang terhubung ke token multi-bisnis.
 
 ## Langkah 7: Refresh Access Token
 
@@ -389,7 +389,7 @@ Catatan penting:
 
 - selalu ganti access token dan refresh token setelah refresh berhasil
 - pertukaran refresh-token adalah bagian dari alur `/v3/oauth/token`
-- refresh memuat ulang bisnis yang terhubung ke token dan hanya mempertahankan instalasi yang aktif dan enabled
+- refresh memuat ulang bisnis yang terhubung ke token dan hanya mempertahankan akses bisnis yang aktif dan enabled
 - jika satu bisnis dicabut atau dinonaktifkan, token baru hasil refresh hanya berisi bisnis yang masih tersisa
 - jika bisnis terakhir yang terhubung dicabut atau dinonaktifkan, refresh gagal
 - access token lama tidak ditulis ulang; sampai token tersebut di-refresh atau kedaluwarsa, request untuk bisnis yang dicabut atau dinonaktifkan akan gagal, tetapi bisnis lain yang terhubung masih dapat berjalan
@@ -459,18 +459,18 @@ Catatan penting:
 4. Simpan `client_secret`, access token, dan refresh token hanya di server.
 5. Gunakan hanya scope, event webhook, dan tag billing yang benar-benar dibutuhkan aplikasi Anda.
 6. Perlakukan `redirect_uri` sebagai nilai yang harus sama persis.
-7. Gunakan `/v3/oauth/installation/status` saat Anda membutuhkan snapshot instalasi merchant yang otoritatif.
+7. Gunakan `/v3/oauth/installation/status` saat Anda membutuhkan snapshot koneksi merchant yang otoritatif.
 8. Gunakan `/v3/oauth/introspect` untuk diagnostik token runtime.
-9. Tangani instalasi yang dinonaktifkan secara terpisah dari instalasi yang dicabut.
+9. Tangani akses bisnis yang dinonaktifkan secara terpisah dari akses bisnis yang dicabut.
 
 ## Rate Limiting
 
-OAuth access token menggunakan rate limit yang di-scope ke aplikasi OAuth dan instalasi merchant.
+OAuth access token menggunakan rate limit yang di-scope ke aplikasi OAuth dan bisnis yang terhubung.
 
 Default saat ini:
 
-- **10.000 permintaan per jam per instalasi**
-- **100 permintaan per 10 detik per instalasi** untuk burst pendek
+- **10.000 permintaan per jam per bisnis terhubung**
+- **100 permintaan per 10 detik per bisnis terhubung** untuk burst pendek
 
 Respons rate-limit mengembalikan `429 Too Many Requests` dengan header `X-Ratelimit-Limit`, `X-Ratelimit-Remaining`, dan `X-Ratelimit-Reset`. Beberapa limit khusus endpoint lebih ketat, dan respons rate-limit dapat berupa plain text, bukan bentuk error JSON normal.
 

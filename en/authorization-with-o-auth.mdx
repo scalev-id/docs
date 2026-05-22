@@ -166,7 +166,7 @@ On the Scalev authorize page, the merchant can review and approve:
 - webhook permissions, if applicable
 - billing-tag approvals, if applicable
 
-The merchant can select multiple businesses in one OAuth approval when their membership in each business allows app authorization. Scalev creates or updates one installation per selected business. The same approved scopes, webhook settings, and billing-tag approvals apply to every selected business in the current flow.
+The merchant can select multiple businesses in one OAuth approval when their membership in each business allows app authorization. Scalev records access separately for each selected business. The same approved scopes, webhook settings, and billing-tag approvals apply to every selected business in the current flow.
 
 The frontend then completes the consent flow and redirects the merchant back to your configured `redirect_uri`.
 
@@ -274,16 +274,16 @@ For OAuth tokens, this returns token and user identity plus the businesses conne
 }
 ```
 
-`/v3/me` is token and user identity. It is not selected-business identity. Business installation state and approved scopes live inside `connected_businesses[]`.
+`/v3/me` is token and user identity. It is not selected-business identity. Connected business status and approved scopes live inside `connected_businesses[]`.
 
 ### Select a Business for API Calls
 
-Business-scoped `/v3` API calls always run against one selected business installation.
+Business-scoped `/v3` API calls always run against one selected business.
 
 - if the token has one connected business, you can omit the selector
 - if the token has multiple connected businesses, pass `b_uid=<business.unique_id>` on each business-scoped request
 - use the `unique_id` from `/v3/me.connected_businesses[]`
-- if the selected business installation is revoked or disabled, that business fails while other connected businesses remain usable
+- if access to the selected business is revoked or disabled, that business fails while other connected businesses remain usable
 
 Example:
 
@@ -292,7 +292,7 @@ GET https://api.scalev.com/v3/orders?b_uid=ABC123
 Authorization: Bearer ACCESS_TOKEN
 ```
 
-Scalev uses business unique IDs in API selectors. Token internals can use database IDs, but your integration should use the `unique_id` returned by `/v3/me`.
+Use the business `unique_id` returned by `/v3/me` as the API selector, for example `b_uid=ABC123`.
 
 ### Useful First Checks
 
@@ -356,7 +356,7 @@ Example:
 }
 ```
 
-`/v3/oauth/installation/status` resolves one installation snapshot. If you pass a multi-business token reference, Scalev returns an error because this endpoint has no business selector. Use `/v3/me` to list businesses connected to a multi-business token.
+`/v3/oauth/installation/status` returns one merchant connection snapshot. If you pass a multi-business token reference, Scalev returns an error because this endpoint has no business selector. Use `/v3/me` to list businesses connected to a multi-business token.
 
 ## Step 7: Refresh Access Tokens
 
@@ -389,7 +389,7 @@ Important notes:
 
 - always replace both the access token and the refresh token after a successful refresh
 - refresh-token exchange is part of the `/v3/oauth/token` flow
-- refresh reloads the token's connected businesses and keeps only installations that are active and enabled
+- refresh reloads the token's connected businesses and keeps only business access that is active and enabled
 - if one business is revoked or disabled, the refreshed tokens contain only the remaining businesses
 - if the last connected business is revoked or disabled, refresh fails
 - the old access token is not rewritten; until refresh or expiry, requests for a revoked or disabled selected business fail, but other connected businesses can still work
@@ -459,18 +459,18 @@ Important notes:
 4. Keep `client_secret`, access tokens, and refresh tokens on the server only.
 5. Use only the scopes, webhook events, and billing tags your app actually needs.
 6. Treat `redirect_uri` as an exact-match value.
-7. Use `/v3/oauth/installation/status` when you need the authoritative merchant install snapshot.
+7. Use `/v3/oauth/installation/status` when you need the authoritative merchant connection snapshot.
 8. Use `/v3/oauth/introspect` for runtime token diagnostics.
-9. Handle disabled installations separately from revoked installations.
+9. Handle disabled business access separately from revoked business access.
 
 ## Rate Limiting
 
-OAuth access tokens use rate limits scoped to the OAuth application and merchant installation.
+OAuth access tokens use rate limits scoped to the OAuth application and connected business.
 
 Current default:
 
-- **10,000 requests per hour per installation**
-- **100 requests per 10 seconds per installation** for short bursts
+- **10,000 requests per hour per connected business**
+- **100 requests per 10 seconds per connected business** for short bursts
 
 Rate-limit responses return `429 Too Many Requests` with `X-Ratelimit-Limit`, `X-Ratelimit-Remaining`, and `X-Ratelimit-Reset` headers. Some endpoint-specific limits are stricter, and rate-limit responses may be plain text instead of the normal JSON error shape.
 

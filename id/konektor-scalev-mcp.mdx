@@ -42,7 +42,7 @@ Scalev MCP menyediakan empat tool:
 
 Model ini menjaga konektor tetap sederhana, tetapi tetap memberi akses ke surface Scalev API v3 yang membutuhkan autentikasi bisnis. Rute alur OAuth, rute khusus dashboard, dan rute storefront browser tidak tersedia melalui MCP.
 
-`get_me` mengembalikan `connected_businesses[]`. Jika token terhubung ke lebih dari satu bisnis, asisten harus mengirim `business_unique_id` pada `get` dan `execute`. Jika token hanya terhubung ke satu bisnis, asisten dapat menghilangkannya.
+`get_me` mengembalikan `connected_businesses[]`. Jika koneksi mencakup lebih dari satu bisnis, asisten harus mengirim `business_unique_id` pada `get` dan `execute`. Jika koneksi hanya mencakup satu bisnis, asisten dapat menghilangkannya.
 
 Untuk aksi tulis, asisten dapat mengirim field endpoint secara langsung atau di dalam field `body`. Scalev MCP meneruskan JSON body tersebut ke Scalev API v3 tanpa mengubah isinya.
 
@@ -127,7 +127,7 @@ Referensi: [Claude custom connectors using remote MCP](https://support.claude.co
 
 Layar persetujuan menampilkan izin yang diminta oleh konektor. Scalev hanya memberikan izin yang boleh diminta oleh konektor resmi Scalev MCP.
 
-Koneksi pertama dapat meminta seluruh izin Scalev API v3 yang aman untuk mesin agar asisten dapat menemukan dan memakai aksi API bisnis yang tersedia. Izin khusus dashboard tidak menjadi bagian dari persetujuan MCP.
+Koneksi pertama dapat meminta izin Scalev API v3 yang didukung oleh MCP agar asisten dapat menemukan dan memakai aksi API bisnis yang tersedia. Izin khusus dashboard tidak menjadi bagian dari persetujuan MCP.
 
 Scalev menegakkan izin pada setiap request API. Jika asisten mencoba menjalankan aksi di luar scope yang disetujui, Scalev akan menolak request tersebut.
 
@@ -139,11 +139,11 @@ Konektor tidak melewati otorisasi Scalev. Peran Anda di bisnis Scalev, scope OAu
 
 ## Beberapa bisnis
 
-Satu koneksi OAuth dapat mengotorisasi beberapa bisnis Scalev jika peran user Anda mengizinkan otorisasi aplikasi di setiap bisnis. Scalev tetap menyimpan satu instalasi per bisnis, tetapi asisten dapat memakai satu token OAuth untuk kumpulan bisnis yang terhubung.
+Satu koneksi OAuth dapat mengotorisasi beberapa bisnis Scalev jika peran user Anda mengizinkan otorisasi aplikasi di setiap bisnis. Scalev mencatat akses secara terpisah untuk setiap bisnis, dan asisten dapat memakai koneksi OAuth yang sama untuk kumpulan bisnis yang terhubung.
 
 Minta asisten memanggil `get_me` terlebih dahulu. Responsnya berisi `connected_businesses[]` dengan `unique_id`, username, nama, status active/enabled, dan scope yang disetujui untuk setiap bisnis.
 
-Ketika lebih dari satu bisnis terhubung, setiap call `get` atau `execute` harus menyertakan `business_unique_id`. Gunakan `unique_id` dari `connected_businesses[]`. Jika akses ke salah satu bisnis dicabut atau dinonaktifkan, request untuk bisnis tersebut gagal, tetapi asisten masih dapat memakai bisnis lain yang tetap terhubung. Setelah token di-refresh, daftar bisnis yang terhubung menyusut menjadi bisnis yang masih aktif dan enabled.
+Ketika lebih dari satu bisnis terhubung, setiap call `get` atau `execute` harus menyertakan `business_unique_id`. Gunakan `unique_id` dari `connected_businesses[]`. Jika akses ke salah satu bisnis dicabut atau dinonaktifkan, request untuk bisnis tersebut gagal, tetapi asisten masih dapat memakai bisnis lain yang tetap terhubung. Setelah koneksi OAuth di-refresh, daftar bisnis yang terhubung menyusut menjadi bisnis yang masih aktif dan enabled.
 
 ### Landing page HTML Mode
 
