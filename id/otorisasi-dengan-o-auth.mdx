@@ -16,10 +16,10 @@ Dalam praktiknya, alurnya seperti ini:
 1. Daftarkan aplikasi Anda ke Scalev
 2. Buat parameter PKCE
 3. Redirect browser merchant ke halaman authorize Scalev
-4. Merchant masuk dan menyetujui aplikasi Anda
+4. Merchant masuk dan menyetujui aplikasi Anda untuk satu atau beberapa bisnis
 5. Backend Anda menerima authorization code
 6. Backend Anda menukar code tersebut dengan token
-7. Backend Anda menggunakan access token untuk memanggil API Scalev `/v3`
+7. Backend Anda menggunakan access token untuk memanggil API Scalev `/v3`, dengan memilih satu bisnis untuk setiap request bisnis jika diperlukan
 8. Backend Anda melakukan refresh, introspection, atau revoke token sesuai kebutuhan
 
 > Halaman authorize adalah rute frontend, bukan endpoint API untuk mesin. Halaman ini sengaja dipisahkan dari kontrak API `/v3`.
@@ -161,9 +161,12 @@ Ini mengembalikan metadata aplikasi publik seperti:
 Di halaman authorize Scalev, merchant dapat meninjau dan menyetujui:
 
 - identitas aplikasi
+- bisnis yang ingin dihubungkan
 - scope yang diminta
 - izin webhook, jika berlaku
 - persetujuan tag billing, jika berlaku
+
+Merchant dapat memilih beberapa bisnis dalam satu persetujuan OAuth jika keanggotaan mereka di setiap bisnis mengizinkan otorisasi aplikasi. Scalev membuat atau memperbarui satu instalasi untuk setiap bisnis yang dipilih. Scope, pengaturan webhook, dan persetujuan tag billing yang sama berlaku untuk semua bisnis yang dipilih pada alur saat ini.
 
 Frontend kemudian menyelesaikan alur consent dan me-redirect merchant kembali ke `redirect_uri` yang Anda konfigurasi.
 
@@ -233,6 +236,64 @@ Authorization: Bearer ACCESS_TOKEN
 
 Backend Anda kemudian dapat memanggil endpoint `/v3` yang diotorisasi merchant dan sesuai dengan scope yang diberikan.
 
+### Identitas Token dan Bisnis yang Terhubung
+
+Panggil `/v3/me` setelah menerima access token:
+
+```http
+GET https://api.scalev.com/v3/me
+Authorization: Bearer ACCESS_TOKEN
+```
+
+Untuk token OAuth, endpoint ini mengembalikan identitas token dan user serta daftar bisnis yang terhubung ke token:
+
+```json
+{
+  "auth_method": "oauth",
+  "user": {
+    "id": 123,
+    "unique_id": "USER123",
+    "email": "user@example.com",
+    "fullname": "Jane Doe",
+    "avatar": "https://..."
+  },
+  "oauth_application": {
+    "client_id": "client_abc",
+    "name": "Example App"
+  },
+  "connected_businesses": [
+    {
+      "unique_id": "ABC123",
+      "username": "store-a",
+      "name": "Store A",
+      "is_active": true,
+      "is_enabled": true,
+      "scopes": ["order:list", "order:read"]
+    }
+  ]
+}
+```
+
+`/v3/me` adalah identitas token dan user. Endpoint ini bukan identitas bisnis yang sedang dipilih. Status instalasi bisnis dan scope yang disetujui berada di dalam `connected_businesses[]`.
+
+### Pilih Bisnis untuk Request API
+
+Request API `/v3` yang bersifat business-scoped selalu berjalan pada satu instalasi bisnis yang dipilih.
+
+- jika token memiliki satu bisnis terhubung, selector dapat dihilangkan
+- jika token memiliki beberapa bisnis terhubung, kirim `b_uid=<business.unique_id>` pada setiap request business-scoped
+- gunakan `unique_id` dari `/v3/me.connected_businesses[]`
+- jika instalasi bisnis yang dipilih dicabut atau dinonaktifkan, bisnis tersebut gagal tetapi bisnis lain yang terhubung tetap dapat digunakan
+
+Contoh:
+
+```http
+GET https://api.scalev.com/v3/orders?b_uid=ABC123
+Authorization: Bearer ACCESS_TOKEN
+```
+
+Scalev memakai business unique ID di selector API. Internal token dapat memakai ID database, tetapi integrasi Anda harus memakai `unique_id` yang dikembalikan oleh `/v3/me`.
+
 ### Pemeriksaan Awal yang Berguna
 
 #### Token Introspection
@@ -295,6 +356,8 @@ Contoh:
 }
 ```
 
+`/v3/oauth/installation/status` menentukan satu snapshot instalasi. Jika Anda mengirim referensi token multi-bisnis, Scalev mengembalikan error karena endpoint ini tidak memiliki selector bisnis. Gunakan `/v3/me` untuk melihat daftar bisnis yang terhubung ke token multi-bisnis.
+
 ## Langkah 7: Refresh Access Token
 
 Ketika access token kedaluwarsa, gunakan refresh token:
@@ -326,7 +389,10 @@ Catatan penting:
 
 - selalu ganti access token dan refresh token setelah refresh berhasil
 - pertukaran refresh-token adalah bagian dari alur `/v3/oauth/token`
-- jika instalasi dinonaktifkan atau dicabut, refresh dapat gagal
+- refresh memuat ulang bisnis yang terhubung ke token dan hanya mempertahankan instalasi yang aktif dan enabled
+- jika satu bisnis dicabut atau dinonaktifkan, token baru hasil refresh hanya berisi bisnis yang masih tersisa
+- jika bisnis terakhir yang terhubung dicabut atau dinonaktifkan, refresh gagal
+- access token lama tidak ditulis ulang; sampai token tersebut di-refresh atau kedaluwarsa, request untuk bisnis yang dicabut atau dinonaktifkan akan gagal, tetapi bisnis lain yang terhubung masih dapat berjalan
 
 ## Siklus Hidup Token
 

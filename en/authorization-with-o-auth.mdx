@@ -16,10 +16,10 @@ In practice, the flow looks like this:
 1. Register your application with Scalev
 2. Generate PKCE parameters
 3. Redirect the merchant's browser to Scalev's authorize page
-4. The merchant signs in and approves your app
+4. The merchant signs in and approves your app for one or more businesses
 5. Your backend receives an authorization code
 6. Your backend exchanges the code for tokens
-7. Your backend uses the access token to call Scalev `/v3` APIs
+7. Your backend uses the access token to call Scalev `/v3` APIs, selecting one business for each business-scoped request when needed
 8. Your backend refreshes, introspects, or revokes tokens as needed
 
 > The authorize page is a frontend route, not a machine API endpoint. It is intentionally separate from the `/v3` API contract.
@@ -161,9 +161,12 @@ This returns public app metadata such as:
 On the Scalev authorize page, the merchant can review and approve:
 
 - the app identity
+- the businesses they want to connect
 - the requested scopes
 - webhook permissions, if applicable
 - billing-tag approvals, if applicable
+
+The merchant can select multiple businesses in one OAuth approval when their membership in each business allows app authorization. Scalev creates or updates one installation per selected business. The same approved scopes, webhook settings, and billing-tag approvals apply to every selected business in the current flow.
 
 The frontend then completes the consent flow and redirects the merchant back to your configured `redirect_uri`.
 
@@ -233,6 +236,64 @@ Authorization: Bearer ACCESS_TOKEN
 
 Your backend can then call the merchant-authorized `/v3` endpoints that match the granted scopes.
 
+### Token Identity and Connected Businesses
+
+Call `/v3/me` after receiving an access token:
+
+```http
+GET https://api.scalev.com/v3/me
+Authorization: Bearer ACCESS_TOKEN
+```
+
+For OAuth tokens, this returns token and user identity plus the businesses connected to the token:
+
+```json
+{
+  "auth_method": "oauth",
+  "user": {
+    "id": 123,
+    "unique_id": "USER123",
+    "email": "user@example.com",
+    "fullname": "Jane Doe",
+    "avatar": "https://..."
+  },
+  "oauth_application": {
+    "client_id": "client_abc",
+    "name": "Example App"
+  },
+  "connected_businesses": [
+    {
+      "unique_id": "ABC123",
+      "username": "store-a",
+      "name": "Store A",
+      "is_active": true,
+      "is_enabled": true,
+      "scopes": ["order:list", "order:read"]
+    }
+  ]
+}
+```
+
+`/v3/me` is token and user identity. It is not selected-business identity. Business installation state and approved scopes live inside `connected_businesses[]`.
+
+### Select a Business for API Calls
+
+Business-scoped `/v3` API calls always run against one selected business installation.
+
+- if the token has one connected business, you can omit the selector
+- if the token has multiple connected businesses, pass `b_uid=<business.unique_id>` on each business-scoped request
+- use the `unique_id` from `/v3/me.connected_businesses[]`
+- if the selected business installation is revoked or disabled, that business fails while other connected businesses remain usable
+
+Example:
+
+```http
+GET https://api.scalev.com/v3/orders?b_uid=ABC123
+Authorization: Bearer ACCESS_TOKEN
+```
+
+Scalev uses business unique IDs in API selectors. Token internals can use database IDs, but your integration should use the `unique_id` returned by `/v3/me`.
+
 ### Useful First Checks
 
 #### Token Introspection
@@ -295,6 +356,8 @@ Example:
 }
 ```
 
+`/v3/oauth/installation/status` resolves one installation snapshot. If you pass a multi-business token reference, Scalev returns an error because this endpoint has no business selector. Use `/v3/me` to list businesses connected to a multi-business token.
+
 ## Step 7: Refresh Access Tokens
 
 When the access token expires, use the refresh token:
@@ -326,7 +389,10 @@ Important notes:
 
 - always replace both the access token and the refresh token after a successful refresh
 - refresh-token exchange is part of the `/v3/oauth/token` flow
-- if the installation is disabled or revoked, refresh may fail
+- refresh reloads the token's connected businesses and keeps only installations that are active and enabled
+- if one business is revoked or disabled, the refreshed tokens contain only the remaining businesses
+- if the last connected business is revoked or disabled, refresh fails
+- the old access token is not rewritten; until refresh or expiry, requests for a revoked or disabled selected business fail, but other connected businesses can still work
 
 ## Token Lifecycle
 

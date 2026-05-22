@@ -1,9 +1,9 @@
 ---
 title: "Scalev MCP connector"
-description: "Connect AI assistants to your Scalev business with OAuth."
+description: "Connect AI assistants to one or more Scalev businesses with OAuth."
 ---
 
-Scalev MCP lets AI assistants that support remote MCP connect to your Scalev business. Use it when you want an assistant to inspect business data, find available Scalev API v3 actions, or run approved business API requests through a permissioned OAuth connection.
+Scalev MCP lets AI assistants that support remote MCP connect to one or more Scalev businesses. Use it when you want an assistant to inspect business data, find available Scalev API v3 actions, or run approved business API requests through a permissioned OAuth connection.
 
 The connector URL is:
 
@@ -23,9 +23,9 @@ AI assistant
   -> Scalev API v3
 ```
 
-When you connect an assistant, Scalev opens an OAuth approval flow. You sign in, choose the business, review the requested permissions, and approve access.
+When you connect an assistant, Scalev opens an OAuth approval flow. You sign in, choose one or more businesses, review the requested permissions, and approve access.
 
-After approval, the assistant calls the Scalev MCP connector. The connector forwards the OAuth token to Scalev API v3. Scalev validates the token, resolves the business and user, checks scopes, and runs the requested API action.
+After approval, the assistant calls the Scalev MCP connector. The connector forwards the OAuth token to Scalev API v3. Scalev validates the token, resolves the user and the selected business for each business API request, checks scopes, and runs the requested API action.
 
 You only need to enter the MCP connector URL. The assistant discovers the Scalev OAuth issuer at `https://api.scalev.com/v3/oauth`, then reads its metadata and opens the approval page at `https://app.scalev.com/oauth/authorize`.
 
@@ -35,18 +35,20 @@ Do not use `https://app.scalev.com/oauth/authorize` as the MCP connector URL. Th
 
 Scalev MCP exposes four tools:
 
-- `get_me`: shows the connected Scalev business, user, OAuth app, and permission context.
+- `get_me`: shows the connected user, OAuth app, businesses, and permission context.
 - `search`: finds business-authenticated Scalev API v3 endpoints that the assistant can ask to use.
 - `get`: reads one GET endpoint returned by `search`.
 - `execute`: runs one non-GET endpoint returned by `search`, such as create, update, delete, validation, or action endpoints.
 
 This keeps the connector small while still allowing access to the business-authenticated Scalev API v3 surface. OAuth flow routes, dashboard-only routes, and storefront browser routes are not exposed through MCP.
 
+`get_me` returns `connected_businesses[]`. If the token is connected to more than one business, the assistant must pass `business_unique_id` on `get` and `execute`. If the token is connected to one business, the assistant can omit it.
+
 For write actions, the assistant can send endpoint fields directly or inside the `body` field. Scalev MCP forwards the resulting JSON body to Scalev API v3 unchanged.
 
 Typical tasks include:
 
-- showing the connected business and user
+- showing the connected user, OAuth app, and businesses
 - listing orders, products, bundles, customers, stores, or landing pages
 - reading page, order, product, or WhatsApp account details
 - validating or creating allowed business resources through Scalev API v3
@@ -69,7 +71,7 @@ Some AI assistants limit custom connectors by plan, workspace, or administrator 
 3. Enter `https://mcp.scalev.com/mcp` as the connector URL.
 4. Continue to the Scalev OAuth approval screen.
 5. Sign in to Scalev if prompted.
-6. Choose the business you want the assistant to access.
+6. Choose the business or businesses you want the assistant to access.
 7. Review the requested permissions.
 8. Click **Authorize**.
 9. Return to the AI assistant and test the connection.
@@ -135,6 +137,14 @@ The `execute` tool can call non-GET Scalev API v3 endpoints when the connected O
 
 The connector does not bypass Scalev authorization. Your Scalev business role, the approved OAuth scopes, and the target API endpoint still determine whether the action is allowed.
 
+## Multiple businesses
+
+A single OAuth connection can authorize multiple Scalev businesses when your user role permits app authorization in each business. Scalev keeps one installation per business, but the assistant can use one OAuth token for the connected set.
+
+Ask the assistant to call `get_me` first. The response includes `connected_businesses[]` with each business `unique_id`, username, name, active/enabled state, and approved scopes.
+
+When more than one business is connected, each `get` or `execute` call must include `business_unique_id`. Use the `unique_id` from `connected_businesses[]`. If access to one business is revoked or disabled, requests for that business fail, but the assistant can still use the remaining connected businesses. After token refresh, the connected business list shrinks to the remaining active and enabled businesses.
+
 ### HTML Mode landing pages
 
 To create and publish an HTML Mode landing page in one call, the assistant must include `is_published: true` in the `createLandingPage` body together with the nested `page_display` payload.
@@ -156,7 +166,7 @@ You can revoke the connection at any time:
 3. Find **Scalev MCP**.
 4. Click **Revoke Access**.
 
-After revocation, the assistant must reconnect and complete OAuth approval again before it can call Scalev.
+After revocation, the assistant must reconnect and complete OAuth approval again before it can call that business through Scalev. If the same OAuth connection still has access to other businesses, those businesses can remain usable.
 
 ## Troubleshooting
 
@@ -176,7 +186,7 @@ If your assistant asks for an authorization server URL, use `https://api.scalev.
 
 ### The assistant does not show any landing pages
 
-Make sure you selected the correct Scalev business during approval and that the business has landing pages available to your user.
+Ask the assistant to call `get_me` and check `connected_businesses[]`. If more than one business is connected, make sure the assistant is using the correct `business_unique_id` and that the selected business has landing pages available to your user.
 
 ## Related docs
 

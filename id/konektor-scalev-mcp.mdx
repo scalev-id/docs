@@ -1,9 +1,9 @@
 ---
 title: "Konektor Scalev MCP"
-description: "Hubungkan asisten AI ke bisnis Scalev Anda dengan OAuth."
+description: "Hubungkan asisten AI ke satu atau beberapa bisnis Scalev Anda dengan OAuth."
 ---
 
-Scalev MCP memungkinkan asisten AI yang mendukung remote MCP terhubung ke bisnis Scalev Anda. Gunakan konektor ini saat Anda ingin asisten memeriksa data bisnis, mencari aksi Scalev API v3 yang tersedia, atau menjalankan request API bisnis yang sudah disetujui melalui koneksi OAuth.
+Scalev MCP memungkinkan asisten AI yang mendukung remote MCP terhubung ke satu atau beberapa bisnis Scalev Anda. Gunakan konektor ini saat Anda ingin asisten memeriksa data bisnis, mencari aksi Scalev API v3 yang tersedia, atau menjalankan request API bisnis yang sudah disetujui melalui koneksi OAuth.
 
 URL konektor adalah:
 
@@ -23,9 +23,9 @@ Asisten AI
   -> Scalev API v3
 ```
 
-Saat Anda menghubungkan asisten, Scalev membuka alur persetujuan OAuth. Anda masuk, memilih bisnis, meninjau izin yang diminta, lalu menyetujui akses.
+Saat Anda menghubungkan asisten, Scalev membuka alur persetujuan OAuth. Anda masuk, memilih satu atau beberapa bisnis, meninjau izin yang diminta, lalu menyetujui akses.
 
-Setelah disetujui, asisten memanggil konektor Scalev MCP. Konektor meneruskan token OAuth ke Scalev API v3. Scalev memvalidasi token, menentukan bisnis dan user, memeriksa scope, lalu menjalankan aksi API yang diminta.
+Setelah disetujui, asisten memanggil konektor Scalev MCP. Konektor meneruskan token OAuth ke Scalev API v3. Scalev memvalidasi token, menentukan user dan bisnis yang dipilih untuk setiap request API bisnis, memeriksa scope, lalu menjalankan aksi API yang diminta.
 
 Anda hanya perlu memasukkan URL konektor MCP. Asisten akan menemukan issuer OAuth Scalev di `https://api.scalev.com/v3/oauth`, lalu membaca metadata-nya dan membuka halaman persetujuan di `https://app.scalev.com/oauth/authorize`.
 
@@ -35,18 +35,20 @@ Jangan gunakan `https://app.scalev.com/oauth/authorize` sebagai URL konektor MCP
 
 Scalev MCP menyediakan empat tool:
 
-- `get_me`: menampilkan bisnis Scalev, user, OAuth app, dan konteks izin yang terhubung.
+- `get_me`: menampilkan user, OAuth app, bisnis yang terhubung, dan konteks izin.
 - `search`: mencari endpoint Scalev API v3 yang membutuhkan autentikasi bisnis dan dapat diminta oleh asisten.
 - `get`: membaca satu endpoint GET yang ditemukan melalui `search`.
 - `execute`: menjalankan satu endpoint non-GET yang ditemukan melalui `search`, seperti endpoint create, update, delete, validasi, atau aksi.
 
 Model ini menjaga konektor tetap sederhana, tetapi tetap memberi akses ke surface Scalev API v3 yang membutuhkan autentikasi bisnis. Rute alur OAuth, rute khusus dashboard, dan rute storefront browser tidak tersedia melalui MCP.
 
+`get_me` mengembalikan `connected_businesses[]`. Jika token terhubung ke lebih dari satu bisnis, asisten harus mengirim `business_unique_id` pada `get` dan `execute`. Jika token hanya terhubung ke satu bisnis, asisten dapat menghilangkannya.
+
 Untuk aksi tulis, asisten dapat mengirim field endpoint secara langsung atau di dalam field `body`. Scalev MCP meneruskan JSON body tersebut ke Scalev API v3 tanpa mengubah isinya.
 
 Contoh pekerjaan yang umum:
 
-- menampilkan bisnis dan user yang terhubung
+- menampilkan user, OAuth app, dan bisnis yang terhubung
 - menampilkan daftar order, produk, bundle, customer, toko, atau landing page
 - membaca detail page, order, produk, atau WhatsApp account
 - memvalidasi atau membuat resource bisnis yang diizinkan melalui Scalev API v3
@@ -69,7 +71,7 @@ Sebagian asisten AI membatasi custom connector berdasarkan plan, workspace, atau
 3. Masukkan `https://mcp.scalev.com/mcp` sebagai URL konektor.
 4. Lanjutkan ke layar persetujuan OAuth Scalev.
 5. Masuk ke Scalev jika diminta.
-6. Pilih bisnis yang ingin Anda berikan akses ke asisten.
+6. Pilih bisnis yang ingin Anda berikan akses ke asisten. Anda dapat memilih lebih dari satu jika tersedia.
 7. Tinjau izin yang diminta.
 8. Klik **Authorize**.
 9. Kembali ke asisten AI dan uji koneksinya.
@@ -135,6 +137,14 @@ Tool `execute` dapat memanggil endpoint Scalev API v3 non-GET jika token OAuth y
 
 Konektor tidak melewati otorisasi Scalev. Peran Anda di bisnis Scalev, scope OAuth yang disetujui, dan endpoint API tujuan tetap menentukan apakah aksi diizinkan.
 
+## Beberapa bisnis
+
+Satu koneksi OAuth dapat mengotorisasi beberapa bisnis Scalev jika peran user Anda mengizinkan otorisasi aplikasi di setiap bisnis. Scalev tetap menyimpan satu instalasi per bisnis, tetapi asisten dapat memakai satu token OAuth untuk kumpulan bisnis yang terhubung.
+
+Minta asisten memanggil `get_me` terlebih dahulu. Responsnya berisi `connected_businesses[]` dengan `unique_id`, username, nama, status active/enabled, dan scope yang disetujui untuk setiap bisnis.
+
+Ketika lebih dari satu bisnis terhubung, setiap call `get` atau `execute` harus menyertakan `business_unique_id`. Gunakan `unique_id` dari `connected_businesses[]`. Jika akses ke salah satu bisnis dicabut atau dinonaktifkan, request untuk bisnis tersebut gagal, tetapi asisten masih dapat memakai bisnis lain yang tetap terhubung. Setelah token di-refresh, daftar bisnis yang terhubung menyusut menjadi bisnis yang masih aktif dan enabled.
+
 ### Landing page HTML Mode
 
 Untuk membuat dan mem-publish landing page HTML Mode dalam satu call, asisten harus menyertakan `is_published: true` di body `createLandingPage` bersama payload `page_display`.
@@ -156,7 +166,7 @@ Anda dapat mencabut koneksi kapan saja:
 3. Cari **Scalev MCP**.
 4. Klik **Revoke Access**.
 
-Setelah akses dicabut, asisten harus terhubung ulang dan menyelesaikan persetujuan OAuth lagi sebelum dapat memanggil Scalev.
+Setelah akses dicabut, asisten harus terhubung ulang dan menyelesaikan persetujuan OAuth lagi sebelum dapat memanggil bisnis tersebut melalui Scalev. Jika koneksi OAuth yang sama masih memiliki akses ke bisnis lain, bisnis tersebut dapat tetap digunakan.
 
 ## Troubleshooting
 
@@ -176,7 +186,7 @@ Jika asisten meminta authorization server URL, gunakan `https://api.scalev.com/v
 
 ### Asisten tidak menampilkan landing page
 
-Pastikan Anda memilih bisnis Scalev yang benar saat persetujuan dan bisnis tersebut memiliki landing page yang dapat diakses oleh user Anda.
+Minta asisten memanggil `get_me` dan periksa `connected_businesses[]`. Jika lebih dari satu bisnis terhubung, pastikan asisten memakai `business_unique_id` yang benar dan bisnis yang dipilih memiliki landing page yang dapat diakses oleh user Anda.
 
 ## Dokumen terkait
 
