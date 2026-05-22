@@ -80,15 +80,18 @@ With Store Context selected, `store` contains selected context only:
     "payment_method_options": [
       {
         "value": "bt:BCA:payment_account_uid",
-        "display": "Bank Central Asia (PT Interna Cipta Asia)"
+        "display": "Bank Central Asia (PT Interna Cipta Asia)",
+        "logo_url": "https://cdn.scalev.com/icons/BT_BCA.png"
       },
       {
         "value": "cod",
-        "display": "COD"
+        "display": "COD",
+        "logo_url": "https://cdn.scalev.com/icons/cod.png"
       },
       {
         "value": "va:BRI",
-        "display": "BRI Virtual Account"
+        "display": "BRI Virtual Account",
+        "logo_url": "https://cdn.scalev.com/icons/BRI.png"
       }
     ],
     "payment_methods": ["bank_transfer", "cod", "va"],
@@ -140,7 +143,7 @@ With Store Context selected, `store` contains selected context only:
 
 Use it to render selected products, bundle options, enabled payment methods, and store-aware forms. Selected product variants are available at `store.products[].variants[]`. Treat this payload as the complete available context for the page.
 
-`store.payment_method_options` contains the final selectable payment option objects. Render `display` as the visitor-facing label and submit `value` as `paymentMethod` or `payment_method`.
+`store.payment_method_options` contains the final selectable payment option objects. Render `display` as the visitor-facing label, use `logo_url` as the payment image source, and submit `value` as `paymentMethod` or `payment_method`.
 
 Payment option values are already flattened:
 
@@ -157,6 +160,12 @@ Payment option displays are ready for the client UI:
 - `gopay` displays as `GoPay`.
 - `bt:BCA:payment_account_uid` displays as `Bank Central Asia (PT Interna Cipta Asia)` when the account holder is `PT Interna Cipta Asia`.
 
+Payment option logos are ready for the client UI:
+
+- `va:BRI` uses `https://cdn.scalev.com/icons/BRI.png`.
+- `bt:BCA:payment_account_uid` uses `https://cdn.scalev.com/icons/BT_BCA.png`.
+- `qris` uses `https://cdn.scalev.com/icons/qris.png`.
+
 Deprecated legacy fields are still exposed for older pages:
 
 - `store.payment_methods`
@@ -170,6 +179,7 @@ const paymentMethodOptions = store.payment_method_options || [];
 const selectedPaymentOption = paymentMethodOptions[0];
 
 const label = selectedPaymentOption.display;
+const logoUrl = selectedPaymentOption.logo_url;
 
 const payload = {
   paymentMethod: selectedPaymentOption.value,
@@ -291,6 +301,8 @@ Accepted field names:
 
 Use this after the visitor has chosen products and a shipping destination. Scalev expects a numeric `warehouse_id`; the runtime extracts it from the warehouse object when possible.
 
+Returned courier options include `logo_url` when a courier code is available. Use it as the courier image source. Example: Ninja Xpress returns `https://cdn.scalev.com/assets/images/kurir/ninja.png`.
+
 ## `Scalev.checkout.validateOrder(payload)`
 
 Optionally validates order payload shape as a preflight check. This helper is useful for debugging. In normal submit flows, call `createOrder` and handle its validation errors.
@@ -371,7 +383,9 @@ async function submitOrder() {
 
 Use `unique_id` values from `Scalev.data.get().store` as order item identifiers.
 
-For payment selection, render `store.payment_method_options[].display` and submit only the selected option `value`. The runtime turns `va:BRI` into `payment_method: "va"` plus `sub_payment_method: "BRI"` for the backend, and turns `bt:BCA:payment_account_uid` into `payment_method: "bank_transfer"` plus `payment_account_unique_id: "payment_account_uid"`.
+For shipping selection, pass the selected warehouse object as `shippingOrigin` or pass its `unique_id` as `warehouseUniqueId`. Pass the selected courier service object as `courierService` or pass its `id` as `courierServiceId`. Render courier images from `searchCouriers()` option `logo_url`. The runtime sends `warehouse_unique_id` and `courier_service_id` in the backend shape.
+
+For payment selection, render `store.payment_method_options[].display`, render payment images from `store.payment_method_options[].logo_url`, and submit only the selected option `value`. The runtime turns `va:BRI` into `payment_method: "va"` plus `sub_payment_method: "BRI"` for the backend, and turns `bt:BCA:payment_account_uid` into `payment_method: "bank_transfer"` plus `payment_account_unique_id: "payment_account_uid"`.
 
 Create orders only from an intentional visitor submit action.
 

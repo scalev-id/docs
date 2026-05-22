@@ -80,15 +80,18 @@ Dengan Store Context, `store` berisi konteks terpilih saja:
     "payment_method_options": [
       {
         "value": "bt:BCA:payment_account_uid",
-        "display": "Bank Central Asia (PT Interna Cipta Asia)"
+        "display": "Bank Central Asia (PT Interna Cipta Asia)",
+        "logo_url": "https://cdn.scalev.com/icons/BT_BCA.png"
       },
       {
         "value": "cod",
-        "display": "COD"
+        "display": "COD",
+        "logo_url": "https://cdn.scalev.com/icons/cod.png"
       },
       {
         "value": "va:BRI",
-        "display": "BRI Virtual Account"
+        "display": "BRI Virtual Account",
+        "logo_url": "https://cdn.scalev.com/icons/BRI.png"
       }
     ],
     "payment_methods": ["bank_transfer", "cod", "va"],
@@ -140,7 +143,7 @@ Dengan Store Context, `store` berisi konteks terpilih saja:
 
 Gunakan data ini untuk render produk terpilih, bundle option, payment methods aktif, dan form yang memakai store. Variant produk terpilih tersedia di `store.products[].variants[]`. Perlakukan payload ini sebagai seluruh konteks yang tersedia untuk halaman.
 
-`store.payment_method_options` berisi object payment option final yang bisa dipilih. Render `display` sebagai label untuk visitor dan submit `value` sebagai `paymentMethod` atau `payment_method`.
+`store.payment_method_options` berisi object payment option final yang bisa dipilih. Render `display` sebagai label untuk visitor, gunakan `logo_url` sebagai image source payment, dan submit `value` sebagai `paymentMethod` atau `payment_method`.
 
 Value payment option sudah dibuat flat:
 
@@ -157,6 +160,12 @@ Display payment option sudah siap untuk UI client:
 - `gopay` tampil sebagai `GoPay`.
 - `bt:BCA:payment_account_uid` tampil sebagai `Bank Central Asia (PT Interna Cipta Asia)` saat account holder adalah `PT Interna Cipta Asia`.
 
+Logo payment option sudah siap untuk UI client:
+
+- `va:BRI` memakai `https://cdn.scalev.com/icons/BRI.png`.
+- `bt:BCA:payment_account_uid` memakai `https://cdn.scalev.com/icons/BT_BCA.png`.
+- `qris` memakai `https://cdn.scalev.com/icons/qris.png`.
+
 Field legacy yang deprecated masih diekspos untuk halaman lama:
 
 - `store.payment_methods`
@@ -170,6 +179,7 @@ const paymentMethodOptions = store.payment_method_options || [];
 const selectedPaymentOption = paymentMethodOptions[0];
 
 const label = selectedPaymentOption.display;
+const logoUrl = selectedPaymentOption.logo_url;
 
 const payload = {
   paymentMethod: selectedPaymentOption.value,
@@ -291,6 +301,8 @@ Nama field yang diterima:
 
 Gunakan method ini setelah pengunjung memilih produk dan tujuan pengiriman. Backend membutuhkan numeric `warehouse_id`; runtime mengambil id itu dari object warehouse jika memungkinkan.
 
+Opsi courier yang dikembalikan berisi `logo_url` saat courier code tersedia. Gunakan sebagai image source courier. Contoh: Ninja Xpress mengembalikan `https://cdn.scalev.com/assets/images/kurir/ninja.png`.
+
 ## `Scalev.checkout.validateOrder(payload)`
 
 Opsional untuk memvalidasi bentuk payload order sebagai preflight check. Helper ini berguna untuk debugging. Pada flow submit normal, panggil `createOrder` dan tangani error validasinya.
@@ -371,7 +383,9 @@ async function submitOrder() {
 
 Gunakan value `unique_id` dari `Scalev.data.get().store` sebagai identifier item order.
 
-Untuk pilihan payment, render `store.payment_method_options[].display` dan submit hanya `value` option terpilih. Runtime mengubah `va:BRI` menjadi `payment_method: "va"` plus `sub_payment_method: "BRI"` untuk backend, dan mengubah `bt:BCA:payment_account_uid` menjadi `payment_method: "bank_transfer"` plus `payment_account_unique_id: "payment_account_uid"`.
+Untuk pilihan shipping, kirim object warehouse terpilih sebagai `shippingOrigin` atau kirim `unique_id` warehouse sebagai `warehouseUniqueId`. Kirim object courier service terpilih sebagai `courierService` atau kirim `id` service sebagai `courierServiceId`. Render image courier dari `logo_url` option `searchCouriers()`. Runtime mengirim `warehouse_unique_id` dan `courier_service_id` dalam shape backend.
+
+Untuk pilihan payment, render `store.payment_method_options[].display`, render image payment dari `store.payment_method_options[].logo_url`, dan submit hanya `value` option terpilih. Runtime mengubah `va:BRI` menjadi `payment_method: "va"` plus `sub_payment_method: "BRI"` untuk backend, dan mengubah `bt:BCA:payment_account_uid` menjadi `payment_method: "bank_transfer"` plus `payment_account_unique_id: "payment_account_uid"`.
 
 Buat order hanya dari aksi submit pengunjung.
 
