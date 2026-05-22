@@ -33,19 +33,33 @@ Do not use `https://app.scalev.com/oauth/authorize` as the MCP connector URL. Th
 
 ## Available tools
 
-Scalev MCP exposes five tools:
+Scalev MCP exposes 17 tools:
 
 - `get_me`: shows the connected user, OAuth app, businesses, and permission context.
 - `get_docs`: reads Scalev Developers documentation bundled into MCP from every page under the Developers tab in the docs navigation when the assistant cannot browse `docs.scalev.com`.
 - `search`: finds business-authenticated Scalev API v3 endpoints that the assistant can ask to use.
 - `get`: reads one GET endpoint returned by `search`.
-- `execute`: runs one non-GET endpoint returned by `search`, such as create, update, delete, validation, or action endpoints.
+- `execute_safe`: runs one non-destructive non-GET endpoint returned by `search`, such as create, update, validation, or status-change actions.
+- `execute_destructive`: runs one destructive non-GET endpoint returned by `search`, such as delete, cancel, revoke, remove, or disconnect actions.
+- `list_landing_pages`: lists business landing pages.
+- `get_landing_page`: reads one business landing page.
+- `create_landing_page`: creates a landing page. For HTML Mode publishing in one call, include `is_published: true` with `page_display`.
+- `update_landing_page`: updates landing page metadata or publish state.
+- `delete_landing_page`: soft-deletes one landing page.
+- `list_orders`: lists business orders.
+- `get_order`: reads one business order.
+- `create_order`: creates one business order.
+- `update_order`: updates one business order.
+- `change_order_status`: changes order or payment status after explicit user intent.
+- `cancel_order_awb`: cancels order AWB state.
 
-This keeps the connector small while still allowing access to the business-authenticated Scalev API v3 surface. OAuth flow routes, dashboard-only routes, and storefront browser routes are not exposed through MCP.
+This keeps a generic catalog surface while adding semantic tools for the Landing Pages and Orders workflows most useful during review. OAuth flow routes, dashboard-only routes, and storefront browser routes are not exposed through MCP.
 
 `search` results can include `docs_topic`, `docs_url`, and `docs_hint`. When those fields are present, ask the assistant to call `get_docs` before creating a request payload or running a write action.
 
-`get_me` returns `connected_businesses[]`. If the connection includes more than one business, the assistant must pass `business_unique_id` on `get` and `execute`. Top-level `business_unique_id` is preferred. If a client accidentally places the exact `business_unique_id` key in `body`, `query`, `query_params`, `header_params`, `headers`, or a concrete path query string, Scalev MCP recovers it and forwards it to Scalev as the business selector. If the connection includes one business, the assistant can omit it.
+`search` returns `execution_tool` as `get`, `execute_safe`, or `execute_destructive`. Use that value. The connector refuses wrong-tool calls, so destructive operations cannot run through `execute_safe`, safe write actions cannot run through `execute_destructive`, and GET operations must use `get` or a read-only semantic tool.
+
+`get_me` returns `connected_businesses[]`. If the connection includes more than one business, the assistant must pass `business_unique_id` on business-scoped tools. Top-level `business_unique_id` is preferred. If a client accidentally places the exact `business_unique_id` key in `body`, `query`, `query_params`, `header_params`, `headers`, or a concrete path query string, Scalev MCP recovers it and forwards it to Scalev as the business selector. If the connection includes one business, the assistant can omit it.
 
 For write actions, the assistant can send endpoint fields directly or inside the `body` field. Scalev MCP forwards the resulting JSON body to Scalev API v3 unchanged.
 
@@ -56,7 +70,7 @@ Typical tasks include:
 - listing orders, products, bundles, customers, stores, or landing pages
 - reading page, order, product, or WhatsApp account details
 - validating or creating allowed business resources through Scalev API v3
-- running any approved business-authenticated API action that appears in `search`, using `get` for GET endpoints and `execute` for non-GET endpoints
+- running any approved business-authenticated API action that appears in `search`, using `get` for GET endpoints and `execute_safe` or `execute_destructive` for non-GET endpoints
 
 ## Requirements
 
@@ -138,7 +152,11 @@ Scalev enforces permissions on every API request. If the assistant tries to perf
 
 ## Write actions
 
-The `execute` tool can call non-GET Scalev API v3 endpoints when the connected OAuth token has the required scope. Some of those endpoints create, update, delete, validate, or run business actions. Review write actions in your AI assistant before you confirm them.
+The `execute_safe` and `execute_destructive` tools can call non-GET Scalev API v3 endpoints when the connected OAuth token has the required scope. Some of those endpoints create, update, delete, validate, or run business actions. Review write actions in your AI assistant before you confirm them.
+
+`execute_safe` is a non-destructive write or API action tool. It is not read-only or risk-free. Use it for operations whose `search` result says `execution_tool: "execute_safe"`.
+
+`execute_destructive` is for destructive operations whose `search` result says `execution_tool: "execute_destructive"`.
 
 The connector does not bypass Scalev authorization. Your Scalev business role, the approved OAuth scopes, and the target API endpoint still determine whether the action is allowed.
 
@@ -148,7 +166,7 @@ A single OAuth connection can authorize multiple Scalev businesses when your use
 
 Ask the assistant to call `get_me` first. The response includes `connected_businesses[]` with each business `unique_id`, username, name, active/enabled state, and approved scopes.
 
-When more than one business is connected, each `get` or `execute` call must include `business_unique_id`. Use the `unique_id` from `connected_businesses[]`. Top-level `business_unique_id` is the canonical MCP input. For robustness, Scalev MCP also recovers this exact key from `body`, `query`, `query_params`, `header_params`, `headers`, or a concrete path query string, then strips it from the API payload/query before forwarding the request.
+When more than one business is connected, each business-scoped tool call must include `business_unique_id`. Use the `unique_id` from `connected_businesses[]`. Top-level `business_unique_id` is the canonical MCP input. For robustness, Scalev MCP also recovers this exact key from `body`, `query`, `query_params`, `header_params`, `headers`, or a concrete path query string, then strips it from the API payload/query before forwarding the request.
 
 If access to one business is revoked or disabled, requests for that business fail, but the assistant can still use the remaining connected businesses. After the OAuth connection refreshes, the connected business list shrinks to the remaining active and enabled businesses.
 

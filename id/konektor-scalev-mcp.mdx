@@ -33,19 +33,33 @@ Jangan gunakan `https://app.scalev.com/oauth/authorize` sebagai URL konektor MCP
 
 ## Tools yang tersedia
 
-Scalev MCP menyediakan lima tool:
+Scalev MCP menyediakan 17 tool:
 
 - `get_me`: menampilkan user, OAuth app, bisnis yang terhubung, dan konteks izin.
 - `get_docs`: membaca dokumentasi Scalev Developers yang dibundel ke MCP dari semua halaman di tab Developers pada navigasi docs saat asisten tidak dapat membuka `docs.scalev.com`.
 - `search`: mencari endpoint Scalev API v3 yang membutuhkan autentikasi bisnis dan dapat diminta oleh asisten.
 - `get`: membaca satu endpoint GET yang ditemukan melalui `search`.
-- `execute`: menjalankan satu endpoint non-GET yang ditemukan melalui `search`, seperti endpoint create, update, delete, validasi, atau aksi.
+- `execute_safe`: menjalankan endpoint non-GET yang tidak destruktif, seperti create, update, validasi, atau change status.
+- `execute_destructive`: menjalankan endpoint non-GET yang destruktif, seperti delete, cancel, revoke, remove, atau disconnect.
+- `list_landing_pages`: menampilkan daftar landing page bisnis.
+- `get_landing_page`: membaca satu landing page bisnis.
+- `create_landing_page`: membuat landing page. Untuk publish HTML Mode dalam satu panggilan, kirim `is_published: true` dengan `page_display`.
+- `update_landing_page`: mengubah metadata atau status publish landing page.
+- `delete_landing_page`: menghapus landing page secara soft-delete.
+- `list_orders`: menampilkan daftar order bisnis.
+- `get_order`: membaca satu order bisnis.
+- `create_order`: membuat satu order bisnis.
+- `update_order`: mengubah satu order bisnis.
+- `change_order_status`: mengubah status order atau pembayaran setelah ada instruksi eksplisit.
+- `cancel_order_awb`: membatalkan status AWB order.
 
-Model ini menjaga konektor tetap sederhana, tetapi tetap memberi akses ke surface Scalev API v3 yang membutuhkan autentikasi bisnis. Rute alur OAuth, rute khusus dashboard, dan rute storefront browser tidak tersedia melalui MCP.
+Model ini mempertahankan surface katalog generik sekaligus menambahkan tool semantik untuk workflow Landing Pages dan Orders yang paling berguna saat review. Rute alur OAuth, rute khusus dashboard, dan rute storefront browser tidak tersedia melalui MCP.
 
 Hasil `search` dapat menyertakan `docs_topic`, `docs_url`, dan `docs_hint`. Jika field tersebut ada, minta asisten memanggil `get_docs` sebelum membuat payload request atau menjalankan aksi tulis.
 
-`get_me` mengembalikan `connected_businesses[]`. Jika koneksi mencakup lebih dari satu bisnis, asisten harus mengirim `business_unique_id` pada `get` dan `execute`. `business_unique_id` top-level tetap menjadi bentuk yang disarankan. Jika client tidak sengaja menaruh key persis `business_unique_id` di `body`, `query`, `query_params`, `header_params`, `headers`, atau query string path konkret, Scalev MCP akan memulihkannya dan meneruskannya ke Scalev sebagai selector bisnis. Jika koneksi hanya mencakup satu bisnis, asisten dapat menghilangkannya.
+`search` mengembalikan `execution_tool` berupa `get`, `execute_safe`, atau `execute_destructive`. Gunakan nilai itu. Konektor menolak pemanggilan tool yang salah, sehingga operasi destruktif tidak bisa berjalan melalui `execute_safe`, aksi tulis aman tidak bisa berjalan melalui `execute_destructive`, dan operasi GET harus memakai `get` atau tool semantik baca.
+
+`get_me` mengembalikan `connected_businesses[]`. Jika koneksi mencakup lebih dari satu bisnis, asisten harus mengirim `business_unique_id` pada tool yang membutuhkan bisnis. `business_unique_id` top-level tetap menjadi bentuk yang disarankan. Jika client tidak sengaja menaruh key persis `business_unique_id` di `body`, `query`, `query_params`, `header_params`, `headers`, atau query string path konkret, Scalev MCP akan memulihkannya dan meneruskannya ke Scalev sebagai selector bisnis. Jika koneksi hanya mencakup satu bisnis, asisten dapat menghilangkannya.
 
 Untuk aksi tulis, asisten dapat mengirim field endpoint secara langsung atau di dalam field `body`. Scalev MCP meneruskan JSON body tersebut ke Scalev API v3 tanpa mengubah isinya.
 
@@ -56,7 +70,7 @@ Contoh pekerjaan yang umum:
 - menampilkan daftar order, produk, bundle, customer, toko, atau landing page
 - membaca detail page, order, produk, atau WhatsApp account
 - memvalidasi atau membuat resource bisnis yang diizinkan melalui Scalev API v3
-- menjalankan aksi API bisnis yang sudah disetujui dan muncul di `search`, memakai `get` untuk endpoint GET dan `execute` untuk endpoint non-GET
+- menjalankan aksi API bisnis yang sudah disetujui dan muncul di `search`, memakai `get` untuk endpoint GET serta `execute_safe` atau `execute_destructive` untuk endpoint non-GET
 
 ## Kebutuhan
 
@@ -138,7 +152,11 @@ Scalev menegakkan izin pada setiap request API. Jika asisten mencoba menjalankan
 
 ## Aksi tulis
 
-Tool `execute` dapat memanggil endpoint Scalev API v3 non-GET jika token OAuth yang terhubung memiliki scope yang dibutuhkan. Sebagian endpoint tersebut dapat membuat, mengubah, menghapus, memvalidasi, atau menjalankan aksi bisnis. Tinjau aksi tulis di asisten AI Anda sebelum mengonfirmasinya.
+Tool `execute_safe` dan `execute_destructive` dapat memanggil endpoint Scalev API v3 non-GET jika token OAuth yang terhubung memiliki scope yang dibutuhkan. Sebagian endpoint tersebut dapat membuat, mengubah, menghapus, memvalidasi, atau menjalankan aksi bisnis. Tinjau aksi tulis di asisten AI Anda sebelum mengonfirmasinya.
+
+`execute_safe` adalah tool tulis atau aksi API yang tidak destruktif. Tool ini bukan read-only dan bukan bebas risiko. Gunakan untuk operasi yang hasil `search`-nya berisi `execution_tool: "execute_safe"`.
+
+`execute_destructive` digunakan untuk operasi destruktif yang hasil `search`-nya berisi `execution_tool: "execute_destructive"`.
 
 Konektor tidak melewati otorisasi Scalev. Peran Anda di bisnis Scalev, scope OAuth yang disetujui, dan endpoint API tujuan tetap menentukan apakah aksi diizinkan.
 
@@ -148,7 +166,7 @@ Satu koneksi OAuth dapat mengotorisasi beberapa bisnis Scalev jika peran user An
 
 Minta asisten memanggil `get_me` terlebih dahulu. Responsnya berisi `connected_businesses[]` dengan `unique_id`, username, nama, status active/enabled, dan scope yang disetujui untuk setiap bisnis.
 
-Ketika lebih dari satu bisnis terhubung, setiap call `get` atau `execute` harus menyertakan `business_unique_id`. Gunakan `unique_id` dari `connected_businesses[]`. `business_unique_id` top-level adalah input MCP yang canonical. Untuk toleransi client, Scalev MCP juga memulihkan key persis ini dari `body`, `query`, `query_params`, `header_params`, `headers`, atau query string path konkret, lalu menghapusnya dari payload/query API sebelum meneruskan request.
+Ketika lebih dari satu bisnis terhubung, setiap call tool yang membutuhkan bisnis harus menyertakan `business_unique_id`. Gunakan `unique_id` dari `connected_businesses[]`. `business_unique_id` top-level adalah input MCP yang canonical. Untuk toleransi client, Scalev MCP juga memulihkan key persis ini dari `body`, `query`, `query_params`, `header_params`, `headers`, atau query string path konkret, lalu menghapusnya dari payload/query API sebelum meneruskan request.
 
 Jika akses ke salah satu bisnis dicabut atau dinonaktifkan, request untuk bisnis tersebut gagal, tetapi asisten masih dapat memakai bisnis lain yang tetap terhubung. Setelah koneksi OAuth di-refresh, daftar bisnis yang terhubung menyusut menjadi bisnis yang masih aktif dan enabled.
 
