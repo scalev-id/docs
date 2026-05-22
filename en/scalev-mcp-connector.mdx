@@ -33,22 +33,26 @@ Do not use `https://app.scalev.com/oauth/authorize` as the MCP connector URL. Th
 
 ## Available tools
 
-Scalev MCP exposes four tools:
+Scalev MCP exposes five tools:
 
 - `get_me`: shows the connected user, OAuth app, businesses, and permission context.
+- `get_docs`: reads Scalev Developers documentation bundled into MCP from every page under the Developers tab in the docs navigation when the assistant cannot browse `docs.scalev.com`.
 - `search`: finds business-authenticated Scalev API v3 endpoints that the assistant can ask to use.
 - `get`: reads one GET endpoint returned by `search`.
 - `execute`: runs one non-GET endpoint returned by `search`, such as create, update, delete, validation, or action endpoints.
 
 This keeps the connector small while still allowing access to the business-authenticated Scalev API v3 surface. OAuth flow routes, dashboard-only routes, and storefront browser routes are not exposed through MCP.
 
-`get_me` returns `connected_businesses[]`. If the connection includes more than one business, the assistant must pass `business_unique_id` on `get` and `execute`. If the connection includes one business, the assistant can omit it.
+`search` results can include `docs_topic`, `docs_url`, and `docs_hint`. When those fields are present, ask the assistant to call `get_docs` before creating a request payload or running a write action.
+
+`get_me` returns `connected_businesses[]`. If the connection includes more than one business, the assistant must pass `business_unique_id` on `get` and `execute`. Top-level `business_unique_id` is preferred. If a client accidentally places the exact `business_unique_id` key in `body`, `query`, `query_params`, `header_params`, `headers`, or a concrete path query string, Scalev MCP recovers it and forwards it to Scalev as the business selector. If the connection includes one business, the assistant can omit it.
 
 For write actions, the assistant can send endpoint fields directly or inside the `body` field. Scalev MCP forwards the resulting JSON body to Scalev API v3 unchanged.
 
 Typical tasks include:
 
 - showing the connected user, OAuth app, and businesses
+- reading Scalev docs for the selected API area before making changes
 - listing orders, products, bundles, customers, stores, or landing pages
 - reading page, order, product, or WhatsApp account details
 - validating or creating allowed business resources through Scalev API v3
@@ -79,6 +83,7 @@ Some AI assistants limit custom connectors by plan, workspace, or administrator 
 Useful first prompts:
 
 - "Show my Scalev business profile."
+- "Read the Scalev docs for Landing Pages API, then search for the action to create a landing page."
 - "Search for the Scalev endpoint to list landing pages."
 - "Find the API action for reading an order, then show me the required fields."
 
@@ -143,7 +148,9 @@ A single OAuth connection can authorize multiple Scalev businesses when your use
 
 Ask the assistant to call `get_me` first. The response includes `connected_businesses[]` with each business `unique_id`, username, name, active/enabled state, and approved scopes.
 
-When more than one business is connected, each `get` or `execute` call must include `business_unique_id`. Use the `unique_id` from `connected_businesses[]`. If access to one business is revoked or disabled, requests for that business fail, but the assistant can still use the remaining connected businesses. After the OAuth connection refreshes, the connected business list shrinks to the remaining active and enabled businesses.
+When more than one business is connected, each `get` or `execute` call must include `business_unique_id`. Use the `unique_id` from `connected_businesses[]`. Top-level `business_unique_id` is the canonical MCP input. For robustness, Scalev MCP also recovers this exact key from `body`, `query`, `query_params`, `header_params`, `headers`, or a concrete path query string, then strips it from the API payload/query before forwarding the request.
+
+If access to one business is revoked or disabled, requests for that business fail, but the assistant can still use the remaining connected businesses. After the OAuth connection refreshes, the connected business list shrinks to the remaining active and enabled businesses.
 
 ### HTML Mode landing pages
 

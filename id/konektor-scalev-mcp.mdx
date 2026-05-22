@@ -33,22 +33,26 @@ Jangan gunakan `https://app.scalev.com/oauth/authorize` sebagai URL konektor MCP
 
 ## Tools yang tersedia
 
-Scalev MCP menyediakan empat tool:
+Scalev MCP menyediakan lima tool:
 
 - `get_me`: menampilkan user, OAuth app, bisnis yang terhubung, dan konteks izin.
+- `get_docs`: membaca dokumentasi Scalev Developers yang dibundel ke MCP dari semua halaman di tab Developers pada navigasi docs saat asisten tidak dapat membuka `docs.scalev.com`.
 - `search`: mencari endpoint Scalev API v3 yang membutuhkan autentikasi bisnis dan dapat diminta oleh asisten.
 - `get`: membaca satu endpoint GET yang ditemukan melalui `search`.
 - `execute`: menjalankan satu endpoint non-GET yang ditemukan melalui `search`, seperti endpoint create, update, delete, validasi, atau aksi.
 
 Model ini menjaga konektor tetap sederhana, tetapi tetap memberi akses ke surface Scalev API v3 yang membutuhkan autentikasi bisnis. Rute alur OAuth, rute khusus dashboard, dan rute storefront browser tidak tersedia melalui MCP.
 
-`get_me` mengembalikan `connected_businesses[]`. Jika koneksi mencakup lebih dari satu bisnis, asisten harus mengirim `business_unique_id` pada `get` dan `execute`. Jika koneksi hanya mencakup satu bisnis, asisten dapat menghilangkannya.
+Hasil `search` dapat menyertakan `docs_topic`, `docs_url`, dan `docs_hint`. Jika field tersebut ada, minta asisten memanggil `get_docs` sebelum membuat payload request atau menjalankan aksi tulis.
+
+`get_me` mengembalikan `connected_businesses[]`. Jika koneksi mencakup lebih dari satu bisnis, asisten harus mengirim `business_unique_id` pada `get` dan `execute`. `business_unique_id` top-level tetap menjadi bentuk yang disarankan. Jika client tidak sengaja menaruh key persis `business_unique_id` di `body`, `query`, `query_params`, `header_params`, `headers`, atau query string path konkret, Scalev MCP akan memulihkannya dan meneruskannya ke Scalev sebagai selector bisnis. Jika koneksi hanya mencakup satu bisnis, asisten dapat menghilangkannya.
 
 Untuk aksi tulis, asisten dapat mengirim field endpoint secara langsung atau di dalam field `body`. Scalev MCP meneruskan JSON body tersebut ke Scalev API v3 tanpa mengubah isinya.
 
 Contoh pekerjaan yang umum:
 
 - menampilkan user, OAuth app, dan bisnis yang terhubung
+- membaca dokumentasi Scalev untuk area API yang dipilih sebelum membuat perubahan
 - menampilkan daftar order, produk, bundle, customer, toko, atau landing page
 - membaca detail page, order, produk, atau WhatsApp account
 - memvalidasi atau membuat resource bisnis yang diizinkan melalui Scalev API v3
@@ -79,6 +83,7 @@ Sebagian asisten AI membatasi custom connector berdasarkan plan, workspace, atau
 Contoh prompt pertama:
 
 - "Tampilkan profil bisnis Scalev saya."
+- "Baca dokumentasi Scalev untuk Landing Pages API, lalu cari aksi untuk membuat landing page."
 - "Cari endpoint Scalev untuk menampilkan daftar landing page."
 - "Cari aksi API untuk membaca order, lalu tampilkan field yang dibutuhkan."
 
@@ -143,7 +148,9 @@ Satu koneksi OAuth dapat mengotorisasi beberapa bisnis Scalev jika peran user An
 
 Minta asisten memanggil `get_me` terlebih dahulu. Responsnya berisi `connected_businesses[]` dengan `unique_id`, username, nama, status active/enabled, dan scope yang disetujui untuk setiap bisnis.
 
-Ketika lebih dari satu bisnis terhubung, setiap call `get` atau `execute` harus menyertakan `business_unique_id`. Gunakan `unique_id` dari `connected_businesses[]`. Jika akses ke salah satu bisnis dicabut atau dinonaktifkan, request untuk bisnis tersebut gagal, tetapi asisten masih dapat memakai bisnis lain yang tetap terhubung. Setelah koneksi OAuth di-refresh, daftar bisnis yang terhubung menyusut menjadi bisnis yang masih aktif dan enabled.
+Ketika lebih dari satu bisnis terhubung, setiap call `get` atau `execute` harus menyertakan `business_unique_id`. Gunakan `unique_id` dari `connected_businesses[]`. `business_unique_id` top-level adalah input MCP yang canonical. Untuk toleransi client, Scalev MCP juga memulihkan key persis ini dari `body`, `query`, `query_params`, `header_params`, `headers`, atau query string path konkret, lalu menghapusnya dari payload/query API sebelum meneruskan request.
+
+Jika akses ke salah satu bisnis dicabut atau dinonaktifkan, request untuk bisnis tersebut gagal, tetapi asisten masih dapat memakai bisnis lain yang tetap terhubung. Setelah koneksi OAuth di-refresh, daftar bisnis yang terhubung menyusut menjadi bisnis yang masih aktif dan enabled.
 
 ### Landing page HTML Mode
 
