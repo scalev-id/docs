@@ -170,18 +170,6 @@ Ketika lebih dari satu bisnis terhubung, setiap call tool yang membutuhkan bisni
 
 Jika akses ke salah satu bisnis dicabut atau dinonaktifkan, request untuk bisnis tersebut gagal, tetapi asisten masih dapat memakai bisnis lain yang tetap terhubung. Setelah koneksi OAuth di-refresh, daftar bisnis yang terhubung menyusut menjadi bisnis yang masih aktif dan enabled.
 
-### Landing page HTML Mode
-
-Untuk membuat dan mem-publish landing page HTML Mode dalam satu call, asisten harus menyertakan `is_published: true` di body `createLandingPage` bersama payload `page_display`.
-
-Jika `is_published` tidak dikirim atau bernilai false, Scalev menyimpan page display tersebut sebagai draft yang belum dipublish. Dalam kondisi itu response page dapat menampilkan `render_mode: "builder"`, `current_page_display_id: null`, dan `page_display: null` karena response hanya menyertakan display yang sedang dipublish.
-
-Flow draft yang eksplisit adalah:
-
-1. Buat page.
-2. Buat page display untuk page tersebut.
-3. Patch page dengan `is_published: true` dan `current_page_display_id` berisi ID display.
-
 ## Cabut akses
 
 Anda dapat mencabut koneksi kapan saja:
