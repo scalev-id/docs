@@ -36,7 +36,7 @@ Do not use `https://app.scalev.com/oauth/authorize` as the MCP connector URL. Th
 Scalev MCP exposes 17 tools:
 
 - `get_me`: shows the connected user, OAuth app, businesses, and permission context.
-- `get_docs`: reads Scalev Developers documentation bundled into MCP from every page under the Developers tab in the docs navigation when the assistant cannot browse `docs.scalev.com`.
+- `get_docs`: reads Scalev Developers documentation bundled into MCP from every page under the Developers tab in the docs navigation when the assistant cannot browse `docs.scalev.com`. This is a local read-only lookup that does not call the Scalev API or change business data.
 - `search`: finds business-authenticated Scalev API v3 endpoints that the assistant can ask to use.
 - `get`: reads one GET endpoint returned by `search`.
 - `execute_safe`: runs one non-destructive non-GET endpoint returned by `search`, such as create, update, validation, or status-change actions.

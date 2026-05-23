@@ -36,7 +36,7 @@ Jangan gunakan `https://app.scalev.com/oauth/authorize` sebagai URL konektor MCP
 Scalev MCP menyediakan 17 tool:
 
 - `get_me`: menampilkan user, OAuth app, bisnis yang terhubung, dan konteks izin.
-- `get_docs`: membaca dokumentasi Scalev Developers yang dibundel ke MCP dari semua halaman di tab Developers pada navigasi docs saat asisten tidak dapat membuka `docs.scalev.com`.
+- `get_docs`: membaca dokumentasi Scalev Developers yang dibundel ke MCP dari semua halaman di tab Developers pada navigasi docs saat asisten tidak dapat membuka `docs.scalev.com`. Ini adalah lookup lokal read-only yang tidak memanggil Scalev API atau mengubah data bisnis.
 - `search`: mencari endpoint Scalev API v3 yang membutuhkan autentikasi bisnis dan dapat diminta oleh asisten.
 - `get`: membaca satu endpoint GET yang ditemukan melalui `search`.
 - `execute_safe`: menjalankan endpoint non-GET yang tidak destruktif, seperti create, update, validasi, atau change status.

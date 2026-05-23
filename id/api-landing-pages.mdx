@@ -110,6 +110,10 @@ HTML Mode memakai `render_mode: "html_mode"` dan field kode berikut:
 - `js_code`: JavaScript browser
 - `csp_policy`: tambahan Content Security Policy opsional
 
+Saat `js_code` dikirim sebagai string kosong, response API dapat mengembalikannya sebagai `null`.
+Perlakukan `null` dan `""` sebagai "tanpa JavaScript" ketika membaca page display.
+`css_code` tetap dapat kembali sebagai string kosong.
+
 Jangan kirim field display khusus Builder seperti `schema_version`, `banner`, `header`, `general`, `sidebar`, atau `main` untuk HTML Mode. Scalev mengisi default yang sesuai secara internal. Response tetap bisa berisi field tersebut.
 
 Sertakan field event analytics walaupun nilainya kosong:
