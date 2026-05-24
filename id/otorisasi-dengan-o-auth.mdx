@@ -245,7 +245,7 @@ GET https://api.scalev.com/v3/me
 Authorization: Bearer ACCESS_TOKEN
 ```
 
-Untuk token OAuth, endpoint ini mengembalikan identitas token dan user serta daftar bisnis yang terhubung ke token:
+Untuk token OAuth, endpoint ini mengembalikan identitas token dan user serta daftar bisnis aktif yang terhubung ke token:
 
 ```json
 {
@@ -266,7 +266,6 @@ Untuk token OAuth, endpoint ini mengembalikan identitas token dan user serta daf
       "unique_id": "ABC123",
       "username": "store-a",
       "name": "Store A",
-      "is_active": true,
       "is_enabled": true,
       "scopes": ["order:list", "order:read"]
     }
@@ -274,7 +273,7 @@ Untuk token OAuth, endpoint ini mengembalikan identitas token dan user serta daf
 }
 ```
 
-`/v3/me` adalah identitas token dan user. Endpoint ini bukan identitas bisnis yang sedang dipilih. Status bisnis terhubung dan scope yang disetujui berada di dalam `connected_businesses[]`.
+`/v3/me` adalah identitas token dan user. Endpoint ini bukan identitas bisnis yang sedang dipilih. Instalasi OAuth yang dicabut atau inactive tidak ditampilkan di `connected_businesses[]`. Jika tidak ada bisnis aktif yang tersisa, Scalev mengembalikan `403` tanpa data identitas.
 
 ### Pilih Bisnis untuk Request API
 
@@ -283,7 +282,7 @@ Request API `/v3` yang bersifat business-scoped selalu berjalan pada satu bisnis
 - jika token memiliki satu bisnis terhubung, selector dapat dihilangkan
 - jika token memiliki beberapa bisnis terhubung, kirim `b_uid=<business.unique_id>` pada setiap request business-scoped
 - gunakan `unique_id` dari `/v3/me.connected_businesses[]`
-- jika akses ke bisnis yang dipilih dicabut atau dinonaktifkan, bisnis tersebut gagal tetapi bisnis lain yang terhubung tetap dapat digunakan
+- jika akses ke bisnis yang dipilih dicabut atau dinonaktifkan, bisnis tersebut mengembalikan `403` tetapi bisnis aktif lain yang terhubung tetap dapat digunakan
 
 Contoh:
 

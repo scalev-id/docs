@@ -164,11 +164,11 @@ Konektor tidak melewati otorisasi Scalev. Peran Anda di bisnis Scalev, scope OAu
 
 Satu koneksi OAuth dapat mengotorisasi beberapa bisnis Scalev jika peran user Anda mengizinkan otorisasi aplikasi di setiap bisnis. Scalev mencatat akses secara terpisah untuk setiap bisnis, dan asisten dapat memakai koneksi OAuth yang sama untuk kumpulan bisnis yang terhubung.
 
-Minta asisten memanggil `get_me` terlebih dahulu. Responsnya berisi `connected_businesses[]` dengan `unique_id`, username, nama, status active/enabled, dan scope yang disetujui untuk setiap bisnis.
+Minta asisten memanggil `get_me` terlebih dahulu. Responsnya berisi entry aktif `connected_businesses[]` dengan `unique_id`, username, nama, status enabled, dan scope yang disetujui untuk setiap bisnis.
 
 Ketika lebih dari satu bisnis terhubung, setiap call tool yang membutuhkan bisnis harus menyertakan `business_unique_id`. Gunakan `unique_id` dari `connected_businesses[]`. `business_unique_id` top-level adalah input MCP yang canonical. Untuk toleransi client, Scalev MCP juga memulihkan key persis ini dari `body`, `query`, `query_params`, `header_params`, `headers`, atau query string path konkret, lalu menghapusnya dari payload/query API sebelum meneruskan request.
 
-Jika akses ke salah satu bisnis dicabut atau dinonaktifkan, request untuk bisnis tersebut gagal, tetapi asisten masih dapat memakai bisnis lain yang tetap terhubung. Setelah koneksi OAuth di-refresh, daftar bisnis yang terhubung menyusut menjadi bisnis yang masih aktif dan enabled.
+Jika akses ke salah satu bisnis dicabut atau dinonaktifkan, request untuk bisnis tersebut gagal, tetapi asisten masih dapat memakai bisnis aktif lain yang tetap terhubung. Bisnis yang dicabut tidak muncul di `get_me`; jika tidak ada bisnis aktif yang tersisa, `get_me` mengembalikan `403` dan asisten harus terhubung ulang.
 
 ## Cabut akses
 

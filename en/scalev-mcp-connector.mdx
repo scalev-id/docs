@@ -164,11 +164,11 @@ The connector does not bypass Scalev authorization. Your Scalev business role, t
 
 A single OAuth connection can authorize multiple Scalev businesses when your user role permits app authorization in each business. Scalev tracks access separately for each business, and the assistant can use the same OAuth connection for the connected set.
 
-Ask the assistant to call `get_me` first. The response includes `connected_businesses[]` with each business `unique_id`, username, name, active/enabled state, and approved scopes.
+Ask the assistant to call `get_me` first. The response includes active `connected_businesses[]` entries with each business `unique_id`, username, name, enabled state, and approved scopes.
 
 When more than one business is connected, each business-scoped tool call must include `business_unique_id`. Use the `unique_id` from `connected_businesses[]`. Top-level `business_unique_id` is the canonical MCP input. For robustness, Scalev MCP also recovers this exact key from `body`, `query`, `query_params`, `header_params`, `headers`, or a concrete path query string, then strips it from the API payload/query before forwarding the request.
 
-If access to one business is revoked or disabled, requests for that business fail, but the assistant can still use the remaining connected businesses. After the OAuth connection refreshes, the connected business list shrinks to the remaining active and enabled businesses.
+If access to one business is revoked or disabled, requests for that business fail, but the assistant can still use the remaining active connected businesses. Revoked businesses are omitted from `get_me`; if no active connected business remains, `get_me` returns `403` and the assistant must reconnect.
 
 ## Revoke access
 

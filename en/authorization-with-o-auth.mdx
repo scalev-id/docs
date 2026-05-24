@@ -245,7 +245,7 @@ GET https://api.scalev.com/v3/me
 Authorization: Bearer ACCESS_TOKEN
 ```
 
-For OAuth tokens, this returns token and user identity plus the businesses connected to the token:
+For OAuth tokens, this returns token and user identity plus the active businesses connected to the token:
 
 ```json
 {
@@ -266,7 +266,6 @@ For OAuth tokens, this returns token and user identity plus the businesses conne
       "unique_id": "ABC123",
       "username": "store-a",
       "name": "Store A",
-      "is_active": true,
       "is_enabled": true,
       "scopes": ["order:list", "order:read"]
     }
@@ -274,7 +273,7 @@ For OAuth tokens, this returns token and user identity plus the businesses conne
 }
 ```
 
-`/v3/me` is token and user identity. It is not selected-business identity. Connected business status and approved scopes live inside `connected_businesses[]`.
+`/v3/me` is token and user identity. It is not selected-business identity. Revoked or inactive OAuth installations are omitted from `connected_businesses[]`. If no active connected business remains, Scalev returns `403` without identity data.
 
 ### Select a Business for API Calls
 
@@ -283,7 +282,7 @@ Business-scoped `/v3` API calls always run against one selected business.
 - if the token has one connected business, you can omit the selector
 - if the token has multiple connected businesses, pass `b_uid=<business.unique_id>` on each business-scoped request
 - use the `unique_id` from `/v3/me.connected_businesses[]`
-- if access to the selected business is revoked or disabled, that business fails while other connected businesses remain usable
+- if access to the selected business is revoked or disabled, that business returns `403` while other active connected businesses remain usable
 
 Example:
 
