@@ -33,7 +33,7 @@ Jangan gunakan `https://app.scalev.com/oauth/authorize` sebagai URL konektor MCP
 
 ## Tools yang tersedia
 
-Scalev MCP menyediakan 17 tool:
+Scalev MCP menyediakan 25 tool:
 
 - `get_me`: menampilkan user, OAuth app, bisnis yang terhubung, dan konteks izin.
 - `get_docs`: membaca dokumentasi Scalev Developers yang dibundel ke MCP dari semua halaman di tab Developers pada navigasi docs saat asisten tidak dapat membuka `docs.scalev.com`. Ini adalah lookup lokal read-only yang tidak memanggil Scalev API atau mengubah data bisnis.
@@ -42,18 +42,26 @@ Scalev MCP menyediakan 17 tool:
 - `execute_safe`: menjalankan endpoint non-GET yang tidak destruktif, seperti create, update, validasi, atau change status.
 - `execute_destructive`: menjalankan endpoint non-GET yang destruktif, seperti delete, cancel, revoke, remove, atau disconnect.
 - `list_landing_pages`: menampilkan daftar landing page bisnis.
+- `list_landing_page_tags`: menampilkan tag landing page yang tersedia untuk bisnis.
 - `get_landing_page`: membaca satu landing page bisnis.
+- `get_landing_page_public_view`: membaca data render publik terautentikasi untuk satu landing page.
 - `create_landing_page`: membuat landing page. Untuk publish HTML Mode dalam satu panggilan, kirim `is_published: true` dengan `page_display`.
 - `update_landing_page`: mengubah metadata atau status publish landing page.
+- `update_landing_page_tags`: mengganti tag yang terpasang pada satu landing page.
 - `delete_landing_page`: menghapus landing page secara soft-delete.
+- `list_landing_page_displays`: menampilkan versi display tersimpan untuk satu landing page.
+- `create_landing_page_display`: membuat versi display baru dengan HTML/CSS/JS, pixel analytics, atau data form checkout.
+- `validate_landing_page_display`: memvalidasi payload display tanpa menyimpannya.
+- `get_landing_page_display`: membaca satu versi display yang tersimpan.
+- `delete_landing_page_display`: menghapus satu versi display yang tersimpan.
 - `list_orders`: menampilkan daftar order bisnis.
 - `get_order`: membaca satu order bisnis.
 - `create_order`: membuat satu order bisnis.
 - `update_order`: mengubah satu order bisnis.
 - `change_order_status`: mengubah status order atau pembayaran setelah ada instruksi eksplisit.
-- `cancel_order_awb`: membatalkan status AWB order.
+- `get_order_statistics`: membaca statistik order agregat untuk bisnis yang dipilih.
 
-Model ini mempertahankan surface katalog generik sekaligus menambahkan tool semantik untuk workflow Landing Pages dan Orders yang paling berguna saat review. Rute alur OAuth, rute khusus dashboard, dan rute storefront browser tidak tersedia melalui MCP.
+Model ini mempertahankan surface katalog generik sekaligus menambahkan tool semantik untuk seluruh operasi publik Landing Pages dan workflow Orders yang paling berguna saat review. Rute alur OAuth, rute khusus dashboard, dan rute storefront browser tidak tersedia melalui MCP.
 
 Hasil `search` dapat menyertakan `docs_topic`, `docs_url`, dan `docs_hint`. Jika field tersebut ada, minta asisten memanggil `get_docs` sebelum membuat payload request atau menjalankan aksi tulis.
 

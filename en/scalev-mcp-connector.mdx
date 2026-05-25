@@ -33,7 +33,7 @@ Do not use `https://app.scalev.com/oauth/authorize` as the MCP connector URL. Th
 
 ## Available tools
 
-Scalev MCP exposes 17 tools:
+Scalev MCP exposes 25 tools:
 
 - `get_me`: shows the connected user, OAuth app, businesses, and permission context.
 - `get_docs`: reads Scalev Developers documentation bundled into MCP from every page under the Developers tab in the docs navigation when the assistant cannot browse `docs.scalev.com`. This is a local read-only lookup that does not call the Scalev API or change business data.
@@ -42,18 +42,26 @@ Scalev MCP exposes 17 tools:
 - `execute_safe`: runs one non-destructive non-GET endpoint returned by `search`, such as create, update, validation, or status-change actions.
 - `execute_destructive`: runs one destructive non-GET endpoint returned by `search`, such as delete, cancel, revoke, remove, or disconnect actions.
 - `list_landing_pages`: lists business landing pages.
+- `list_landing_page_tags`: lists landing page tags visible to the business.
 - `get_landing_page`: reads one business landing page.
+- `get_landing_page_public_view`: reads authenticated public rendering data for one landing page.
 - `create_landing_page`: creates a landing page. For HTML Mode publishing in one call, include `is_published: true` with `page_display`.
 - `update_landing_page`: updates landing page metadata or publish state.
+- `update_landing_page_tags`: replaces tags assigned to one landing page.
 - `delete_landing_page`: soft-deletes one landing page.
+- `list_landing_page_displays`: lists saved display versions for one landing page.
+- `create_landing_page_display`: creates a new display version with HTML/CSS/JS, analytics pixels, or checkout form data.
+- `validate_landing_page_display`: validates a display payload without saving it.
+- `get_landing_page_display`: reads one saved display version.
+- `delete_landing_page_display`: deletes one saved display version.
 - `list_orders`: lists business orders.
 - `get_order`: reads one business order.
 - `create_order`: creates one business order.
 - `update_order`: updates one business order.
 - `change_order_status`: changes order or payment status after explicit user intent.
-- `cancel_order_awb`: cancels order AWB state.
+- `get_order_statistics`: reads aggregated order statistics for the selected business.
 
-This keeps a generic catalog surface while adding semantic tools for the Landing Pages and Orders workflows most useful during review. OAuth flow routes, dashboard-only routes, and storefront browser routes are not exposed through MCP.
+This keeps a generic catalog surface while adding semantic tools for the full public Landing Pages operation set and the Orders workflows most useful during review. OAuth flow routes, dashboard-only routes, and storefront browser routes are not exposed through MCP.
 
 `search` results can include `docs_topic`, `docs_url`, and `docs_hint`. When those fields are present, ask the assistant to call `get_docs` before creating a request payload or running a write action.
 
