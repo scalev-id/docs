@@ -213,6 +213,74 @@ Untuk memutuskan koneksi nanti, jalankan `codex mcp logout scalev`. Untuk mencab
 
 Referensi: [Dokumentasi MCP Codex](https://developers.openai.com/codex/mcp).
 
+## Gunakan dengan OpenClaw
+
+OpenClaw mendukung MCP server, tetapi saat ini hanya mendokumentasikan header `Authorization` statis untuk remote HTTP server. Karena Scalev memakai OAuth Dynamic Client Registration, bukan API key statis, hubungkan Scalev melalui bridge `mcp-remote` agar alur OAuth dijalankan secara lokal dan tool yang dihasilkan diekspos ke OpenClaw melalui stdio.
+
+1. Daftarkan bridge:
+
+   ```bash
+   openclaw mcp set scalev '{"command":"npx","args":["-y","mcp-remote","https://mcp.scalev.com/mcp"]}'
+   ```
+
+   Atau sunting `openclaw.json` langsung pada bagian `mcp.servers`:
+
+   ```json
+   {
+     "scalev": {
+       "command": "npx",
+       "args": ["-y", "mcp-remote", "https://mcp.scalev.com/mcp"]
+     }
+   }
+   ```
+
+2. Verifikasi server sudah terdaftar:
+
+   ```bash
+   openclaw mcp list
+   openclaw mcp show scalev --json
+   ```
+
+3. Mulai sesi yang memicu Scalev. Saat pertama kali dipakai, `mcp-remote` menemukan issuer OAuth Scalev, membuka URL otorisasi, dan mendengarkan port callback OAuth. Buka URL yang tercetak di browser jika tidak terbuka otomatis, masuk ke Scalev, pilih bisnis yang ingin Anda berikan akses ke asisten, tinjau izin yang diminta, lalu setujui. `mcp-remote` menyimpan token hasilnya di `~/.mcp-auth` dan memperbaruinya secara otomatis.
+
+4. Setelah disetujui, tool Scalev muncul di daftar tool OpenClaw dan dapat dipanggil dari prompt.
+
+Referensi: [Dokumentasi CLI MCP OpenClaw](https://docs.openclaw.ai/cli/mcp) dan [`mcp-remote` di npm](https://www.npmjs.com/package/mcp-remote).
+
+## Gunakan dengan Hermes Agent
+
+Hermes Agent (Nous Research) mendukung MCP server, tetapi saat ini hanya mendokumentasikan header `Authorization` statis untuk remote HTTP server. Karena Scalev memakai OAuth Dynamic Client Registration, bukan API key statis, hubungkan Scalev melalui bridge `mcp-remote` agar alur OAuth dijalankan secara lokal dan tool yang dihasilkan diekspos ke Hermes melalui stdio.
+
+1. Tambahkan bridge ke `~/.hermes/config.yaml` di bagian `mcp_servers`:
+
+   ```yaml
+   mcp_servers:
+     scalev:
+       command: npx
+       args:
+         - "-y"
+         - "mcp-remote"
+         - "https://mcp.scalev.com/mcp"
+   ```
+
+2. Muat ulang MCP server di sesi Hermes yang sedang berjalan:
+
+   ```
+   /reload-mcp
+   ```
+
+   Atau mulai sesi baru:
+
+   ```bash
+   hermes chat
+   ```
+
+3. Pertama kali Hermes memanggil tool Scalev, `mcp-remote` menemukan issuer OAuth Scalev, membuka URL otorisasi, dan mendengarkan port callback OAuth. Buka URL yang tercetak di browser jika tidak terbuka otomatis, masuk ke Scalev, pilih bisnis yang ingin Anda berikan akses ke asisten, tinjau izin yang diminta, lalu setujui. `mcp-remote` menyimpan token hasilnya di `~/.mcp-auth` dan memperbaruinya secara otomatis.
+
+4. Hermes mendaftarkan setiap tool Scalev dengan pola nama `mcp_scalev_<tool>` (contoh: `mcp_scalev_list_landing_pages`). Minta Hermes memakai tool tersebut langsung dari percakapan.
+
+Referensi: [Dokumentasi MCP Hermes Agent](https://hermes-agent.nousresearch.com/docs/user-guide/features/mcp) dan [`mcp-remote` di npm](https://www.npmjs.com/package/mcp-remote).
+
 ## Izin
 
 Layar persetujuan menampilkan izin yang diminta oleh konektor. Scalev hanya memberikan izin yang boleh diminta oleh konektor resmi Scalev MCP.
