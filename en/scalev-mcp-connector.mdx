@@ -150,6 +150,69 @@ To use Scalev in a Claude conversation, open the **+** menu in the composer, cho
 
 Reference: [Claude custom connectors using remote MCP](https://support.claude.com/en/articles/11175166-get-started-with-custom-connectors-using-remote-mcp).
 
+## Use with Claude Code
+
+Claude Code supports remote MCP servers over Streamable HTTP and handles the OAuth flow automatically.
+
+1. Add the connector at the user scope so it loads across every project:
+
+   ```bash
+   claude mcp add --transport http --scope user scalev https://mcp.scalev.com/mcp
+   ```
+
+2. Verify it was registered:
+
+   ```bash
+   claude mcp list
+   claude mcp get scalev
+   ```
+
+3. Start Claude Code and run the `/mcp` slash command. Claude Code shows the Scalev server and triggers the Scalev OAuth approval flow in your browser. Sign in, choose the business or businesses you want the assistant to access, review the requested permissions, and approve.
+
+4. After approval, the Scalev tools appear in the `/mcp` panel and are addressable from prompts. Tool names follow the `mcp__scalev__<tool>` pattern (for example, `mcp__scalev__list_landing_pages`).
+
+If you want the connector available only for a specific project or to share its configuration with your team in version control, omit `--scope user` (local) or use `--scope project` to write the entry into a checked-in `.mcp.json`.
+
+Reference: [Claude Code MCP documentation](https://docs.claude.com/en/docs/claude-code/mcp).
+
+## Use with Codex
+
+The OpenAI Codex CLI supports remote MCP servers over Streamable HTTP natively. No bridge package is needed.
+
+1. Register the connector. Either run:
+
+   ```bash
+   codex mcp add scalev --url https://mcp.scalev.com/mcp
+   ```
+
+   or add this block to `~/.codex/config.toml`:
+
+   ```toml
+   [mcp_servers.scalev]
+   url = "https://mcp.scalev.com/mcp"
+   ```
+
+2. Trigger the Scalev OAuth flow:
+
+   ```bash
+   codex mcp login scalev
+   ```
+
+   Codex prints the Scalev authorization URL and listens on its OAuth callback port. Open the URL in a browser, sign in to Scalev, choose the business or businesses you want the assistant to access, review the requested permissions, and approve. Codex completes the token exchange when the callback returns.
+
+3. Verify the connector and inspect its tools:
+
+   ```bash
+   codex mcp list
+   codex mcp get scalev
+   ```
+
+   Inside the Codex TUI, the `/mcp` slash command lists the active MCP servers and their tools. `/mcp verbose` adds server diagnostics.
+
+To disconnect later, run `codex mcp logout scalev`. To revoke from the Scalev side, follow the "Revoke access" steps below.
+
+Reference: [Codex MCP documentation](https://developers.openai.com/codex/mcp).
+
 ## Permissions
 
 The approval screen shows the permissions requested by the connector. Scalev only grants permissions that the official Scalev MCP connector is allowed to request.

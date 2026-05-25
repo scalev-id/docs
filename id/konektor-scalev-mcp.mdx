@@ -150,6 +150,69 @@ Untuk menggunakan Scalev di percakapan Claude, buka menu **+** di composer, pili
 
 Referensi: [Claude custom connectors using remote MCP](https://support.claude.com/en/articles/11175166-get-started-with-custom-connectors-using-remote-mcp).
 
+## Gunakan dengan Claude Code
+
+Claude Code mendukung remote MCP server melalui Streamable HTTP dan menangani alur OAuth secara otomatis.
+
+1. Tambahkan konektor pada scope user agar tersedia di semua project:
+
+   ```bash
+   claude mcp add --transport http --scope user scalev https://mcp.scalev.com/mcp
+   ```
+
+2. Verifikasi konektor sudah terdaftar:
+
+   ```bash
+   claude mcp list
+   claude mcp get scalev
+   ```
+
+3. Jalankan Claude Code lalu ketik perintah slash `/mcp`. Claude Code menampilkan server Scalev dan membuka alur persetujuan OAuth Scalev di browser. Masuk, pilih bisnis yang ingin Anda berikan akses ke asisten, tinjau izin yang diminta, lalu setujui.
+
+4. Setelah disetujui, tool Scalev tampil di panel `/mcp` dan dapat dipanggil dari prompt. Nama tool mengikuti pola `mcp__scalev__<tool>` (contoh: `mcp__scalev__list_landing_pages`).
+
+Jika Anda hanya ingin konektor tersedia di project tertentu atau ingin berbagi konfigurasinya dengan tim melalui version control, hilangkan `--scope user` (local) atau gunakan `--scope project` untuk menulis entry ke `.mcp.json` yang ikut di-commit.
+
+Referensi: [Dokumentasi MCP Claude Code](https://docs.claude.com/en/docs/claude-code/mcp).
+
+## Gunakan dengan Codex
+
+OpenAI Codex CLI mendukung remote MCP server melalui Streamable HTTP secara native. Tidak perlu package bridge.
+
+1. Daftarkan konektor. Jalankan:
+
+   ```bash
+   codex mcp add scalev --url https://mcp.scalev.com/mcp
+   ```
+
+   atau tambahkan blok berikut ke `~/.codex/config.toml`:
+
+   ```toml
+   [mcp_servers.scalev]
+   url = "https://mcp.scalev.com/mcp"
+   ```
+
+2. Picu alur OAuth Scalev:
+
+   ```bash
+   codex mcp login scalev
+   ```
+
+   Codex mencetak URL otorisasi Scalev dan mendengarkan port callback OAuth-nya. Buka URL tersebut di browser, masuk ke Scalev, pilih bisnis yang ingin Anda berikan akses ke asisten, tinjau izin yang diminta, lalu setujui. Codex menyelesaikan pertukaran token saat callback kembali.
+
+3. Verifikasi konektor dan periksa tool-nya:
+
+   ```bash
+   codex mcp list
+   codex mcp get scalev
+   ```
+
+   Di dalam TUI Codex, perintah slash `/mcp` menampilkan server MCP aktif beserta tool-nya. `/mcp verbose` menambahkan diagnostik server.
+
+Untuk memutuskan koneksi nanti, jalankan `codex mcp logout scalev`. Untuk mencabut dari sisi Scalev, ikuti langkah "Cabut akses" di bawah.
+
+Referensi: [Dokumentasi MCP Codex](https://developers.openai.com/codex/mcp).
+
 ## Izin
 
 Layar persetujuan menampilkan izin yang diminta oleh konektor. Scalev hanya memberikan izin yang boleh diminta oleh konektor resmi Scalev MCP.
