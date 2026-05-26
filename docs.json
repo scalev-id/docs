@@ -188,31 +188,43 @@
                       "id/cek-notifikasi-event",
                       "id/testing-events-manager-id",
                       "id/events-manager-testing",
+                      "id/verifikasimeta",
+                      "id/manual-trigger-purchase",
                       "id/funnel-toko-online",
-                      "id/verifikasimeta"
+                      "id/best-practices-meta",
+                      "id/funnel-analysis",
+                      "id/real-purchase-tidak-muncul"
                     ]
                   },
-                  "id/snackvideouser",
-                  "id/setting-tiktok-ads-user",
+                  {
+                    "group": "Snack Video Pixel",
+                    "pages": [
+                      "id/snackvideouser",
+                      "id/setting-pixel-snackvideo",
+                      "id/membuat-pixel-eventapi-snackvideo",
+                      "id/pastikantiktok",
+                      "id/test-event-snackvideo"
+                    ]
+                  },
+                  {
+                    "group": "TikTok Pixel",
+                    "pages": [
+                      "id/setting-tiktok-ads-user",
+                      "id/setting-pixel-tiktok",
+                      "id/tambah-pixel-tiktok",
+                      "id/test-event-tiktok"
+                    ]
+                  },
                   "id/tracking-email",
                   "id/default-events",
                   "id/autofill",
-                  "id/real-purchase-tidak-muncul",
-                  "id/manual-trigger-purchase",
-                  "id/pastikantiktok",
-                  "id/membuat-pixel-eventapi-snackvideo",
-                  "id/funnel-analysis",
-                  "id/setting-pixel-tiktok",
-                  "id/tambah-pixel-tiktok",
                   "id/speed-boost",
                   "id/google-ads-gtm",
-                  "id/best-practices-meta",
-                  "id/setting-pixel-snackvideo",
-                  "id/test-event-snackvideo",
-                  "id/test-event-tiktok",
                   {
-                    "group": "TikTok Pixel",
-                    "pages": []
+                    "group": "Google ads",
+                    "pages": [
+                      "gtm"
+                    ]
                   }
                 ]
               },

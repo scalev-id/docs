@@ -1,0 +1,118 @@
+---
+title: "Tutorial Cara Setting Google Ads Dengan GTM"
+description: "Panduan langkah demi langkah untuk mengintegrasikan pelacakan Google Ads menggunakan Google Tag Manager (GTM) di Scalev"
+---
+
+## 1. Buat Konversi Baru di Akun Google Ads Anda
+
+Klik ikon **Goals** di menu sebelah kiri.
+
+![Klik ikon Goals](https://tutorial.scalev.id/wp-content/uploads/2024/05/google-ads-gtm-updated-1-1024x629.png)
+
+Scroll ke bawah lalu klik tombol **Create conversion action**.
+
+![Klik Create Conversion Action](https://tutorial.scalev.id/wp-content/uploads/2024/05/google-ads-gtm-updated-2-1024x640.png)
+
+Klik kotak **Website**.
+
+![Pilih Website](https://tutorial.scalev.id/wp-content/uploads/2024/05/google-ads-gtm-updated-3-1024x635.png)
+
+Masukkan alamat domain utama Anda.
+
+![Input Domain](https://tutorial.scalev.id/wp-content/uploads/2024/05/google-ads-gtm-updated-4-1024x638.png)
+
+Jika muncul dialog seperti ini, pilih format domain utama aktif yang akan Anda gunakan untuk beriklan.
+
+![Pilih Format Domain](https://tutorial.scalev.id/wp-content/uploads/2024/05/google-ads-gtm-updated-5-1024x471.png)
+
+Setelah itu scroll ke bagian bawah dan klik **Add a conversion action manually**.
+
+![Add Conversion Action Manually](https://tutorial.scalev.id/wp-content/uploads/2024/05/google-ads-gtm-updated-6-1024x631.png)
+
+Sesuaikan bagian yang ditandai kotak merah, lalu klik **Done**.
+
+![Isi Detail Konversi](https://tutorial.scalev.id/wp-content/uploads/2024/05/google-ads-gtm-updated-7-1024x789.png)
+
+Klik tombol **Save and continue**.
+
+![Klik Save and Continue](https://tutorial.scalev.id/wp-content/uploads/2024/05/google-ads-gtm-updated-8-1024x632.png)
+
+Catat **Conversion ID** dan **Conversion Label** yang tampil — Anda akan membutuhkannya nanti.
+
+![Catat Conversion ID dan Label](https://tutorial.scalev.id/wp-content/uploads/2024/05/google-ads-gtm-updated-9-1024x629.png)
+
+---
+
+## 2. Buat Akun GTM di [https://tagmanager.google.com](https://tagmanager.google.com)
+
+Klik tombol **Buat Akun** untuk membuat akun baru di Google Tag Manager.
+
+![Buat Akun GTM](https://tutorial.scalev.id/wp-content/uploads/2024/05/SCR-20240510-myjx-1024x326.png)
+
+Isi rincian yang dibutuhkan seperti pada contoh screenshot berikut.
+
+![Isi Detail Akun GTM](https://tutorial.scalev.id/wp-content/uploads/2024/05/SCR-20240510-mzem-1024x830.png)
+
+Centang persetujuan dan klik tombol **Ya**.
+
+![Setujui Ketentuan GTM](https://tutorial.scalev.id/wp-content/uploads/2024/05/SCR-20240510-mzka-1024x644.png)
+
+Setelah akun berhasil dibuat, klik **Tambahkan tag baru**.
+
+![Tambahkan Tag Baru](https://tutorial.scalev.id/wp-content/uploads/2024/05/SCR-20240510-natz-1024x511.png)
+
+Tambahkan tag **Conversion Linker** dan atur Pemicuan (Trigger) seperti pada screenshot.
+
+![Tag Conversion Linker](https://tutorial.scalev.id/wp-content/uploads/2024/05/Screenshot-2024-05-10-at-14.42.33-1024x449.png)
+
+Tambahkan tag baru lagi.
+
+![Tambahkan Tag Baru Lagi](https://tutorial.scalev.id/wp-content/uploads/2024/05/SCR-20240510-natz-1024x511.png)
+
+Pilih tag **Tracking Konversi Google Ads**, lalu isi **Conversion ID** dan **Conversion Label** sesuai dengan detail yang telah dibuat sebelumnya.
+
+![Isi Conversion ID dan Label](https://tutorial.scalev.id/wp-content/uploads/2024/05/Screenshot-2024-05-10-at-15.09.06-1024x631.png)
+
+Pada kolom **Pemicuan (Trigger)**, isi nama peristiwa persis seperti dicontohkan pada screenshot berikut.
+
+![Atur Trigger GTM](https://tutorial.scalev.id/wp-content/uploads/2024/05/Screenshot-2024-05-10-at-15.11.49-1024x570.png)
+
+Setelah semua selesai, simpan perubahan dengan mengklik tombol **Kirim** di GTM.
+
+![Klik Kirim di GTM](https://tutorial.scalev.id/wp-content/uploads/2024/05/SCR-20240510-nmiz-1024x239.png)
+
+---
+
+## 3. Integrasikan GTM ke Scalev
+
+Login ke dasbor Scalev, lalu ikuti langkah-langkah berikut:
+
+<Steps>
+  <Step title="Buka Halaman Setting">
+    Klik menu **Setting** di dasbor Scalev.
+  </Step>
+  <Step title="Pilih Google Tag Manager">
+    Klik dropdown di sebelah judul **Analitik**, lalu pilih **Google Tag Manager**.
+  </Step>
+  <Step title="Tambah Analitik Baru">
+    Klik **\+ Tambah Analitik**, lalu isi nama dan Container ID GTM yang telah dibuat.
+
+    ![Isi Nama dan Container ID GTM](https://tutorial.scalev.id/wp-content/uploads/2024/05/Screenshot-2024-05-10-at-22.05.04.png)
+
+    - **Nama**: bebas diisi sesuai keinginan
+    - **Container ID**: masukkan ID GTM Anda, contoh: `GTM-ABCD1234`
+
+    ![Contoh Container ID GTM](https://tutorial.scalev.id/wp-content/uploads/2024/05/SCR-20240510-tihm-1024x337.png)
+  </Step>
+  <Step title="Aktifkan GTM di Landing Page">
+    Pastikan setiap landing page baru yang dibuat di Scalev menggunakan analitik GTM yang telah dipasang.
+
+    ![Pilih GTM di Landing Page](https://tutorial.scalev.id/wp-content/uploads/2024/05/SCR-20240510-thhg-595x1024.png)
+
+    Simpan halaman Landing Page setelah selesai.
+  </Step>
+</Steps>
+
+<Info>
+  Sampai di sini, pengaturan konversi Google Ads untuk Scalev sudah selesai dan iklan Google Ads Anda sudah siap dijalankan.
+</Info>
