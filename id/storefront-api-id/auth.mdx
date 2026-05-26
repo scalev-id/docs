@@ -13,6 +13,8 @@ Tiga lapisan ini sengaja dipisah. Storefront API key bersifat publishable dan me
 
 ## Storefront API key
 
+Storefront API key yang valid hanya membuka akses runtime saat bisnis memiliki paket aktif Basic, Pro, atau Ultimate. Bisnis Free, Lite, tidak aktif, atau belum dibayar tetap bisa mengatur key dan allowed origin, tetapi panggilan Storefront API public akan mengembalikan response `Store not found` yang sama seperti store tidak ditemukan atau key tidak valid.
+
 Route public storefront memerlukan:
 
 ```text

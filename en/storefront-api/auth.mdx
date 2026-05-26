@@ -13,6 +13,8 @@ These layers are intentionally separate. The Storefront API key is publishable a
 
 ## Storefront API key
 
+A valid Storefront API key only enables runtime access when the business has an active Basic, Pro, or Ultimate plan. Free, Lite, inactive, or unpaid businesses can still configure keys and allowed origins, but public Storefront API calls return the same `Store not found` response as an unknown store or invalid key.
+
 Public storefront routes require:
 
 ```text

@@ -17,6 +17,12 @@ Storefront API berbeda dari pengaturan Storefront bawaan. Pengaturan Storefront 
   Untuk deployment headless storefront, anggap browser sebagai caller yang dimaksud untuk Storefront API v3. Gunakan backend Anda sendiri hanya untuk hal non-Scalev seperti admin settings, custom business logic, atau private integrations.
 </Warning>
 
+<Warning>
+  **Syarat paket berlangganan**
+
+  Request runtime Storefront API tersedia untuk bisnis dengan paket aktif Basic, Pro, atau Ultimate. Merchant di paket Free atau Lite tetap bisa mengatur public Store ID, API key publishable, dan allowed origin, tetapi panggilan API akan mengembalikan response `Store not found` yang sama sampai bisnis upgrade atau mengaktifkan lagi paket yang eligible.
+</Warning>
+
 ## Urutan baca yang disarankan
 
 1. Mulai dari halaman ini untuk memahami arsitektur, kebutuhan setup, dan peta endpoint.

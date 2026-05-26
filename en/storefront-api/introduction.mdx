@@ -17,6 +17,12 @@ Storefront API is separate from hosted Storefront settings. Hosted Storefront se
   For headless storefront deployments, treat the browser as the intended caller of Storefront API v3. Use your own backend only for non-Scalev concerns such as admin settings, custom business logic, or private integrations.
 </Warning>
 
+<Warning>
+  **Subscription requirement**
+
+  Storefront API runtime requests are available on active Basic, Pro, or Ultimate plans. Merchants on Free or Lite can still configure the public Store ID, publishable API keys, and allowed origins, but API calls return the same `Store not found` response until the business upgrades or reactivates an eligible plan.
+</Warning>
+
 ## Recommended reading order
 
 1. Start with this page for the architecture, setup requirements, and endpoint map.
