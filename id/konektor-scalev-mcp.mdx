@@ -167,9 +167,13 @@ Claude Code mendukung remote MCP server melalui Streamable HTTP dan menangani al
    claude mcp get scalev
    ```
 
-3. Jalankan Claude Code lalu ketik perintah slash `/mcp`. Claude Code menampilkan server Scalev dan membuka alur persetujuan OAuth Scalev di browser. Masuk, pilih bisnis yang ingin Anda berikan akses ke asisten, tinjau izin yang diminta, lalu setujui.
+3. Jalankan Claude Code lalu ketik perintah slash `/mcp`.
 
-4. Setelah disetujui, tool Scalev tampil di panel `/mcp` dan dapat dipanggil dari prompt. Nama tool mengikuti pola `mcp__scalev__<tool>` (contoh: `mcp__scalev__list_landing_pages`).
+4. Pilih **scalev** dari daftar server MCP.
+
+5. Pilih **Authenticate**. Claude Code membuka browser untuk alur persetujuan OAuth Scalev. Masuk, pilih bisnis yang ingin Anda berikan akses ke asisten, tinjau izin yang diminta, lalu setujui.
+
+6. Kembali ke Claude Code setelah alur browser selesai. Server Scalev seharusnya tampil sebagai authenticated, dan tool Scalev muncul di panel `/mcp`. Nama tool mengikuti pola `mcp__scalev__<tool>` (contoh: `mcp__scalev__list_landing_pages`).
 
 Jika Anda hanya ingin konektor tersedia di project tertentu atau ingin berbagi konfigurasinya dengan tim melalui version control, hilangkan `--scope user` (local) atau gunakan `--scope project` untuk menulis entry ke `.mcp.json` yang ikut di-commit.
 

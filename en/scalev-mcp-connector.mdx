@@ -167,9 +167,13 @@ Claude Code supports remote MCP servers over Streamable HTTP and handles the OAu
    claude mcp get scalev
    ```
 
-3. Start Claude Code and run the `/mcp` slash command. Claude Code shows the Scalev server and triggers the Scalev OAuth approval flow in your browser. Sign in, choose the business or businesses you want the assistant to access, review the requested permissions, and approve.
+3. Start Claude Code and run the `/mcp` slash command.
 
-4. After approval, the Scalev tools appear in the `/mcp` panel and are addressable from prompts. Tool names follow the `mcp__scalev__<tool>` pattern (for example, `mcp__scalev__list_landing_pages`).
+4. Choose **scalev** from the MCP server list.
+
+5. Choose **Authenticate**. Claude Code opens your browser for the Scalev OAuth approval flow. Sign in, choose the business or businesses you want the assistant to access, review the requested permissions, and approve.
+
+6. Return to Claude Code after the browser flow finishes. The Scalev server should show as authenticated, and the Scalev tools appear in the `/mcp` panel. Tool names follow the `mcp__scalev__<tool>` pattern (for example, `mcp__scalev__list_landing_pages`).
 
 If you want the connector available only for a specific project or to share its configuration with your team in version control, omit `--scope user` (local) or use `--scope project` to write the entry into a checked-in `.mcp.json`.
 
