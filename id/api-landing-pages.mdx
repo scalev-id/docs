@@ -108,11 +108,21 @@ HTML Mode memakai `render_mode: "html_mode"` dan field kode berikut:
 - `html_code`: HTML body-only
 - `css_code`: CSS
 - `js_code`: JavaScript browser
+- `additional_head_code`: kode tambahan untuk dokumen `<head>`
 - `csp_policy`: tambahan Content Security Policy opsional
 
 Saat `js_code` dikirim sebagai string kosong, response API dapat mengembalikannya sebagai `null`.
 Perlakukan `null` dan `""` sebagai "tanpa JavaScript" ketika membaca page display.
-`css_code` tetap dapat kembali sebagai string kosong.
+`css_code` dan `additional_head_code` tetap dapat kembali sebagai string kosong.
+
+Gunakan `additional_head_code` saat kamu perlu menambahkan tag head yang
+didukung secara langsung: `title`, `meta`, `link`, `style`, `script`, dan
+`noscript`. Scalev juga membuat tag head terkelola dari convenience setting
+seperti `meta.title`, `meta.description`, `meta.thumbnail`, `meta.favicon`, dan
+`meta.isDisabledSearchEngineCrawler`. Jika `additional_head_code` berisi
+`title`, `meta`, atau favicon `link` yang konflik, entry dari additional head
+akan menang. `meta.lang` tetap menjadi sumber untuk `<html lang="...">`; value
+ini tidak diambil dari `additional_head_code`.
 
 Jangan kirim field display khusus Builder seperti `schema_version`, `banner`, `header`, `general`, `sidebar`, atau `main` untuk HTML Mode. Scalev mengisi default yang sesuai secara internal. Response tetap bisa berisi field tersebut.
 
@@ -124,8 +134,16 @@ Sertakan field event analytics walaupun nilainya kosong:
   "html_code": "<main><h1>Launch offer</h1></main>",
   "css_code": "main { padding: 32px; }",
   "js_code": "",
+  "additional_head_code": "<meta name=\"theme-color\" content=\"#09AFED\">",
   "csp_policy": {},
-  "meta": { "lang": "id" },
+  "meta": {
+    "lang": "id",
+    "title": "Launch offer",
+    "description": "Deskripsi singkat penawaran",
+    "favicon": "https://cdn.example.com/favicon.ico",
+    "thumbnail": "https://cdn.example.com/social-image.jpg",
+    "isDisabledSearchEngineCrawler": false
+  },
   "fb_pixel_ids": [],
   "tiktok_pixel_ids": [],
   "kwai_client_pixel_ids": [],
@@ -142,7 +160,11 @@ Sertakan field event analytics walaupun nilainya kosong:
 }
 ```
 
-`html_code` tidak boleh berisi `<!doctype>`, `<html>`, `<head>`, `<body>`, metadata, tag favicon, atau pengaturan domain. Gunakan [runtime HTML Mode](/id/runtime-html-mode) untuk checkout, analytics, prefill, dan konteks halaman.
+`html_code` tidak boleh berisi `<!doctype>`, `<html>`, `<head>`, `<body>`,
+metadata, tag favicon, atau pengaturan domain. Taruh tag head yang didukung di
+`additional_head_code`, dan simpan convenience setting level dokumen di `meta`.
+Gunakan [runtime HTML Mode](/id/runtime-html-mode) untuk checkout, analytics,
+prefill, dan konteks halaman.
 
 ## Pixel analytics dan event
 
