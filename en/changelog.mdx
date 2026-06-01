@@ -4,6 +4,14 @@ description: "Product updates and documentation changes"
 rss: true
 ---
 
+<Update label="May 2026" description="Partitioned order IDs" tags={["API", "Docs"]}>
+  Business order responses now return the canonical order primary key as a
+  UUIDv7 string after the partitioned orders-table migration. Use the response
+  `id` for follow-up business API calls such as `GET /v3/orders/{id}` and
+  `PATCH /v3/orders/{id}`. Legacy numeric order IDs for migrated orders remain
+  accepted on ID routes and bulk `ids` payloads for compatibility.
+</Update>
+
 <Update label="May 2026" description="Storefront API build guide" tags={["Docs", "API"]}>
   Added an end-to-end Storefront API guide for agents and frontend developers
   building a custom storefront. The guide covers the direct frontend

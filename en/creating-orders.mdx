@@ -75,9 +75,13 @@ Call `POST /v3/orders` with the payload above.
 
 The response includes:
 
+- `id` - the canonical UUIDv7 order primary key
+- `order_id` - the business-facing order number
 - `secret_slug`
 - `public_order_url`
 - `payment_url`
+
+Use `id` for later business API calls such as `GET /v3/orders/{id}` or `PATCH /v3/orders/{id}`. Legacy numeric order IDs for migrated orders are still accepted on ID routes, but new order responses return UUIDs.
 
 Use `payment_url` for the customer redirect.
 
@@ -142,5 +146,7 @@ Minimal example:
 Call `POST /v3/orders` with the payload above.
 
 ### 6. Redirect the customer to the payment page
+
+Use `id` for later business API calls such as `GET /v3/orders/{id}` or `PATCH /v3/orders/{id}`. Legacy numeric order IDs for migrated orders are still accepted on ID routes, but new order responses return UUIDs.
 
 Use `payment_url` from the order-create response.

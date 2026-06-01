@@ -4,6 +4,15 @@ description: "Pembaruan produk dan dokumentasi"
 rss: true
 ---
 
+<Update label="Mei 2026" tags={["API","Docs"]} description="ID order setelah partisi">
+  Response order bisnis kini mengembalikan primary key order canonical sebagai
+  string UUIDv7 setelah migrasi tabel order ke partisi. Gunakan `id` dari
+  response untuk panggilan API bisnis lanjutan seperti `GET /v3/orders/{id}`
+  dan `PATCH /v3/orders/{id}`. ID numerik legacy untuk order yang sudah
+  dimigrasikan tetap diterima di route berbasis ID dan payload bulk `ids`
+  untuk kompatibilitas.
+</Update>
+
 <Update label="Mei 2026" tags={["Docs","API"]} description="Panduan build Storefront API">
   Menambahkan panduan Storefront API end-to-end untuk agent dan frontend developer yang membangun storefront custom. Panduan ini mencakup arsitektur direct frontend, checklist setup, helper fetch, alur katalog, guest dan customer cart checkout, auth customer, lokasi, reset password, rendering payment, subscription, akses course, dan checklist implementasi akhir.
 </Update>

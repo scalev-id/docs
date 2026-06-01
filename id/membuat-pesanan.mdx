@@ -75,9 +75,13 @@ Panggil `POST /v3/orders` dengan payload di atas.
 
 Response akan mencakup:
 
+- `id` - primary key order canonical berbentuk UUIDv7
+- `order_id` - nomor order yang terlihat oleh bisnis
 - `secret_slug`
 - `public_order_url`
 - `payment_url`
+
+Gunakan `id` untuk panggilan API bisnis berikutnya seperti `GET /v3/orders/{id}` atau `PATCH /v3/orders/{id}`. ID numerik legacy untuk order yang sudah dimigrasikan masih diterima di route berbasis ID, tetapi response order baru mengembalikan UUID.
 
 Gunakan `payment_url` untuk redirect customer.
 
@@ -142,5 +146,7 @@ Contoh minimal:
 Panggil `POST /v3/orders` dengan payload di atas.
 
 ### 6. Arahkan customer ke halaman pembayaran
+
+Gunakan `id` untuk panggilan API bisnis berikutnya seperti `GET /v3/orders/{id}` atau `PATCH /v3/orders/{id}`. ID numerik legacy untuk order yang sudah dimigrasikan masih diterima di route berbasis ID, tetapi response order baru mengembalikan UUID.
 
 Gunakan `payment_url` dari response order creation.
